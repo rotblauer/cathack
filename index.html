@@ -97,6 +97,16 @@
         return line.split(',')[0];
       }
 
+      function emphasizeHTML(string) {
+        return '<em>' + string + '</em>';
+      }
+      function smallifyHTML(string) {
+        return '<small>' + string + '</small>';
+      }
+      function strongifyHTML(string) {
+        return '<strong>' + string + '</strong>'; 
+      }
+
       function handleLineFormatting(line) {
 
         console.log('got line -> ' + line);
@@ -106,7 +116,7 @@
         console.log('niceTime-> ' + niceTime);
         
         // replace original time with nice time
-        var better = line.replace(getDateFromLine(line), niceTime);
+        var better = line.replace(getDateFromLine(line), smallifyHTML(niceTime));
         
         var s = line.split(','); // split from original line
         var lat = s[1];
@@ -114,14 +124,22 @@
         var tz = s[3];
         var subdiv = s[4];
 
+        better = better.replace(subdiv, emphasizeHTML(subdiv));
         better = better.replace(lat, '');
         better = better.replace(lon, '');
         better = better.replace(tz, '');
         better = better.replace(',,,,', ' ');
         better = better.replace(/,.*\$/, ' $'); // replace between , ... $
 
+        // var best = '';
+        // best += niceTime + ' '; 
+        // best += subdiv + ' ';
+        // // remove erything cept msg
+        // best += better.replace(/^.*\$/, '$');
+
         // Remove (time_zone)
         return better; // .replace(/ *\([^)]*\) */g, " ");
+        // return best;
       }
 
       function scrollChat() {
@@ -137,7 +155,8 @@
           var arrLines = strRawContents.split("\n");
           for (var i = 0; i < arrLines.length; i++) {
               var curLine = arrLines[i];
-              chat.innerText += handleLineFormatting(curLine) + "\n";
+              // chat.innerText += handleLineFormatting(curLine) + "\n";
+              chat.innerHTML += handleLineFormatting(curLine) + "\n";
           }
       }
 
@@ -145,7 +164,8 @@
         var line = msg.data;
 
         // handle line formatting
-        chat.innerText += handleLineFormatting(line) + "\n";
+        // chat.innerText += handleLineFormatting(line) + "\n";
+        chat.innerHTML += handleLineFormatting(line) + "\n";
 
         scrollChat(); // set to bottom nicelike
       };
