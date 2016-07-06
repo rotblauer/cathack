@@ -3,25 +3,56 @@
     <title>CatChat</title>
   </head>
 
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <!-- jquery -->
+  <script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
+
   <style>
+    body {
+      background-color: black;
+    }
+    pre {
+      border: none;
+    }
     #chat {
       text-align: left;
-      /*background: #f1f1f1;*/
-      width: 500px;
-      min-height: 300px;
+      background: black;
+      color: lightgreen;
+      width: 100%;
       padding: 20px;
+      
+      /*autoscrolalble*/
+      height: 80vh;
+      overflow: auto;
+    }
+    input#text {
+      background: black;
+      border: none;
+      color: lightgreen;
     }
   </style>
 
+  <iframe id="frmFile" src="chat.txt" onload="LoadFile();" style="display: none" ></iframe>
+
   <body>
-    <center>
-      <h3>CatChat</h3>
-      <pre id="chat"></pre>
-      <input placeholder="say something" id="text" type="text">
-    </center>
 
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-12">
+          <pre id="chat"></pre> 
+          <div class="input-holder" style="padding: 5vh;">
+            <div class="form-group">
+              <label for="text">Echo</label>
+              <input class="form-control" placeholder="say something" id="text" type="text">  
+            </div>  
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
 
-<iframe id="frmFile" src="chat.txt" onload="LoadFile();" style="display: none" ></iframe>
 
 <script type="text/javascript">
 
@@ -40,6 +71,8 @@ function LoadFile() {
 
 </script>
 
+
+
     <script>
       var url = "ws://" + window.location.host + "/ws";
       var ws = new WebSocket(url);
@@ -50,16 +83,30 @@ function LoadFile() {
         var iso = new Date().toISOString();
         return iso.split("T")[1].split(".")[0];
       };
+
+      function scrollChat() {
+        var div = $('#chat');
+        div.scrollTop(div.prop('scrollHeight'));
+      }
+
       ws.onmessage = function (msg) {
         var line =  msg.data + "\n";
         chat.innerText += line;
+        scrollChat(); // set to bottom nicelike
       };
       text.onkeydown = function (e) {
         if (e.keyCode === 13 && text.value !== "") {
-          ws.send(" > " + text.value);
+          ws.send(" $ " + text.value);
           text.value = "";
         }
       };
+
+      // scroll to bottom on doc ready
+      $(function () {
+        scrollChat();
+      });
     </script>
+    
+
   </body>
 </html>
