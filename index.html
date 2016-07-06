@@ -3,12 +3,13 @@
     <title>CatChat</title>
   </head>
 
+  <!-- bootstrap -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
   <!-- jquery -->
   <script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
 
-  <!-- momentjs does nice times  -->
+  <!-- momentjs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
  
   <style>
@@ -39,9 +40,12 @@
       border: none;
       color: lightgreen;
     }
-    .gogs-link-holder {
-      float:left;
+    #open-chatty-full {
+      position: fixed;
+      top: 0;
+      right: 0;
       padding: 3vh;
+      z-index: 10;
     }
 
     /*bs tweakers*/
@@ -58,9 +62,7 @@
     <div class="container-fluid">
       <div class="row">
 
-    <!--     <div class="gogs-link-holder">
-            <a class="btn btn-warning btn-sm" href="http://goggable.areteh.co:3000"><span class="glyphicon glyphicon-eject"></span></a>  
-        </div> -->
+        <a id="open-chatty-full" class="text-primary" target="_blank" href="http://www.chat.areteh.co:5000"><span class="glyphicon glyphicon-resize-full"></span></a>
 
         <div class="col-sm-12">
 
@@ -77,14 +79,14 @@
       </div>
     </div>
 
-
-    <script type="text/javascript">
-
+    <script type="text/javascript" >
+      
       var chat = document.getElementById("chat");
       var url = "ws://" + window.location.host + "/ws";
       var ws = new WebSocket(url);
       var chat = document.getElementById("chat");
       var text = document.getElementById("text");
+      var data = [];
 
       function formatDate(goTimeString) {
 
@@ -99,10 +101,6 @@
         }
       }
 
-      function getDateFromLine(line) {
-        return line.split(',')[0];
-      }
-
       function emphasizeHTML(string) {
         return '<em>' + string + '</em>';
       }
@@ -113,39 +111,53 @@
         return '<strong>' + string + '</strong>'; 
       }
 
-      function handleLineFormatting(line) {
+      function formatPS1(jsonLine) {
 
-        console.log('got line -> ' + line);
+        var d = JSON.parse(jsonLine);
+        var out = "";
 
-        // grab time and make it look nice
-        var niceTime = formatDate(getDateFromLine(line));
-        console.log('niceTime-> ' + niceTime);
+        out += formatDate(d["time"]);
+        out += " @ " + d["city"];
+        out += " $ " + d["message"];
+
+        return out;
+
+        // // grab time and make it look nice
+        // // var niceTime = formatDate(getDateFromLine(line));
         
-        // replace original time with nice time
-        var better = line.replace(getDateFromLine(line), smallifyHTML(niceTime));
+        // // replace original time with nice time
+        // // var better = line.replace(getDateFromLine(line), smallifyHTML(niceTime));
         
-        var s = line.split(','); // split from original line
-        var lat = s[1];
-        var lon = s[2];
-        var tz = s[3];
-        var subdiv = s[4];
+        // var s = line.split(','); // split from original line
+        // var time = s[0];
+        // var lat = s[1];
+        // var lon = s[2];
+        // var tz = s[3];
+        // var subdiv = s[4];
 
-        better = better.replace(subdiv, strongifyHTML(subdiv));
-        better = better.replace(lat, '');
-        better = better.replace(lon, '');
-        better = better.replace(tz, '');
-        better = better.replace(',,,,', ' ');
-        better = better.replace(/,.*\$/, ' $'); // replace between , ... $
+        // // better = better.replace(subdiv, strongifyHTML(subdiv));
+        // // better = better.replace(lat, '');
+        // // better = better.replace(lon, '');
+        // // better = better.replace(tz, '');
+        // // better = better.replace(',,,,', ' ');
+        // // better = better.replace(/,.*\$/, ' $'); // replace between , ... $
 
-        // var best = '';
-        // best += niceTime + ' '; 
-        // best += subdiv + ' ';
-        // // remove erything cept msg
-        // best += better.replace(/^.*\$/, '$');
+        // // var best = '';
+        // // best += niceTime + ' '; 
+        // // best += subdiv + ' ';
+        // // // remove erything cept msg
+        // // best += better.replace(/^.*\$/, '$');
 
-        // Remove (time_zone)
-        return better; // .replace(/ *\([^)]*\) */g, " ");
-        // return best;
+        // // Remove (time_zone)
+        // // return better; // .replace(/ *\([^)]*\) */g, " ");
+        // // return best;
+        // return line;
+      }
+
+      function renderData(data) {
+        jQuery.each(data, function () {
+          chat.innerHTML += formatPS1(this) + "\n";
+        });
       }
 
       function scrollChat() {
@@ -159,11 +171,13 @@
 
           var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
           var arrLines = strRawContents.split("\n");
-          for (var i = 0; i < arrLines.length; i++) {
+          for (var i = 0; i < arrLines.length - 1; i++) {
               var curLine = arrLines[i];
+              data.push(curLine);
               // chat.innerText += handleLineFormatting(curLine) + "\n";
-              chat.innerHTML += handleLineFormatting(curLine) + "\n";
+              // chat.innerHTML += handleLineFormatting(curLine) + "\n";
           }
+          renderData(data);
       }
 
       ws.onmessage = function (msg) {
@@ -171,13 +185,15 @@
 
         // handle line formatting
         // chat.innerText += handleLineFormatting(line) + "\n";
-        chat.innerHTML += handleLineFormatting(line) + "\n";
+        // chat.innerHTML += handleLineFormatting(line) + "\n";
+        data.push(line);
+        renderData(data);
 
         scrollChat(); // set to bottom nicelike
       };
       text.onkeydown = function (e) {
         if (e.keyCode === 13 && text.value !== "") {
-          ws.send(" $ " + text.value);
+          ws.send(text.value);
           text.value = "";
         }
       };

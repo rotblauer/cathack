@@ -9,9 +9,9 @@ import (
     "errors"
 )
 
-func GetGeoFromIP(ip string) ([]string, error) {
+func GetGeoFromIP(ip string) (out map[string]string, err error) {
 
-    out := []string{}
+    out = make(map[string]string)
     // Don't init error. Want it to be nil. 
 
     db, err := geoip2.Open("./lib/GeoLite2-City.mmdb")
@@ -33,21 +33,6 @@ func GetGeoFromIP(ip string) ([]string, error) {
         log.Fatal(err)
     }
 
-    lat := strconv.FormatFloat(record.Location.Latitude, 'f', 6, 64)
-    lon := strconv.FormatFloat(record.Location.Longitude, 'f', 6, 64)
-    tz := record.Location.TimeZone
-    subdiv := record.Subdivisions[0].Names["en"]
-
-    if err == nil {
-        out = append(out, lat + "," + lon)
-        out = append(out, tz)
-        out = append(out, subdiv)
-    }
-    if err != nil {
-        return out, err
-    }
-    return out, nil
-
     // fmt.Printf("Portuguese (BR) city name: %v\n", record.City.Names["pt-BR"])
     // fmt.Printf("English subdivision name: %v\n", record.Subdivisions[0].Names["en"])
     // fmt.Printf("Russian country name: %v\n", record.Country.Names["ru"])
@@ -61,4 +46,16 @@ func GetGeoFromIP(ip string) ([]string, error) {
     // ISO country code: GB
     // Time zone: Europe/London
     // Coordinates: 51.5142, -0.0931
+    
+    out["lat"] = strconv.FormatFloat(record.Location.Latitude, 'f', 6, 64)
+    out["lon"] = strconv.FormatFloat(record.Location.Longitude, 'f', 6, 64)
+    out["tz"] = record.Location.TimeZone
+    out["countryIsoCode"] = record.Country.IsoCode
+    out["subdiv"] = record.Subdivisions[0].Names["en"]
+    out["city"] = record.City.Names["en"]
+
+    if err != nil {
+        return out, err
+    }
+    return out, nil
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
+	j "github.com/ricardolonga/jsongo"
 
 	"./lib"
 )
@@ -24,6 +25,13 @@ func main() {
 	// Serves file,
 	r.StaticFile("/chat.txt", "./chat.txt")
 
+	// These are _really_ slow. WTF.
+	// r.Static("/assets", "./assets")
+	// r.StaticFile("app.js", "./app.js")
+	// r.GET("/app.js", func(c *gin.Context) {
+	// 	http.ServeFile(c.Writer, c.Request, "app.js")
+	// })
+
 	r.GET("/", func(c *gin.Context) {
 		http.ServeFile(c.Writer, c.Request, "index.html")
 	})
@@ -35,8 +43,7 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		// Message with timestamp.
-		// timeString := strconv.FormatInt(time.Now().UTC().Unix(), 16)
-		// timeFormat := "2006-01-02 15:04:05"
+		// timeUnix := time.Now().UTC().UnixNano()
 		timeString := time.Now().UTC().String()
 
 		// IP
@@ -50,17 +57,30 @@ func main() {
 			log.Fatalln("Error getting Geo IP.", err)
 		}
 
-		bs := ""
-		bs += timeString 
-		bs += ","
-		bs += geoip[0] //lat,lon
-		bs += "," + geoip[1] //tz
-		bs += "," + geoip[2] //subdiv
-		bs += ","
-		bs += lib.BootsEncoded(ip)
-		bs += string(msg)
+		// bs := ""
+		// bs += timeString 
+		// bs += ","
+		// bs += geoip["lat"] + "," + geoip["lon"] //lat,lon
+		// bs += "," + geoip["tz"] //tz
+		// bs += "," + geoip["subdiv"] //subdiv
+		// bs += ","
+		// bs += lib.BootsEncoded(ip)
+		// bs += string(msg)
 
-		ps1 := []byte(bs)
+		// ps1 := []byte(bs)
+		
+		data := j.Object().Put("time", timeString). // btw hanging dots are no go
+											 Put("message", string(msg)).
+											 Put("bootsIP", lib.BootsEncoded(ip)).
+											 Put("lat", geoip["lat"]).
+											 Put("lon", geoip["lon"]).
+											 Put("city", geoip["city"]).
+											 Put("subdiv", geoip["subdiv"]).
+											 Put("countryIsoCode", geoip["countryIsoCode"]).
+											 Put("tz", geoip["tz"])
+										
+		dataIndentedString := data.String()
+		ps1 := []byte(dataIndentedString)
 
 		// Broadcast web socket. 
 		// @ps1 []byte
