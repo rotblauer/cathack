@@ -32,7 +32,7 @@
     .input-holder {
       position: fixed;
       bottom: 0;
-      width: 100%;
+      width: 95%;
     }
     input#text {
       background: black;
@@ -84,7 +84,7 @@
 
         var cleanString = goTimeString.replace(' UTC', '');
         var a = moment.utc(cleanString);
-        var b = a.local().format("dddd, MMMM Do, h:mm:ss a");
+        var b = a.local().format(" kk:mm:ss ddd MMM D");
 
         if (a.isValid()) {
           return b;  
@@ -107,16 +107,19 @@
         
         // replace original time with nice time
         var better = line.replace(getDateFromLine(line), niceTime);
+        
         var s = line.split(','); // split from original line
         var lat = s[1];
         var lon = s[2];
         var tz = s[3];
         var subdiv = s[4];
+
         better = better.replace(lat, '');
         better = better.replace(lon, '');
         better = better.replace(tz, '');
-        better = better.replace(',,,,', ' @ ');
-        
+        better = better.replace(',,,,', ' ');
+        better = better.replace(/,.*\$/, ' $'); // replace between , ... $
+
         // Remove (time_zone)
         return better; // .replace(/ *\([^)]*\) */g, " ");
       }

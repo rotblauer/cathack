@@ -56,7 +56,7 @@ func main() {
 		bs += geoip[0] //lat,lon
 		bs += "," + geoip[1] //tz
 		bs += "," + geoip[2] //subdiv
-		bs += " | "
+		bs += ","
 		bs += lib.BootsEncoded(ip)
 		bs += string(msg)
 
