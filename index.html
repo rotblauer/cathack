@@ -124,7 +124,7 @@
         var tz = s[3];
         var subdiv = s[4];
 
-        better = better.replace(subdiv, emphasizeHTML(subdiv));
+        better = better.replace(subdiv, strongifyHTML(subdiv));
         better = better.replace(lat, '');
         better = better.replace(lon, '');
         better = better.replace(tz, '');
