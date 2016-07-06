@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	//go run chat.go
 	r := gin.Default()
 	m := melody.New()
 	t := time.Now()
@@ -29,28 +30,28 @@ func main() {
 	})
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
-		
+
 		// Message with timestamp.
-		msgWithTime := t.Format(timeFormat) + string(msg)
-		
+		msgWithTime := []byte(t.Format(timeFormat) + string(msg))
+
 		// Broadcast web socket.
 		m.Broadcast(msgWithTime)
-		
-		// Open database. 
+
+		// Open database.
 		f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 		if err != nil {
 			log.Fatalln("Error opening file: ", err)
 		}
-		
+
 		// Write to database.
 		bytes, err := f.WriteString(string(msgWithTime) + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err)
 		}
-		
+
 		fmt.Printf("Wrote %d bytes to file\n", bytes)
 		fmt.Println(string(msgWithTime))
-		
+
 		f.Close()
 	})
 
