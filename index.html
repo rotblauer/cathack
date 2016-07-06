@@ -26,8 +26,10 @@
 <script type="text/javascript">
 
 var chat = document.getElementById("chat");
+//Seems like this might not be the way to handle loadin up a text file
 function LoadFile() {
     var oFrame = document.getElementById("frmFile");
+
     var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
     var arrLines = strRawContents.split("\n");
     for (var i = 0; i < arrLines.length; i++) {
