@@ -10,17 +10,12 @@ import (
 	"github.com/olahol/melody"
 )
 
-// f, err := os.OpenFile(filename, os.O_APPEND, 0666)
-
-// n, err := f.WriteString(text)
-
-// f.Close()
-
 func main() {
 	r := gin.Default()
 	m := melody.New()
 
-	r.StaticFile("/test.txt", "./test.txt")
+	// Serves file,
+	r.StaticFile("/chat.txt", "./chat.txt")
 
 	r.GET("/", func(c *gin.Context) {
 		http.ServeFile(c.Writer, c.Request, "index.html")
@@ -32,7 +27,7 @@ func main() {
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 		m.Broadcast(msg)
-		f, err := os.OpenFile("./test.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 		if err != nil {
 			log.Fatalln("Error opening file: ", err)
 		}

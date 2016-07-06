@@ -21,23 +21,20 @@
     </center>
 
 
-<iframe id="frmFile" src="test.txt" onload="LoadFile();" style="display: none" ></iframe>
+<iframe id="frmFile" src="chat.txt" onload="LoadFile();" style="display: none" ></iframe>
 
 <script type="text/javascript">
-var chat = document.getElementById("chat");
 
+var chat = document.getElementById("chat");
 function LoadFile() {
     var oFrame = document.getElementById("frmFile");
     var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
     var arrLines = strRawContents.split("\n");
-    // alert("File " + oFrame.src + " has " + arrLines.length + " lines");
     for (var i = 0; i < arrLines.length; i++) {
         var curLine = arrLines[i];
-        chat.innerText += curLine +"\n"
-        // alert("Line #" + (i + 1) + " is: '" + curLine + "'");
+        chat.innerText += curLine +"\n";
     }
 }
-
 
 </script>
 
