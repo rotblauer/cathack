@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func BootsEncoded(ip string) {
+func BootsEncoded(ip string) string {
 	code := strings.Split("bootsiscat", "")
 	out := ""
 	stringWithJustNumbers := strings.Replace(ip, ".", "0", -1)
