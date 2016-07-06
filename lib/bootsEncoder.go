@@ -15,7 +15,7 @@ func BootsEncoded(ip string) {
 		// fmt.Println(reflect.TypeOf(letter))
 		number, err := strconv.Atoi(letter)
 		if err != nil {
-			fmt.Println("invalid string", err)
+			// fmt.Println("invalid string", err)
 		}
 		codedLetter := code[number]
 		out += codedLetter
