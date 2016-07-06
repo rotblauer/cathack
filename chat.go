@@ -41,11 +41,16 @@ func main() {
 			log.Fatalln("Error getting client IP: ", err)
 		}
 
-		msgWithTime := []byte(t.Format(timeFormat) + " | " + lib.BootsEncoded(ip) + string(msg))
+		geoip, err := lib.GetGeoFromIP(ip)
+		if err != nil {
+			log.Fatalln("Error getting Geo IP.", err)
+		}
+
+		ps1 := []byte(t.Format(timeFormat) + " @ " + geoip +  " | " + lib.BootsEncoded(ip) + string(msg))
 
 		// Broadcast web socket. 
-		// @msgWithTime []byte
-		m.Broadcast(msgWithTime)
+		// @ps1 []byte
+		m.Broadcast(ps1)
 
 		// Open database.
 		f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
@@ -54,14 +59,14 @@ func main() {
 		}
 
 		// Write to database.
-		msgWithTimeString := string(msgWithTime)
-		bytes, err := f.WriteString(msgWithTimeString + "\n")
+		ps1String := string(ps1)
+		bytes, err := f.WriteString(ps1String + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err) // Will this out to same place as fmt? ie &>chat.log
 		}
 
 		fmt.Printf("Wrote %d bytes to file\n", bytes)
-		fmt.Println(msgWithTimeString)
+		fmt.Println(ps1String)
 
 		f.Close()
 	})
