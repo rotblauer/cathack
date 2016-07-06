@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"os"
 	"time"
+	// "strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
 
 	"./lib"
 )
+
+// func formatPS1()
 
 func main() {
 	//go run chat.go
@@ -32,8 +35,9 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		// Message with timestamp.
-		t := time.Now()
-		timeFormat := "2006-01-02 15:04:05"
+		// timeString := strconv.FormatInt(time.Now().UTC().Unix(), 16)
+		// timeFormat := "2006-01-02 15:04:05"
+		timeString := time.Now().UTC().String()
 
 		// IP
 		ip, err := lib.GetClientIPHelper(s.Request)
@@ -46,7 +50,17 @@ func main() {
 			log.Fatalln("Error getting Geo IP.", err)
 		}
 
-		ps1 := []byte(t.Format(timeFormat) + " @ " + geoip +  " | " + lib.BootsEncoded(ip) + string(msg))
+		bs := ""
+		bs += timeString 
+		bs += ","
+		bs += geoip[0] //lat,lon
+		bs += "," + geoip[1] //tz
+		bs += "," + geoip[2] //subdiv
+		bs += " | "
+		bs += lib.BootsEncoded(ip)
+		bs += string(msg)
+
+		ps1 := []byte(bs)
 
 		// Broadcast web socket. 
 		// @ps1 []byte

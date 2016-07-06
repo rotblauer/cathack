@@ -8,6 +8,9 @@
   <!-- jquery -->
   <script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
 
+  <!-- momentjs does nice times  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
+ 
   <style>
     body {
       background-color: black;
@@ -30,12 +33,15 @@
       position: fixed;
       bottom: 0;
       width: 100%;
-      padding: 2rem;
     }
     input#text {
       background: black;
       border: none;
       color: lightgreen;
+    }
+    .gogs-link-holder {
+      float:left;
+      padding: 3vh;
     }
   </style>
 
@@ -45,12 +51,18 @@
 
     <div class="container-fluid">
       <div class="row">
+
+        <div class="gogs-link-holder">
+            <a class="btn btn-warning btn-sm" href="http://goggable.areteh.co:3000"><span class="glyphicon glyphicon-eject"></span></a>  
+        </div>
+
         <div class="col-sm-12">
+
           <pre id="chat"></pre> 
+
           <div class="input-holder" >
             <div class="form-group">
-              <label for="text">Echo</label>
-              <input class="form-control" placeholder="say something" id="text" type="text">  
+              <input class="form-control" placeholder="$ echo" id="text" type="text">  
             </div>  
           </div>
           
@@ -60,44 +72,78 @@
     </div>
 
 
-<script type="text/javascript">
+    <script type="text/javascript">
 
-var chat = document.getElementById("chat");
-//Seems like this might not be the way to handle loadin up a text file
-function LoadFile() {
-    var oFrame = document.getElementById("frmFile");
-
-    var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
-    var arrLines = strRawContents.split("\n");
-    for (var i = 0; i < arrLines.length; i++) {
-        var curLine = arrLines[i];
-        chat.innerText += curLine +"\n";
-    }
-}
-
-</script>
-
-
-
-    <script>
+      var chat = document.getElementById("chat");
       var url = "ws://" + window.location.host + "/ws";
       var ws = new WebSocket(url);
-      var name = "Guest" + Math.floor(Math.random() * 1000);
       var chat = document.getElementById("chat");
       var text = document.getElementById("text");
-      var now = function () {
-        var iso = new Date().toISOString();
-        return iso.split("T")[1].split(".")[0];
-      };
+
+      function formatDate(goTimeString) {
+
+        var cleanString = goTimeString.replace(' UTC', '');
+        var a = moment.utc(cleanString);
+        var b = a.local().format("dddd, MMMM Do, h:mm:ss a");
+
+        if (a.isValid()) {
+          return b;  
+        } else {
+          return goTimeString
+        }
+      }
+
+      function getDateFromLine(line) {
+        return line.split(',')[0];
+      }
+
+      function handleLineFormatting(line) {
+
+        console.log('got line -> ' + line);
+
+        // grab time and make it look nice
+        var niceTime = formatDate(getDateFromLine(line));
+        console.log('niceTime-> ' + niceTime);
+        
+        // replace original time with nice time
+        var better = line.replace(getDateFromLine(line), niceTime);
+        var s = line.split(','); // split from original line
+        var lat = s[1];
+        var lon = s[2];
+        var tz = s[3];
+        var subdiv = s[4];
+        better = better.replace(lat, '');
+        better = better.replace(lon, '');
+        better = better.replace(tz, '');
+        better = better.replace(',,,,', ' @ ');
+        
+        // Remove (time_zone)
+        return better; // .replace(/ *\([^)]*\) */g, " ");
+      }
 
       function scrollChat() {
         var div = $('#chat');
         div.scrollTop(div.prop('scrollHeight'));
       }
 
+      //Seems like this might not be the way to handle loadin up a text file
+      function LoadFile() {
+          var oFrame = document.getElementById("frmFile");
+
+          var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
+          var arrLines = strRawContents.split("\n");
+          for (var i = 0; i < arrLines.length; i++) {
+              var curLine = arrLines[i];
+              chat.innerText += handleLineFormatting(curLine) + "\n";
+          }
+      }
+
       ws.onmessage = function (msg) {
-        var line =  msg.data + "\n";
-        chat.innerText += line;
+        var line = msg.data;
+
+        // handle line formatting
+        chat.innerText += handleLineFormatting(line) + "\n";
+
         scrollChat(); // set to bottom nicelike
       };
       text.onkeydown = function (e) {
@@ -111,6 +157,7 @@ function LoadFile() {
       $(function () {
         scrollChat();
       });
+
     </script>
     
 

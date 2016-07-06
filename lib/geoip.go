@@ -9,9 +9,9 @@ import (
     "errors"
 )
 
-func GetGeoFromIP(ip string) (string, error) {
+func GetGeoFromIP(ip string) ([]string, error) {
 
-    out := ""
+    out := []string{}
     // Don't init error. Want it to be nil. 
 
     db, err := geoip2.Open("./lib/GeoLite2-City.mmdb")
@@ -35,9 +35,13 @@ func GetGeoFromIP(ip string) (string, error) {
 
     lat := strconv.FormatFloat(record.Location.Latitude, 'f', 6, 64)
     lon := strconv.FormatFloat(record.Location.Longitude, 'f', 6, 64)
+    tz := record.Location.TimeZone
+    subdiv := record.Subdivisions[0].Names["en"]
 
     if err == nil {
-        out = lat + ", " + lon        
+        out = append(out, lat + "," + lon)
+        out = append(out, tz)
+        out = append(out, subdiv)
     }
     if err != nil {
         return out, err
