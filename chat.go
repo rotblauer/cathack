@@ -41,7 +41,7 @@ func main() {
 			log.Fatalln("Error getting client IP: ", err)
 		}
 
-		msgWithTime := []byte(t.Format(timeFormat) + "\n" + lib.BootsEncoded(ip) + string(msg))
+		msgWithTime := []byte(t.Format(timeFormat) + " | " + lib.BootsEncoded(ip) + string(msg))
 
 		// Broadcast web socket. 
 		// @msgWithTime []byte
