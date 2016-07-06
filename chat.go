@@ -38,7 +38,7 @@ func main() {
 			log.Fatalln("Error opening file: ", err)
 		}
 		
-		bytes, err := f.WriteString(time.Now() + ' ' + string(msg) + "\n")
+		bytes, err := f.WriteString(string(time.Now()) + string(msg) + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err)
 		}
