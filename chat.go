@@ -31,7 +31,7 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 		
 		// Message with timestamp.
-		msgWithTime = t.Format(timeFormat) + ' ' + string(msg)
+		msgWithTime := t.Format(timeFormat) + ' ' + string(msg)
 		
 		// Broadcast web socket.
 		m.Broadcast(msgWithTime)
