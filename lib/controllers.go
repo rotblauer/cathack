@@ -9,6 +9,8 @@ import (
     // "net/url" // Use only in parsing request Header.
 )
 
+// https://github.com/gin-gonic/gin/issues/604
+
 // GetClientIPHelper gets the client IP using a mixture of techniques.
 // This is how it is with golang at the moment.
 func GetClientIPHelper(req *http.Request) (ipResult string, errResult error) {

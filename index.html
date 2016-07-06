@@ -51,7 +51,7 @@ function LoadFile() {
         return iso.split("T")[1].split(".")[0];
       };
       ws.onmessage = function (msg) {
-        var line =  now() + " " + msg.data + "\n";
+        var line =  msg.data + "\n";
         chat.innerText += line;
       };
       text.onkeydown = function (e) {
