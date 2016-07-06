@@ -29,7 +29,7 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 		
 		// Message with timestamp.
-		msgWithTime = time.Now() + '\n' + msg
+		msgWithTime = time.Now() + msg
 		
 		m.Broadcast(msgWithTime)
 		
