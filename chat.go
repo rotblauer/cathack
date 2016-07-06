@@ -38,13 +38,13 @@ func main() {
 			log.Fatalln("Error opening file: ", err)
 		}
 		
-		bytes, err := f.WriteString(string(msgWithTime) + "\n")
+		bytes, err := f.WriteString(time.Now() + ' ' + string(msg) + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err)
 		}
 		
 		fmt.Printf("Wrote %d bytes to file\n", bytes)
-		fmt.Println(string(msgWithTime))
+		fmt.Println(string(msg))
 		
 		f.Close()
 	})
