@@ -14,8 +14,6 @@ import (
 func main() {
 	r := gin.Default()
 	m := melody.New()
-	t := time.Now()
-	timeFormat := "2006-01-02 15:04:05"
 
 	// Serves file,
 	r.StaticFile("/chat.txt", "./chat.txt")
@@ -31,11 +29,15 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 		
 		// Message with timestamp.
-		ft := t.Format(timeFormat)
-		msgWithTime := ft + string(msg)
+		t := time.Now()
+		timeFormat := "2006-01-02 15:04:05"
+		formattedTimeString := t.Format(timeFormat)
+		messageString := string(msg)
+
+		msgWithTime := formattedTimeString + messageString
 		
 		// Broadcast web socket.
-		m.Broadcast(msgWithTime)
+		m.Broadcast(msg)
 		
 		// Open database. 
 		f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
@@ -44,13 +46,13 @@ func main() {
 		}
 		
 		// Write to database.
-		bytes, err := f.WriteString(ft + string(msg) + "\n")
+		bytes, err := f.WriteString(msgWithTime + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err)
 		}
 		
 		fmt.Printf("Wrote %d bytes to file\n", bytes)
-		fmt.Println(ft)
+		fmt.Println(msgWithTime)
 		
 		f.Close()
 	})
