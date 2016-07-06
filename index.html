@@ -20,6 +20,27 @@
       <input placeholder="say something" id="text" type="text">
     </center>
 
+
+<iframe id="frmFile" src="test.txt" onload="LoadFile();" style="display: none" ></iframe>
+
+<script type="text/javascript">
+var chat = document.getElementById("chat");
+
+function LoadFile() {
+    var oFrame = document.getElementById("frmFile");
+    var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
+    var arrLines = strRawContents.split("\n");
+    // alert("File " + oFrame.src + " has " + arrLines.length + " lines");
+    for (var i = 0; i < arrLines.length; i++) {
+        var curLine = arrLines[i];
+        chat.innerText += curLine +"\n"
+        // alert("Line #" + (i + 1) + " is: '" + curLine + "'");
+    }
+}
+
+
+</script>
+
     <script>
       var url = "ws://" + window.location.host + "/ws";
       var ws = new WebSocket(url);
@@ -36,7 +57,7 @@
       };
       text.onkeydown = function (e) {
         if (e.keyCode === 13 && text.value !== "") {
-          ws.send("<" + name + "> " + text.value);
+          ws.send("| " + name + " | " + text.value);
           text.value = "";
         }
       };
