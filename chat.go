@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
@@ -26,17 +27,25 @@ func main() {
 	})
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
-		m.Broadcast(msg)
+		
+		// Message with timestamp.
+		msgWithTime = time.Now() + '\n' + msg
+		
+		m.Broadcast(msgWithTime)
+		
 		f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 		if err != nil {
 			log.Fatalln("Error opening file: ", err)
 		}
-		bytes, err := f.WriteString(string(msg) + "\n")
+		
+		bytes, err := f.WriteString(string(msgWithTime) + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err)
 		}
+		
 		fmt.Printf("Wrote %d bytes to file\n", bytes)
-		fmt.Println(string(msg))
+		fmt.Println(string(msgWithTime))
+		
 		f.Close()
 	})
 
