@@ -9,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
+
+	"./lib"
 )
 
 func main() {
@@ -33,7 +35,13 @@ func main() {
 		t := time.Now()
 		timeFormat := "2006-01-02 15:04:05"
 
-		msgWithTime := []byte(t.Format(timeFormat) + string(msg))
+		// IP
+		ip, err := lib.GetClientIPHelper(s.Request)
+		if err != nil {
+			log.Fatalln("Error getting client IP: ", err)
+		}
+
+		msgWithTime := []byte(t.Format(timeFormat) + "\n" + lib.BootsEncoded(ip) + string(msg))
 
 		// Broadcast web socket. 
 		// @msgWithTime []byte
@@ -60,3 +68,4 @@ func main() {
 
 	r.Run(":5000")
 }
+
