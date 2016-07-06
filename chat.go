@@ -31,7 +31,8 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 		
 		// Message with timestamp.
-		msgWithTime := t.Format(timeFormat) + string(msg)
+		ft := t.Format(timeFormat)
+		msgWithTime := ft + string(msg)
 		
 		// Broadcast web socket.
 		m.Broadcast(msgWithTime)
@@ -43,13 +44,13 @@ func main() {
 		}
 		
 		// Write to database.
-		bytes, err := f.WriteString(string(msgWithTime) + "\n")
+		bytes, err := f.WriteString(ft + string(msg) + "\n")
 		if err != nil {
 			log.Fatalln("Error writing string: ", err)
 		}
 		
 		fmt.Printf("Wrote %d bytes to file\n", bytes)
-		fmt.Println(string(msgWithTime))
+		fmt.Println(ft)
 		
 		f.Close()
 	})
