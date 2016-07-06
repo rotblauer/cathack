@@ -121,44 +121,19 @@
         out += " $ " + d["message"];
 
         return out;
-
-        // // grab time and make it look nice
-        // // var niceTime = formatDate(getDateFromLine(line));
-        
-        // // replace original time with nice time
-        // // var better = line.replace(getDateFromLine(line), smallifyHTML(niceTime));
-        
-        // var s = line.split(','); // split from original line
-        // var time = s[0];
-        // var lat = s[1];
-        // var lon = s[2];
-        // var tz = s[3];
-        // var subdiv = s[4];
-
-        // // better = better.replace(subdiv, strongifyHTML(subdiv));
-        // // better = better.replace(lat, '');
-        // // better = better.replace(lon, '');
-        // // better = better.replace(tz, '');
-        // // better = better.replace(',,,,', ' ');
-        // // better = better.replace(/,.*\$/, ' $'); // replace between , ... $
-
-        // // var best = '';
-        // // best += niceTime + ' '; 
-        // // best += subdiv + ' ';
-        // // // remove erything cept msg
-        // // best += better.replace(/^.*\$/, '$');
-
-        // // Remove (time_zone)
-        // // return better; // .replace(/ *\([^)]*\) */g, " ");
-        // // return best;
-        // return line;
       }
 
       function renderData(data) {
+        html = "";
         jQuery.each(data, function () {
-          chat.innerHTML += formatPS1(this) + "\n";
+          html += formatPS1(this) + "\n";
         });
+        chat.innerHTML = html;
       }
+
+      // function appendData(line) {
+      //   chat.innerHTML += formatPS1(this) + "\n";
+      // }
 
       function scrollChat() {
         var div = $('#chat');
