@@ -56,22 +56,11 @@ func main() {
 		if err != nil {
 			log.Fatalln("Error getting Geo IP.", err)
 		}
-
-		// bs := ""
-		// bs += timeString 
-		// bs += ","
-		// bs += geoip["lat"] + "," + geoip["lon"] //lat,lon
-		// bs += "," + geoip["tz"] //tz
-		// bs += "," + geoip["subdiv"] //subdiv
-		// bs += ","
-		// bs += lib.BootsEncoded(ip)
-		// bs += string(msg)
-
-		// ps1 := []byte(bs)
 		
 		data := j.Object().Put("time", timeString). // btw hanging dots are no go
 											 Put("unixNano", timeUnixNano).
 											 Put("message", string(msg)).
+											 Put("ip", ip).
 											 Put("bootsIP", lib.BootsEncoded(ip)).
 											 Put("lat", geoip["lat"]).
 											 Put("lon", geoip["lon"]).
