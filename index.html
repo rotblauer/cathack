@@ -47,6 +47,12 @@
       padding: 3vh;
       z-index: 10;
     }
+    span.rot {
+      color: #00BFFF;
+    }
+    span.blau {
+      color: red;
+    }
 
     /*bs tweakers*/
     .form-control:focus {
@@ -81,102 +87,115 @@
 
     <script type="text/javascript" >
       
-      var chat = document.getElementById("chat");
-      var url = "ws://" + window.location.host + "/ws";
-      var ws = new WebSocket(url);
-      var chat = document.getElementById("chat");
-      var text = document.getElementById("text");
-      var data = [];
-
-      function formatDate(goTimeString) {
-
-        var cleanString = goTimeString.replace(' UTC', '');
-        var a = moment.utc(cleanString);
-        var b = a.local().format(" kk:mm:ss ddd MMM D");
-
-        if (a.isValid()) {
-          return b;  
-        } else {
-          return goTimeString
-        }
-      }
-
-      function emphasizeHTML(string) {
-        return '<em>' + string + '</em>';
-      }
-      function smallifyHTML(string) {
-        return '<small>' + string + '</small>';
-      }
-      function strongifyHTML(string) {
-        return '<strong>' + string + '</strong>'; 
-      }
-
-      function formatPS1(jsonLine) {
-
-        var d = JSON.parse(jsonLine);
-        var out = "";
-
-        out += formatDate(d["time"]);
-        out += " @ " + d["city"];
-        out += " $ " + d["message"];
-
-        return out;
-      }
-
-      function renderData(data) {
-        html = "";
-        jQuery.each(data, function () {
-          html += formatPS1(this) + "\n";
-        });
-        chat.innerHTML = html;
-      }
-
-      // function appendData(line) {
-      //   chat.innerHTML += formatPS1(this) + "\n";
-      // }
-
-      function scrollChat() {
-        var div = $('#chat');
-        div.scrollTop(div.prop('scrollHeight'));
-      }
-
-      //Seems like this might not be the way to handle loadin up a text file
-      function LoadFile() {
-          var oFrame = document.getElementById("frmFile");
-
-          var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
-          var arrLines = strRawContents.split("\n");
-          for (var i = 0; i < arrLines.length - 1; i++) {
-              var curLine = arrLines[i];
-              data.push(curLine);
-              // chat.innerText += handleLineFormatting(curLine) + "\n";
-              // chat.innerHTML += handleLineFormatting(curLine) + "\n";
+        var chat = document.getElementById("chat");
+        var url = "ws://" + window.location.host + "/ws";
+        var ws = new WebSocket(url);
+        var chat = document.getElementById("chat");
+        var text = document.getElementById("text");
+        var data = [];
+        
+        function formatDate(goTimeString) {
+        
+          var cleanString = goTimeString.replace(' UTC', '');
+          var a = moment.utc(cleanString);
+          var b = a.local().format(" kk:mm:ss ddd M-D");
+        
+          if (a.isValid()) {
+            return b;  
+          } else {
+            return goTimeString
           }
-          renderData(data);
-      }
-
-      ws.onmessage = function (msg) {
-        var line = msg.data;
-
-        // handle line formatting
-        // chat.innerText += handleLineFormatting(line) + "\n";
-        // chat.innerHTML += handleLineFormatting(line) + "\n";
-        data.push(line);
-        renderData(data);
-
-        scrollChat(); // set to bottom nicelike
-      };
-      text.onkeydown = function (e) {
-        if (e.keyCode === 13 && text.value !== "") {
-          ws.send(text.value);
-          text.value = "";
         }
-      };
-
-      // scroll to bottom on doc ready
-      $(function () {
-        scrollChat();
-      });
+        
+        function emphasizeHTML(string) {
+          return '<em>' + string + '</em>';
+        }
+        function smallifyHTML(string) {
+          return '<small>' + string + '</small>';
+        }
+        function strongifyHTML(string) {
+          return '<strong>' + string + '</strong>'; 
+        }
+        // function classifyChatMessage(string, city) {
+        //   return '<span class="' + city + '">' + string + '</span>';  
+        // }
+        
+        function formatPS1(jsonLine) {
+        
+          var d = JSON.parse(jsonLine);
+          var out = "";
+        
+          out += formatDate(d["time"]);
+          out += " @ " + strongifyHTML(d["city"]);
+          out += " $ " + d["message"], d["city"];
+        
+          return out;
+        }
+        // http://stackoverflow.com/questions/10191941/jquery-unique-on-an-array-of-strings
+        // function unique(array) {
+        //   return array.filter(function(el, index, arr) {
+        //         return index === arr.indexOf(el);
+        //     });
+        // }
+        
+        function renderData(data) {
+          html = "";
+          jQuery.each(data, function () {
+            html += formatPS1(this) + "\n";
+          });
+          chat.innerHTML = html;
+        }
+        
+        // function colorizeChat() {
+        
+        // }
+        
+        // function appendData(line) {
+        //   chat.innerHTML += formatPS1(this) + "\n";
+        // }
+        
+        function scrollChat() {
+          var div = $('#chat');
+          div.scrollTop(div.prop('scrollHeight'));
+        }
+        
+        //Seems like this might not be the way to handle loadin up a text file
+        function LoadFile() {
+            var oFrame = document.getElementById("frmFile");
+        
+            var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
+            var arrLines = strRawContents.split("\n");
+            for (var i = 0; i < arrLines.length - 1; i++) {
+                var curLine = arrLines[i];
+                data.push(curLine);
+                // chat.innerText += handleLineFormatting(curLine) + "\n";
+                // chat.innerHTML += handleLineFormatting(curLine) + "\n";
+            }
+            renderData(data);
+        }
+        
+        ws.onmessage = function (msg) {
+          var line = msg.data;
+        
+          // handle line formatting
+          // chat.innerText += handleLineFormatting(line) + "\n";
+          // chat.innerHTML += handleLineFormatting(line) + "\n";
+          data.push(line);
+          renderData(data);
+        
+          scrollChat(); // set to bottom nicelike
+        };
+        text.onkeydown = function (e) {
+          if (e.keyCode === 13 && text.value !== "") {
+            ws.send(text.value);
+            text.value = "";
+          }
+        };
+        
+        // scroll to bottom on doc ready
+        $(function () {
+          scrollChat();
+        });
 
     </script>
     
