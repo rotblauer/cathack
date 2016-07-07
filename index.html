@@ -98,7 +98,7 @@
         
           var cleanString = goTimeString.replace(' UTC', '');
           var a = moment.utc(cleanString);
-          var b = a.local().format(" kk:mm:ss ddd M-D");
+          var b = a.local().format(" kk:mm:ss ddd DMMM");
         
           if (a.isValid()) {
             return b;  

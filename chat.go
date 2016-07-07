@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	// "strconv"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
@@ -43,7 +43,7 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		// Message with timestamp.
-		// timeUnix := time.Now().UTC().UnixNano()
+		timeUnixNano := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		timeString := time.Now().UTC().String()
 
 		// IP
@@ -70,6 +70,7 @@ func main() {
 		// ps1 := []byte(bs)
 		
 		data := j.Object().Put("time", timeString). // btw hanging dots are no go
+											 Put("unixNano", timeUnixNano).
 											 Put("message", string(msg)).
 											 Put("bootsIP", lib.BootsEncoded(ip)).
 											 Put("lat", geoip["lat"]).
