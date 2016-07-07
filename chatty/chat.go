@@ -13,7 +13,7 @@ import (
 	"../lib"
 )
 
-type Message struct {
+type ChatMessageAs struct {
 	time string
 	unixNano string
 	message string
@@ -68,7 +68,7 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 	}
 
 	// From message struct.
-	newMessage := Message{
+	newChatMessage := ChatMessageAs{
 		time: timeString,
 		unixNano: timeUnixNano,
 		message: string(msg),
@@ -81,7 +81,7 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 		countryIsoCode: geoip["countryIsoCode"],
 		tz: geoip["tz"]}
 
-	out, _ = json.Marshal(newMessage)
+	out, _ = json.Marshal(newChatMessage)
 
 	bytes, err := saveChat(out)
 	fmt.Printf("Wrote %d bytes to file\n", bytes)

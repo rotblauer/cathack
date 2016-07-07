@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-
 	"github.com/gin-gonic/gin"
 	"github.com/njern/gonexmo"
 	"github.com/olahol/melody"
@@ -39,6 +38,10 @@ func sms(number string, messageToSend string, key string, secret string) {
 	fmt.Println(messageResponse)
 }
 
+func getChat(c *gin.Context) {
+	http.ServeFile(c.Writer, c.Request, "index.html")
+}
+
 func main() {
 	//go run chat.go
 	r := gin.Default()
@@ -47,9 +50,10 @@ func main() {
 	// Serves file,
 	r.StaticFile("/chat.txt", "./chat.txt")
 
-	r.GET("/", func(c *gin.Context) {
-		http.ServeFile(c.Writer, c.Request, "index.html")
-	})
+	r.GET("/", getChat)
+	// r.GET("/", func(c *gin.Context) {
+	// 	http.ServeFile(c.Writer, c.Request, "index.html")
+	// })
 
 	r.GET("/ws", func(c *gin.Context) {
 		m.HandleRequest(c.Writer, c.Request)
@@ -58,14 +62,16 @@ func main() {
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		ps1, err := chatty.HandleChatMessage(s, msg)
+
 		if err != nil {
-			// m.Broadcast([]byte(string(err)))
+			m.Broadcast([]byte(err.Error()))
 			log.Fatalln(err)
 		}
 
 		// Broadcast message with metadata on successful handling.
 		// @ps1 []byte
 		m.Broadcast(ps1)
+
 	})
 
 	r.Run(":5000")

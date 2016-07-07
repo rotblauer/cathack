@@ -190,7 +190,8 @@
         };
         text.onkeydown = function (e) {
           if (e.keyCode === 13 && text.value !== "") {
-            ws.send(text.value);
+
+            ws.send(text.value); 
             text.value = "";
           }
         };
