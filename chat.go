@@ -1,122 +1,77 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
+	"errors"
 
-	"github.com/gin-gonic/gin"
-	"github.com/njern/gonexmo"
-	"github.com/olahol/melody"
 	j "github.com/ricardolonga/jsongo"
 
 	"./lib"
 )
 
-// sms("12182606849", "DDF", "c330fe3b", "d69e9ca6c8245f6a")
+func saveChat(data []byte) (bytes int, err error) {
 
-//SMS text sender, nexmo to test...need a sign up with keys
-func sms(number string, messageToSend string, key string, secret string) {
-	nexmoClient, _ := nexmo.NewClientFromAPI(key, secret)
-	// https://github.com/njern/gonexmo
-	// Send an SMS
-	// See https://docs.nexmo.com/index.php/sms-api/send-message for details.
-	message := &nexmo.SMSMessage{
-		From:            "12529178592",
-		To:              number,
-		Type:            nexmo.Text,
-		Text:            messageToSend,
-		ClientReference: "gonexmo-test " + strconv.FormatInt(time.Now().Unix(), 10),
-		Class:           nexmo.Standard,
-	}
-
-	messageResponse, err := nexmoClient.SMS.Send(message)
+	// Open database.
+	f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		log.Fatalln("Error getting sending sms: ", err)
+		log.Fatalln("Error opening file: ", err)
 	}
-	fmt.Println(messageResponse)
+
+	// Write to database.
+	line := string(data)
+	bytes, err = f.WriteString(line + "\n")
+	if err != nil {
+		log.Fatalln("Error writing string: ", err) // Will this out to same place as fmt? ie &>chat.log
+	}
+
+	fmt.Printf("Wrote %d bytes to file\n", bytes)
+	fmt.Println(line)
+
+	f.Close()
+	
+	return bytes, err
 }
 
-func main() {
-	//go run chat.go
-	r := gin.Default()
-	m := melody.New()
+func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
+	
+	// Timestamp.
+	timeUnixNano := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	timeString := time.Now().UTC().String()
 
-	// Serves file,
-	r.StaticFile("/chat.txt", "./chat.txt")
+	// IP
+	ip, err := lib.GetClientIPHelper(s.Request)
+	if err != nil {
+		log.Fatalln("Error getting client IP: ", err)
+	}
 
-	// These are _really_ slow. WTF.
-	// r.Static("/assets", "./assets")
-	// r.StaticFile("app.js", "./app.js")
-	// r.GET("/app.js", func(c *gin.Context) {
-	// 	http.ServeFile(c.Writer, c.Request, "app.js")
-	// })
+	// Geo from IP. 
+	geoip, err := lib.GetGeoFromIP(ip)
+	if err != nil {
+		log.Fatalln("Error getting Geo IP.", err)
+	}
 
-	r.GET("/", func(c *gin.Context) {
-		http.ServeFile(c.Writer, c.Request, "index.html")
-	})
+	// JSON objectify. 
+	data := j.Object().Put("time", timeString). // btw hanging dots are no go
+							Put("unixNano", timeUnixNano).
+							Put("message", string(msg)).
+							Put("ip", ip).
+							Put("bootsIP", lib.BootsEncoded(ip)).
+							Put("lat", geoip["lat"]).
+							Put("lon", geoip["lon"]).
+							Put("city", geoip["city"]).
+							Put("subdiv", geoip["subdiv"]).
+							Put("countryIsoCode", geoip["countryIsoCode"]).
+							Put("tz", geoip["tz"])
 
-	r.GET("/ws", func(c *gin.Context) {
-		m.HandleRequest(c.Writer, c.Request)
-	})
+	dataIndentedString := data.String()
+	out = []byte(dataIndentedString)
 
-	m.HandleMessage(func(s *melody.Session, msg []byte) {
-
-		// Message with timestamp.
-		timeUnixNano := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		timeString := time.Now().UTC().String()
-
-		// IP
-		ip, err := lib.GetClientIPHelper(s.Request)
-		if err != nil {
-			log.Fatalln("Error getting client IP: ", err)
-		}
-
-		geoip, err := lib.GetGeoFromIP(ip)
-		if err != nil {
-			log.Fatalln("Error getting Geo IP.", err)
-		}
-
-		data := j.Object().Put("time", timeString). // btw hanging dots are no go
-								Put("unixNano", timeUnixNano).
-								Put("message", string(msg)).
-								Put("ip", ip).
-								Put("bootsIP", lib.BootsEncoded(ip)).
-								Put("lat", geoip["lat"]).
-								Put("lon", geoip["lon"]).
-								Put("city", geoip["city"]).
-								Put("subdiv", geoip["subdiv"]).
-								Put("countryIsoCode", geoip["countryIsoCode"]).
-								Put("tz", geoip["tz"])
-
-		dataIndentedString := data.String()
-		ps1 := []byte(dataIndentedString)
-
-		// Broadcast web socket.
-		// @ps1 []byte
-		m.Broadcast(ps1)
-
-		// Open database.
-		f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-		if err != nil {
-			log.Fatalln("Error opening file: ", err)
-		}
-
-		// Write to database.
-		ps1String := string(ps1)
-		bytes, err := f.WriteString(ps1String + "\n")
-		if err != nil {
-			log.Fatalln("Error writing string: ", err) // Will this out to same place as fmt? ie &>chat.log
-		}
-
-		fmt.Printf("Wrote %d bytes to file\n", bytes)
-		fmt.Println(ps1String)
-
-		f.Close()
-	})
-
-	r.Run(":5000")
+	bytes, err := saveChat(out)
+	
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
