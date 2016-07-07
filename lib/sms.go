@@ -1,11 +1,10 @@
 package lib
 
 import (
-	// "fmt"
-	// "net/http"
-	// "net/url"
-	// "strings"
 	"gopkg.in/dietsche/textbelt.v1"
+	"log"
+	"regexp"
+	"strings"
 )
 
 // There is https://github.com/dietsche/textbelt, but sticking with
@@ -41,8 +40,60 @@ import (
 // 	return res, err
 // }
 
-func SendSMS(number string, message string) error {
+func sendSMS(number string, message string) error {
 	texter := textbelt.New()
 	err := texter.Text(number, message)
 	return err
+}
+
+func DelegateSendSMS(messageText []byte) (status int, err error) {
+
+	status = 0
+	messageString := string(messageText)
+
+	phoneBook := make(map[string]string)
+	phoneBook["john"] = "2182606849"
+	phoneBook["isaac"] = "2183494908"
+
+	re, err := regexp.Compile(`@(\w+)`) // FIXME: this should capture only the name, not the @ part. it captures @name. don't know why.
+	if err != nil {
+		log.Printf("Error compiling regex: %v", err)
+	}
+
+	if re.MatchString(messageString) {
+
+		log.Printf("Regex matches. Sending smss.")
+
+		// get @names
+		names := re.FindAllString(messageString, 3) // limit to first 3 matches (from left -> right)
+
+		// Remove @name's if we want.
+		// messageString = re.ReplaceAllString(messageString, "")
+
+		// send smss
+		for _, name := range names {
+
+			phoneNumber := phoneBook[strings.Replace(string(name), "@", "", 1)]
+
+			log.Printf("Name: %v, Number: %v", name, phoneNumber)
+
+			if len(phoneNumber) > 0 {
+
+				err := sendSMS(phoneNumber, messageString)
+
+				if err != nil {
+					log.Printf("Textbelt error: %v", err)
+					// m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
+				} else {
+					log.Printf("Sent SMS to %v with content: %v", phoneNumber, messageString)
+					// m.Broadcast([]byte("{\"status\": \"" + "Whoosh!" + "\"}"))
+					status = 1
+				}
+			}
+		}
+	} else {
+		log.Printf("Regex doesn't match any @names.")
+	}
+
+	return status, err
 }
