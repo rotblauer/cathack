@@ -41,24 +41,10 @@ func sms(number string, messageToSend string, key string, secret string) {
 func getChat(c *gin.Context) {
 	http.ServeFile(c.Writer, c.Request, "index.html")
 }
-
-func main() {
-	//go run chat.go
-	r := gin.Default()
+func getChatWS(c *gin.Context) {
 	m := melody.New()
 
-	// Serves file,
-	r.StaticFile("/chat.txt", "./chat.txt")
-
-	r.GET("/", getChat)
-	// r.GET("/", func(c *gin.Context) {
-	// 	http.ServeFile(c.Writer, c.Request, "index.html")
-	// })
-
-	r.GET("/ws", func(c *gin.Context) {
-		m.HandleRequest(c.Writer, c.Request)
-	})
-
+	m.HandleRequest(c.Writer, c.Request)
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		ps1, err := chatty.HandleChatMessage(s, msg)
@@ -71,8 +57,21 @@ func main() {
 		// Broadcast message with metadata on successful handling.
 		// @ps1 []byte
 		m.Broadcast(ps1)
-
 	})
+}
+
+func getHack(c *gin.Context) {
+	http.ServeFile(c.Writer, c.Request, "hack.html")
+}
+
+func main() {
+	//go run chat.go
+	r := gin.Default()
+
+	r.StaticFile("/chat.txt", "./chat.txt")
+	r.GET("/", getChat)
+	r.GET("/ws", getChatWS)
+	// r.GET("/hack", getHack) // FIXME: no go cuz :5000 messing up url?
 
 	r.Run(":5000")
 }
