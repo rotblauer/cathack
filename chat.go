@@ -61,6 +61,8 @@ func main() {
 		m.HandleRequest(c.Writer, c.Request)
 	})
 
+	// sms("12182606849", "DDF", "c330fe3b", "d69e9ca6c8245f6a")
+
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		// Message with timestamp.
@@ -91,7 +93,8 @@ func main() {
 								Put("tz", geoip["tz"])
 
 		dataIndentedString := data.String()
-		//sms("12182606849", dataIndentedString, "c330fe3b", "d69e9ca6c8245f6a")
+
+		//new thread? If so sucker pops 30 lines of java
 
 		ps1 := []byte(dataIndentedString)
 		// Broadcast web socket.
