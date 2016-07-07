@@ -6,12 +6,26 @@ import (
 	"time"
 	"log"
 	"fmt"
-
+	"encoding/json"
+	
 	"github.com/olahol/melody"
-	j "github.com/ricardolonga/jsongo"
 
 	"../lib"
 )
+
+type Message struct {
+	time string
+	unixNano string
+	message string
+	ip string
+	bootsIP string
+	lat string
+	lon string
+	city string
+	subdiv string
+	countryIsoCode string
+	tz string
+}
 
 func saveChat(data []byte) (bytes int, err error) {
 
@@ -53,21 +67,21 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 		log.Fatalln("Error getting Geo IP.", err)
 	}
 
-	// JSON objectify. 
-	data := j.Object().Put("time", timeString). // btw hanging dots are no go
-							Put("unixNano", timeUnixNano).
-							Put("message", string(msg)).
-							Put("ip", ip).
-							Put("bootsIP", lib.BootsEncoded(ip)).
-							Put("lat", geoip["lat"]).
-							Put("lon", geoip["lon"]).
-							Put("city", geoip["city"]).
-							Put("subdiv", geoip["subdiv"]).
-							Put("countryIsoCode", geoip["countryIsoCode"]).
-							Put("tz", geoip["tz"])
+	// From message struct.
+	newMessage := Message{
+		time: timeString,
+		unixNano: timeUnixNano,
+		message: string(msg),
+		ip: ip,
+		bootsIP: lib.BootsEncoded(ip),
+		lat: geoip["lat"],
+		lon: geoip["lon"],
+		city: geoip["city"],
+		subdiv: geoip["subdiv"],
+		countryIsoCode: geoip["countryIsoCode"],
+		tz: geoip["tz"]}
 
-	dataIndentedString := data.String()
-	out = []byte(dataIndentedString)
+	out, _ = json.Marshal(newMessage)
 
 	bytes, err := saveChat(out)
 	fmt.Printf("Wrote %d bytes to file\n", bytes)
