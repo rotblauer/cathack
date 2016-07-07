@@ -71,7 +71,6 @@ func main() {
 	r.StaticFile("/chat.txt", "./chat.txt")
 	r.GET("/", getChat)
 	r.GET("/ws", getChatWS)
-	// r.GET("/hack", getHack) // FIXME: no go cuz :5000 messing up url?
 
 	r.Run(":5000")
 }
