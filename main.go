@@ -6,7 +6,7 @@ import (
 	"net/http"
 	// "github.com/njern/gonexmo"
 	"./chatty"
-	"./lib"
+	// "./lib"
 	"github.com/olahol/melody"
 )
 
@@ -43,16 +43,18 @@ func getChatWS(c *gin.Context) {
 	m.HandleRequest(c.Writer, c.Request)
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
-		status, err := lib.DelegateSendSMS(msg)
+		// status, err := lib.DelegateSendSMS(msg)
 		ps1, err := chatty.HandleChatMessage(s, msg)
 
 		if err != nil {
-			m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
+			// m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
 			log.Fatalln(err)
-		} else {
-			m.Broadcast(ps1)
-			log.Printf("SMS status -> %v", status)
 		}
+
+		log.Printf("PS1 is %v", ps1)
+
+		// m.Broadcast(ps1)
+		m.Broadcast([]byte("I am broadcasting!!!"))
 
 		// FIXME: None of the log.Printf logs are making it into chat.log.
 

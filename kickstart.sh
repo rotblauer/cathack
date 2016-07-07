@@ -2,13 +2,13 @@
 
 # run from project dir
 
-echo "killing running chat process... " 
+echo "killing running main process... " 
 echo "(will fail to kill ps proc)"
-kill $(ps aux | grep chat | awk '{print $2}')
+kill $(ps aux | grep main | awk '{print $2}')
 
-echo "rebuilding chat into main* from main.go"
+echo "rebuilding main into main* from main.go"
 go build -o main main.go
 
-echo "starting chat with out to chat.log"
-./main &>"$PWD/chat.log" &!
+echo "starting main with out to main.log"
+./main &>"$PWD/main.log" &!
 
