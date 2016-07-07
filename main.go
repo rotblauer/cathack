@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
+	// "strconv"
+	// "time"
 	"regexp"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/njern/gonexmo"
+	// "github.com/njern/gonexmo"
 	"github.com/olahol/melody"
 
 	"./chatty"
+	"./lib"
 )
 
 // // sms("12182606849", "DDF", "c330fe3b", "d69e9ca6c8245f6a")
@@ -59,7 +61,7 @@ func getChatWS(c *gin.Context) {
 		// @ps1 []byte
 		m.Broadcast(ps1)
 
-		pattern := "@(\w+)" //capture all after @, ie 'john' from @john
+		pattern := "@(\\w+)" //capture all after @, ie 'john' from @john
 		messageText := string(msg)
 		messageNoAddresses := string(msg)
 		phoneBook := make(map[string]string)
@@ -72,28 +74,30 @@ func getChatWS(c *gin.Context) {
 		}
 
 		if re.MatchString(messageText) {
-			// get @names 
+			// get @names
 			names := re.FindAllString(messageText, -1)
 			for i, name := range names {
 				// remove @names from messageText
 				// remove first occurence
-				messageNoAddresses = strings.Replace("@" + name + " ", "", 1)
+				fmt.Println(i)
+				messageNoAddresses = strings.Replace(messageNoAddresses, "@"+name+" ", "", -1)
 			}
 			// send smss
 			for i, sendTo := range names {
+				fmt.Println(i)
 				// lookup number
 				theirNumber := phoneBook[sendTo]
-				if theirNumber != nil {
+				if len(theirNumber) > 0 {
 					res, err := lib.SendSMS(theirNumber, messageNoAddresses)
 					if err != nil {
 						fmt.Println(err)
 					} else {
+						fmt.Println(res)
 						m.Broadcast([]byte("Whoosh!"))
 					}
 				}
 			}
 		}
-
 
 	})
 }

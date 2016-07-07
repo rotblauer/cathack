@@ -9,7 +9,7 @@ import (
 
 // There is https://github.com/dietsche/textbelt, but sticking with
 // roll your own for now.
-func SendSMS(number string, message string) (res *http.Response, err error) {
+func SendSMS(number string, message string) (*http.Response, error) {
 
 	// $ curl -X POST http://textbelt.com/text \
 	//    -d number=5551234567 \
