@@ -1,14 +1,16 @@
-package main
+package chatty
 
 import (
 	"os"
 	"strconv"
 	"time"
-	"errors"
+	"log"
+	"fmt"
 
+	"github.com/olahol/melody"
 	j "github.com/ricardolonga/jsongo"
 
-	"./lib"
+	"../lib"
 )
 
 func saveChat(data []byte) (bytes int, err error) {
@@ -26,11 +28,10 @@ func saveChat(data []byte) (bytes int, err error) {
 		log.Fatalln("Error writing string: ", err) // Will this out to same place as fmt? ie &>chat.log
 	}
 
-	fmt.Printf("Wrote %d bytes to file\n", bytes)
 	fmt.Println(line)
-
-	f.Close()
 	
+	f.Close()
+
 	return bytes, err
 }
 
@@ -69,6 +70,7 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 	out = []byte(dataIndentedString)
 
 	bytes, err := saveChat(out)
+	fmt.Printf("Wrote %d bytes to file\n", bytes)
 	
 	if err != nil {
 		return nil, err
