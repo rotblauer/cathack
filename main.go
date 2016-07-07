@@ -47,14 +47,14 @@ func getChatWS(c *gin.Context) {
 		ps1, err := chatty.HandleChatMessage(s, msg)
 
 		if err != nil {
-			// m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
+			m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
 			log.Fatalln(err)
 		}
 
 		log.Printf("PS1 is %v", ps1)
 
-		// m.Broadcast(ps1)
-		m.Broadcast([]byte("I am broadcasting!!!"))
+		m.Broadcast(ps1)
+		// m.Broadcast([]byte("I am broadcasting!!!"))
 
 		// FIXME: None of the log.Printf logs are making it into chat.log.
 
