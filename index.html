@@ -119,9 +119,9 @@
         function strongifyHTML(string) {
           return '<strong>' + string + '</strong>'; 
         }
-        // function classifyChatMessage(string, city) {
-        //   return '<span class="' + city + '">' + string + '</span>';  
-        // }
+        function classifyString(string, classs) {
+          return '<span class="' + classs + '">' + string + '</span>';  
+        }
         
         function formatPS1(jsonLine) {
         
@@ -134,6 +134,10 @@
         
           return out;
         }
+        function formatStatus(jsonLine) {
+          var d = JSON.parse(jsonLine);
+          return "\> " + classifyString(d["status"], 'label label-primary')
+        }
         // http://stackoverflow.com/questions/10191941/jquery-unique-on-an-array-of-strings
         // function unique(array) {
         //   return array.filter(function(el, index, arr) {
@@ -144,7 +148,11 @@
         function renderData(data) {
           html = "";
           jQuery.each(data, function () {
-            html += formatPS1(this) + "\n";
+            if (JSON.parse(this)["status"]) {
+              html += formatStatus(this) + "\n";
+            } else {
+              html += formatPS1(this) + "\n";  
+            }
           });
           chat.innerHTML = html;
         }

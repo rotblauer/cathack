@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"net/http"
 	// "strconv"
@@ -61,42 +61,49 @@ func getChatWS(c *gin.Context) {
 		// @ps1 []byte
 		m.Broadcast(ps1)
 
-		pattern := "@(\\w+)" //capture all after @, ie 'john' from @john
 		messageText := string(msg)
-		messageNoAddresses := string(msg)
-		phoneBook := make(map[string]string)
-		phoneBook["john"] = "12182606849"
-		phoneBook["isaac"] = "12183494908"
 
-		re, err := regexp.Compile(pattern)
+		phoneBook := make(map[string]string)
+		phoneBook["john"] = "2182606849"
+		phoneBook["isaac"] = "2183494908"
+
+		re, err := regexp.Compile(`@(\w+)`) // FIXME: this should capture only the name, not the @ part. it captures @name. don't know why.
 		if err != nil {
-			fmt.Println("Error compiling regex", err)
+			log.Printf("Error compiling regex: %v", err)
 		}
 
 		if re.MatchString(messageText) {
+
+			log.Printf("Regex matches. Sending smss.")
+
 			// get @names
-			names := re.FindAllString(messageText, -1)
-			for i, name := range names {
-				// remove @names from messageText
-				// remove first occurence
-				fmt.Println(i)
-				messageNoAddresses = strings.Replace(messageNoAddresses, "@"+name+" ", "", -1)
-			}
+			names := re.FindAllString(messageText, 3) // limit to first 3 matches (from left -> right)
+
+			// Remove @name's if we want.
+			// messageText = re.ReplaceAllString(messageText, "")
+
 			// send smss
-			for i, sendTo := range names {
-				fmt.Println(i)
-				// lookup number
-				theirNumber := phoneBook[sendTo]
-				if len(theirNumber) > 0 {
-					res, err := lib.SendSMS(theirNumber, messageNoAddresses)
+			for _, name := range names {
+
+				phoneNumber := phoneBook[strings.Replace(string(name), "@", "", 1)]
+
+				log.Printf("Name: %v, Number: %v", name, phoneNumber)
+
+				if len(phoneNumber) > 0 {
+
+					err := lib.SendSMS(phoneNumber, messageText)
+
 					if err != nil {
-						fmt.Println(err)
+						log.Printf("Textbelt error: %v", err)
+						m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
 					} else {
-						fmt.Println(res)
-						m.Broadcast([]byte("Whoosh!"))
+						log.Printf("Sent SMS to %v with content: %v", phoneNumber, messageText)
+						m.Broadcast([]byte("{\"status\": \"" + "Whoosh!" + "\"}"))
 					}
 				}
 			}
+		} else {
+			log.Printf("Regex doesn't match any @names.")
 		}
 
 	})
