@@ -16,6 +16,8 @@ import (
 	"./lib"
 )
 
+// sms("12182606849", "DDF", "c330fe3b", "d69e9ca6c8245f6a")
+
 //SMS text sender, nexmo to test...need a sign up with keys
 func sms(number string, messageToSend string, key string, secret string) {
 	nexmoClient, _ := nexmo.NewClientFromAPI(key, secret)
@@ -61,8 +63,6 @@ func main() {
 		m.HandleRequest(c.Writer, c.Request)
 	})
 
-	// sms("12182606849", "DDF", "c330fe3b", "d69e9ca6c8245f6a")
-
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
 		// Message with timestamp.
@@ -93,10 +93,8 @@ func main() {
 								Put("tz", geoip["tz"])
 
 		dataIndentedString := data.String()
-
-		//new thread? If so sucker pops 30 lines of java
-
 		ps1 := []byte(dataIndentedString)
+
 		// Broadcast web socket.
 		// @ps1 []byte
 		m.Broadcast(ps1)
