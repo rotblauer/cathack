@@ -185,12 +185,12 @@
         var isTypingDisplay = $("#other-is-typing");
         var data = [];
         
-        function formatDate(goTimeString) {
+        function formatDate(goTimeString, form) {
           
           if (goTimeString) {
             var cleanString = goTimeString.replace(' UTC', '');
             var a = moment.utc(cleanString);
-            var b = a.local().format(" kk:mm:ss ddd DMMM");
+            var b = a.local().format(form);
             
             if (a.isValid()) {
               return b;  
@@ -228,10 +228,11 @@
           // // return lightMarkdown.toHtml(out);
           // return out;
           var out = "<div class='row'>";
+          var timeFormat = "kk:mmdddDMMM";
 
           var ps = "<div class='col-xs-4'>";
           ps += "<p>";
-          ps += "<span class='hidden-xs'>" + formatDate(d["Time"]) + " @ " + "</span>";
+          ps += "<span class='hidden-xs'>" + formatDate(d["Time"], timeFormat) + "@ " + "</span>";
           ps += strongifyHTML(d["City"]) + " $ ";
           ps += "</p></div>";
 
