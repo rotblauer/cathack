@@ -24,15 +24,15 @@
 
   <style>
     body {
-      background-color: black;
+      background-color: darkred;
     }
     pre {
       border: none;
     }
     #chat {
       text-align: left;
-      background: black;
-      color: lightgreen;
+      background: darkred;
+      color: white;
       width: 100%;
       padding: 20px;
       
@@ -90,9 +90,12 @@
       width: 95%;
     }
     textarea#text {
-      background: black;
-      border: none;
-      color: lightgreen;
+      background: darkred;
+      border: 1px solid white;
+      border-radius: 2px;
+      /*border: none;*/
+      /*background: white;*/
+      color: white;
       width: 100%;
     }
     #open-chatty-full {
@@ -103,16 +106,24 @@
       z-index: 10;
     }
     span.rot {
-      color: #00BFFF;
+      color: #0052A5;
     }
     span.blau {
-      color: red;
+      color: darkred;
     }
 
     /*bs tweakers*/
     .form-control:focus {
       border: none;
       box-shadow: none;
+    }
+    .notices {
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      z-index: 10;
+      background: transparent;
+      padding: 1rem;
     }
   </style>
 
@@ -130,11 +141,33 @@
           <div id="chat"></div> 
 
           <div class="input-holder" >
+          <div class="notices">
+          <p class="text-primary" style="padding: 2rem; color: white; background: #0052A5; font-family: monospace;">
+          <small id="toggle-text-input-advice">toggle stars</small>
+          <script>
+            $("#toggle-text-input-advice").click(function () {
+              $("#text-input-advice").toggle();
+            });
+          </script>
+          <small id="text-input-advice" style="display:none;">
+          <br>
+          shift-return to begin newline <br>
+            ~~<del>strikethrough</del>~~<br>
+            <em>_italic_</em><br>
+            <strong>__bold__</strong><br>
+            <code>`code`</code><br>
+            [linkalias](href)<br>
+            <br>
+            ```&lt;language&gt;<br>
+            codefence <br>
+            ```<br>
+          </small>
+          </p>
+          
+          </div>
             <div class="form-group">
-              <label for="">
-                <span id="other-is-typing" style="display: none;"><small>Somebody else is typing...</small></span>
-              </label>
-              <textarea class="form-control" placeholder="$ echo" row="3" id="text" type="text"></textarea>
+              <span id="other-is-typing" style="display: none; line-height: 2.4rem;" class="label label-info">Somebody else is typing...</span>
+              <textarea class="form-control" placeholder="$ echo" rows="3" id="text" type="text"></textarea>
             </div>  
           </div>
           
@@ -248,7 +281,7 @@
         
         function scrollChat() {
           var div = $('#chat');
-          div.scrollTop(div.prop('scrollHeight'));
+          div.scrollTop(div.prop('scrollHeight')  + 50);
         }
         
         //Seems like this might not be the way to handle loadin up a text file
@@ -265,6 +298,7 @@
             }
 
             renderData(data);
+            scrollChat();
         }
         
         ws.onmessage = function (msg) {
