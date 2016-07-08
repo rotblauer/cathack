@@ -19,8 +19,44 @@
   <body>
 
     <div class="container-fluid">
-      <h1>/hack</h1>
+      <h1>/hack <i class="octicon octicon-octocat"></i></h1>
+
+      <div id="draft" contenteditable="true" style="min-height: 60vh; width: 60%;">
+        write here
+      </div>
+
     </div>
+
+    <script>
+      
+      var url = "ws://" + window.location.host + "/hack/ws";
+      var ws = new WebSocket(url);
+      var draft = $("#draft");
+      var typo = $("#typo");
+
+      ws.onmessage = function (msg) {
+        var d = msg.data;
+        console.log("received onmessage -> " + d);
+        draft.text(d);
+      };
+
+      $(document).keyup(function (e) {
+        if (!e.shiftKey && e.which == 13) {
+          var t = draft.html();
+          console.log("sending " + t);
+          ws.send(t);
+        }
+      })
+
+      // pingpongers
+      // draft.bind("DOMSubtreeModified", function () {
+      //   console.log('changed');
+      //   var t = draft.html();
+      //   console.log('t -> ' + t);
+      //   ws.send(draft.html());
+      // });
+
+    </script>
     
 
   </body>

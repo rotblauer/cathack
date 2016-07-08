@@ -67,16 +67,28 @@ func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
 	r := gin.Default()
 	m := melody.New()
+	h := melody.New()
 
 	// r.StaticFile("/chat.txt", "./chat.txt")
 	r.GET("/", getChat)
+	r.GET("/r/chat", getChatData)
 	r.GET("/ws", func(c *gin.Context) {
 		log.Printf("getChatWS")
 		fmt.Println()
 		m.HandleRequest(c.Writer, c.Request)
 	})
-	r.GET("/r/chat", getChatData)
+
 	r.GET("/hack", getHack)
+	r.GET("/hack/ws", func(c *gin.Context) {
+		fmt.Println("Got hack/ws request.")
+		h.HandleRequest(c.Writer, c.Request)
+	})
+
+	h.HandleMessage(func(s *melody.Session, msg []byte) {
+		fmt.Printf("HackHandleMessage: %v", string(msg))
+		fmt.Println()
+		h.BroadcastOthers(msg, s)
+	})
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
