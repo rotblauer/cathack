@@ -15,17 +15,17 @@ import (
 
 // http://stackoverflow.com/questions/26327391/go-json-marshalstruct-returns
 type ChatMessageAs struct {
-	Time           string `json: "time"`
-	UnixNano       string `json: "unixNano"`
-	Message        string `json: "message"`
-	Ip             string `json: "ip"`
-	BootsIP        string `json: "bootsIP"`
-	Lat            string `json: "lat"`
-	Lon            string `json: "lon"`
-	City           string `json: "city"`
-	Subdiv         string `json: "subdiv"`
-	CountryIsoCode string `json: "countryIsoCode"`
-	Tz             string `json: "tz"`
+	Time           string
+	UnixNano       string
+	Message        string
+	Ip             string
+	BootsIP        string
+	Lat            string
+	Lon            string
+	City           string
+	Subdiv         string
+	CountryIsoCode string
+	Tz             string
 }
 
 func saveChat(data []byte) (bytes int, err error) {

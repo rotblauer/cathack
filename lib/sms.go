@@ -46,9 +46,15 @@ func sendSMS(number string, message string) error {
 	return err
 }
 
-func DelegateSendSMS(messageText []byte) (status int, err error) {
+func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 
-	status = 0
+	// Status
+	// NOMATCH - no mention of @name in the message
+	// NOFIND - @name not found in phonebook
+	// SENDERR - error sending <textbelt> sms
+	// SENDOK - success sending <textbelt> sms
+
+	status = []byte("NOMATCH")
 	messageString := string(messageText)
 
 	phoneBook := make(map[string]string)
@@ -61,6 +67,8 @@ func DelegateSendSMS(messageText []byte) (status int, err error) {
 	}
 
 	if re.MatchString(messageString) {
+
+		status = []byte("NOFIND")
 
 		log.Printf("Regex matches. Sending smss.")
 
@@ -77,22 +85,21 @@ func DelegateSendSMS(messageText []byte) (status int, err error) {
 
 			log.Printf("Name: %v, Number: %v", name, phoneNumber)
 
+			// if the phone number exists for the given name
 			if len(phoneNumber) > 0 {
 
 				err := sendSMS(phoneNumber, messageString)
 
 				if err != nil {
 					log.Printf("Textbelt error: %v", err)
-					// m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
+					status = nil
 				} else {
 					log.Printf("Sent SMS to %v with content: %v", phoneNumber, messageString)
 					// m.Broadcast([]byte("{\"status\": \"" + "Whoosh!" + "\"}"))
-					status = 1
+					status = []byte("SENDOK")
 				}
 			}
 		}
-	} else {
-		log.Printf("Regex doesn't match any @names.")
 	}
 
 	return status, err
