@@ -24,15 +24,15 @@
 
   <style>
     body {
-      background-color: darkred;
+      background-color: black;
     }
     pre {
       border: none;
     }
     #chat {
       text-align: left;
-      background: darkred;
-      color: white;
+      background: black;
+      color: lightgreen;
       width: 100%;
       padding: 20px;
       
@@ -90,12 +90,12 @@
       width: 95%;
     }
     textarea#text {
-      background: darkred;
-      border: 1px solid white;
+      background: black;
+      border: 1px solid lightgreen;
       border-radius: 2px;
       /*border: none;*/
       /*background: white;*/
-      color: white;
+      color: lightgreen;
       width: 100%;
     }
     #open-chatty-full {
@@ -109,7 +109,7 @@
       color: #0052A5;
     }
     span.blau {
-      color: darkred;
+      color: black;
     }
 
     /*bs tweakers*/
@@ -142,16 +142,11 @@
 
           <div class="input-holder" >
           <div class="notices">
-          <p class="text-primary" style="padding: 2rem; color: white; background: #0052A5; font-family: monospace;">
-          <small id="toggle-text-input-advice">toggle stars</small>
-          <script>
-            $("#toggle-text-input-advice").click(function () {
-              $("#text-input-advice").toggle();
-            });
-          </script>
+          <p id="hold-text-input-advice" style="padding: 1rem; background: lightgreen; font-family: monospace;">
+          <small id="toggle-text-input-advice">?</small>
           <small id="text-input-advice" style="display:none;">
           <br>
-          shift-return to begin newline <br>
+          shift-return to begin newline <br><br>
             ~~<del>strikethrough</del>~~<br>
             <em>_italic_</em><br>
             <strong>__bold__</strong><br>
@@ -163,6 +158,11 @@
             ```<br>
           </small>
           </p>
+          <script>
+            $("#hold-text-input-advice").click(function () {
+              $("#text-input-advice").toggle();
+            });
+          </script>
           
           </div>
             <div class="form-group">
