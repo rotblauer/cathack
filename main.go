@@ -10,6 +10,7 @@ import (
 	"./lib"
 	// "encoding/json"
 	"github.com/olahol/melody"
+	"io/ioutil"
 )
 
 // -------------------------------------------------
@@ -67,6 +68,16 @@ func getChat(c *gin.Context) {
 	fmt.Println()
 }
 
+func getChatData(c *gin.Context) {
+	// func ReadFile(filename string) ([]byte, error)
+	fileContents := ioutil.ReadFile("./chat.txt")
+
+	c.JSON(200, gin.H{
+		"status": "200 OK",
+		"data": string(fileContents)
+		})
+}
+
 func getHack(c *gin.Context) {
 	http.ServeFile(c.Writer, c.Request, "hack.html")
 }
@@ -76,13 +87,14 @@ func main() {
 	r := gin.Default()
 	m := melody.New()
 
-	r.StaticFile("/chat.txt", "./chat.txt")
+	// r.StaticFile("/chat.txt", "./chat.txt")
 	r.GET("/", getChat)
 	r.GET("/ws", func(c *gin.Context) {
 		log.Printf("getChatWS")
 		fmt.Println()
 		m.HandleRequest(c.Writer, c.Request)
 	})
+	r.GET("/r/chat", getChatData)
 	r.GET("/hack", getHack)
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
