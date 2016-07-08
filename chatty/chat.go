@@ -1,17 +1,15 @@
 package chatty
 
 import (
+	"../lib"
 	"encoding/json"
 	"fmt"
+	"github.com/olahol/melody"
+	ghfmd "github.com/shurcooL/github_flavored_markdown"
 	"log"
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/olahol/melody"
-	ghfmd "github.com/shurcooL/github_flavored_markdown"
-
-	"../lib"
 )
 
 // http://stackoverflow.com/questions/26327391/go-json-marshalstruct-returns

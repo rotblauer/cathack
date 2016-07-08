@@ -14,9 +14,6 @@
 
   <!-- momentjs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
-
-  <!-- light markdown -->
- <!--  <script src="https://cdn.rawgit.com/Tonkean/lightMarkdown/0.1.2/dist/light-markdown.min.js"></script> -->
  
  <!-- highlightjs   -->
  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css">
@@ -53,27 +50,6 @@
       -webkit-margin-start: 0px;
       -webkit-margin-end: 0px;
     }
-/*    .row:before {
-      content: none;
-      display: none;
-    }
-    .row:after {
-      display: none;
-    }
-    .col-sm-4:before, .col-sm-4:after {
-      display: none;
-    }
-    .col-sm-8:before, .col-sm-8:after {
-      display: none;
-    }*/
- /*   .row {
-      margin: 0 -15 0 15px;
-      padding: 0;
-    }
-    .col-sm-3, .col-sm-9 {
-     margin: 0 -15 0 15px;
-     padding: 0; 
-    }*/
     pre {
       display: block;
       padding: 1rem;
@@ -83,6 +59,7 @@
       word-break: break-all;
       word-wrap: break-word;
       border-radius: 2px;
+      width: 90%;
     }
     .input-holder {
       position: fixed;
@@ -127,8 +104,6 @@
     }
   </style>
 
-<!--   <iframe id="frmFile" src="chat.txt" onload="LoadFile();" style="display: none" ></iframe> -->
-
   <body>
 
     <div class="container-fluid">
@@ -142,7 +117,7 @@
 
           <div class="input-holder" >
           <div class="notices">
-          <p id="hold-text-input-advice" style="padding: 1rem; background: lightgreen; font-family: monospace;">
+          <p id="hold-text-input-advice" style="padding-left: 1rem; padding-right: 1rem; background: lightgreen; font-family: monospace;">
           <small id="toggle-text-input-advice">?</small>
           <small id="text-input-advice" style="display:none;">
           <br>
@@ -218,16 +193,8 @@
         function formatPS1(line) {
       
           var ps = "";
-          // var d = JSON.parse(line);
           var d = line;
 
-          // ps += formatDate(d["Time"]);
-          // ps += " @ " + strongifyHTML(d["City"]) + " $ ";
-          // var position = d["Message"].indexOf(">") + 1; // <p>
-          // var out = [d["Message"].slice(0,position), ps, d["Message"].slice(position)].join(''); 
-          
-          // // return lightMarkdown.toHtml(out);
-          // return out;
           var out = "<div class='row'>";
           var timeFormat = "kk:mmdddDMMM";
 
@@ -245,18 +212,6 @@
           out += "</div>";
           return out;
         }
-
-        // function formatStatus(jsonLine) {
-        //   var d = JSON.parse(jsonLine);
-        //   return "\> " + classifyString(d["status"], 'label label-primary')
-        // }
-
-        // http://stackoverflow.com/questions/10191941/jquery-unique-on-an-array-of-strings
-        // function unique(array) {
-        //   return array.filter(function(el, index, arr) {
-        //         return index === arr.indexOf(el);
-        //     });
-        // }
         
         // get JSON.parsed data now
         function renderData(data) {
@@ -270,6 +225,7 @@
 
           chat.innerHTML = html;
 
+          // highlight.js each pre
           $('pre').each(function(i, block) {
               hljs.highlightBlock(block);
             });
@@ -286,22 +242,6 @@
           div.scrollTop(div.prop('scrollHeight')  + 50);
         }
         
-        //Seems like this might not be the way to handle loadin up a text file
-        // function LoadFile() {
-        //     var oFrame = document.getElementById("frmFile");
-        
-        //     var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
-
-        //     var arrLines = strRawContents.split("\n");
-        //     for (var i = 0; i < arrLines.length - 1; i++) {
-        //         var curLine = arrLines[i];
-                
-        //         data.push(curLine);
-        //     }
-
-        //     renderData(data);
-        //     scrollChat();
-        // }
         function getChatJSON() {
           $.ajax({
             type: "GET",
@@ -311,7 +251,8 @@
             },
             success: function(res) {
               console.log(res);
-              renderData(JSON.parse(res.data));
+              data = JSON.parse(res.data);
+              renderData(data);
               scrollChat();
             }
           });
@@ -326,7 +267,7 @@
           // If the message is not about another person typing. 
           if (msg.data !== "***" && msg.data !== "!***") {
             hideOtherIsTyping();
-            data.push(line);
+            data.push(JSON.parse(line));
             renderData(data);  
             scrollChat(); // set to bottom nicelike
 
@@ -360,43 +301,9 @@
             
             text.val(''); 
           }
-        })
-
-        // text.on('key') = function (e) {
-        //   // // If pushed a button that wasn't enter.
-        //   // if (e.keyCode !== 13) { 
-
-        //   //   var typing = $('#text').val();
-
-        //   //   //  and there is text in the field.
-        //   //   if (typing !== "") { // (use new identifier for text field)
-        //   //     console.log('Sending ***');
-        //   //     console.log('typing = ' + typing);
-        //   //     ws.send('***');  
-            
-        //   //   } 
-
-        //   //   if (typing === "") {
-        //   //     //remove is typing display
-        //   //     console.log("Sending !***");
-        //   //     ws.send('!***');
-        //   //   }
-        //   // }
-
-        //   // If pushed return and field is not blank.
-        //   if (e.keyCode === 13 && text.val() !== "") {
-         
-        //       console.log('Sending value ->' + text.value);
-        //       // this should be redundant since js will re-render all data
-        //       // ws.send("!***") 
-        //       ws.send(text.value); 
-        //       $("#text").empty();
-        //       // $("#text").val(''); 
-            
-        //   }
-        // };
+        });
         
-        // scroll to bottom on doc ready
+        // get data and handle it on doc ready
         $(function () {
           getChatJSON();
           // scrollChat();
@@ -404,7 +311,5 @@
 
     </script>
     
-    
-
   </body>
 </html>
