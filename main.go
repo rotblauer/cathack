@@ -83,6 +83,7 @@ func main() {
 		fmt.Println()
 		m.HandleRequest(c.Writer, c.Request)
 	})
+	r.GET("/hack", getHack)
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
