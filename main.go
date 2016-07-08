@@ -89,8 +89,22 @@ func main() {
 		fmt.Printf("Got WS message: %v", string(msg))
 		fmt.Println()
 
-		ps1, err := chatty.HandleChatMessage(s, msg)
-		m.Broadcast(ps1)
+		// is typing
+		if string(msg) == "***" {
+			m.BroadcastOthers([]byte("***"), s)
+
+			// is not typing
+		} else if string(msg) == "!***" {
+			m.BroadcastOthers([]byte("!***"), s)
+
+			// sent message
+		} else {
+			ps1, err := chatty.HandleChatMessage(s, msg)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			m.Broadcast(ps1)
+		}
 
 		// var messageRes MessageResponder
 		// messageRes.Action = "Message"

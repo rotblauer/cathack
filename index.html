@@ -79,6 +79,9 @@
 
           <div class="input-holder" >
             <div class="form-group">
+              <label for="">
+                <span id="other-is-typing" style="display: none;"><small>Somebody else is typing...</small></span>
+              </label>
               <input class="form-control" placeholder="$ echo" id="text" type="text">  
             </div>  
           </div>
@@ -95,6 +98,7 @@
         var ws = new WebSocket(url);
         var chat = document.getElementById("chat");
         var text = document.getElementById("text");
+        var isTypingDisplay = $("#other-is-typing");
         var data = [];
         
         function formatDate(goTimeString) {
@@ -156,20 +160,18 @@
           html = "";
 
           jQuery.each(data, function () {
-            console.log(this);
+            // console.log(this);
             html += formatPS1(this) + "\n";  
           });
 
           chat.innerHTML = html;
         }
-        
-        // function colorizeChat() {
-        
-        // }
-        
-        // function appendData(line) {
-        //   chat.innerHTML += formatPS1(this) + "\n";
-        // }
+        function showOtherIsTyping() {
+          isTypingDisplay.show();
+        }
+        function hideOtherIsTyping() {
+          isTypingDisplay.hide();
+        }
         
         function scrollChat() {
           var div = $('#chat');
@@ -193,16 +195,65 @@
         }
         
         ws.onmessage = function (msg) {
+
+          console.log(JSON.stringify(msg));
+
           var line = msg.data;
 
-          data.push(line);
-          renderData(data);
-        
-          scrollChat(); // set to bottom nicelike
+          // If the message is not about another person typing. 
+          if (msg.data !== "***" && msg.data !== "!***") {
+            hideOtherIsTyping();
+            data.push(line);
+            renderData(data);  
+            scrollChat(); // set to bottom nicelike
+
+          // If another person is typing. 
+          } else if (msg.data === "***") {
+            // other is typing
+            showOtherIsTyping();
+
+          // Another person is not typing anymore.
+          } else if (msg.data === "!***") {
+            hideOtherIsTyping();
+          }
         };
+
+        $('.form-group').on('input', '#text', function () {
+          // console.log("I inputted! Value: " + $("#text").val());
+          var v = $('#text').val();
+          if (v !== "") {
+            ws.send('***');
+          } else {
+            ws.send("!***");
+          }
+        });
+
         text.onkeydown = function (e) {
+          // // If pushed a button that wasn't enter.
+          // if (e.keyCode !== 13) { 
+
+          //   var typing = $('#text').val();
+
+          //   //  and there is text in the field.
+          //   if (typing !== "") { // (use new identifier for text field)
+          //     console.log('Sending ***');
+          //     console.log('typing = ' + typing);
+          //     ws.send('***');  
+            
+          //   } 
+
+          //   if (typing === "") {
+          //     //remove is typing display
+          //     console.log("Sending !***");
+          //     ws.send('!***');
+          //   }
+          // }
+
+          // If pushed return and field is not blank.
           if (e.keyCode === 13 && text.value !== "") {
             console.log('Sending value ->' + text.value);
+            // this should be redundant since js will re-render all data
+            // ws.send("!***") 
             ws.send(text.value); 
             text.value = "";
           }
@@ -211,6 +262,8 @@
         // scroll to bottom on doc ready
         $(function () {
           scrollChat();
+
+
         });
 
     </script>
