@@ -14,6 +14,9 @@
 
   <!-- momentjs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
+
+  <!-- light markdown -->
+  <script src="https://cdn.rawgit.com/Tonkean/lightMarkdown/0.1.2/dist/light-markdown.min.js"></script>
  
   <style>
     body {
@@ -32,16 +35,39 @@
       /*autoscrolalble*/
       height: 80vh;
       overflow: auto;
+      display: block;
+      font-family: monospace;
+      white-space: pre;
+      margin: 1em 0;
+
+    }
+    #chat p {
+      margin: 0;
+      line-height: 1.6rem;
+    }
+    #chat pre {
+      display: block;
+      padding: 2rem;
+      margin: 2rem;
+      font-size: 13px;
+      line-height: 1.42857143;
+      color: #fff;
+      word-break: break-all;
+      word-wrap: break-word;
+      background-color: #000;
+      border: none;
+      border-radius: 2px;
     }
     .input-holder {
       position: fixed;
       bottom: 0;
       width: 95%;
     }
-    input#text {
+    textarea#text {
       background: black;
       border: none;
       color: lightgreen;
+      width: 100%;
     }
     #open-chatty-full {
       position: fixed;
@@ -75,14 +101,14 @@
 
         <div class="col-sm-12">
 
-          <pre id="chat"></pre> 
+          <div id="chat"></div> 
 
           <div class="input-holder" >
             <div class="form-group">
               <label for="">
                 <span id="other-is-typing" style="display: none;"><small>Somebody else is typing...</small></span>
               </label>
-              <input class="form-control" placeholder="$ echo" id="text" type="text">  
+              <textarea class="form-control" placeholder="$ echo" id="text" type="text"></textarea>
             </div>  
           </div>
           
@@ -97,7 +123,7 @@
         var url = "ws://" + window.location.host + "/ws";
         var ws = new WebSocket(url);
         var chat = document.getElementById("chat");
-        var text = document.getElementById("text");
+        var text = $("#text");
         var isTypingDisplay = $("#other-is-typing");
         var data = [];
         
@@ -125,7 +151,7 @@
           return '<small>' + string + '</small>';
         }
         function strongifyHTML(string) {
-          return '<strong>' + string + '</strong>'; 
+          return '*' + string + '*'; 
         }
         function classifyString(string, classs) {
           return '<span class="' + classs + '">' + string + '</span>';  
@@ -138,9 +164,9 @@
 
           out += formatDate(d["Time"]);
           out += " @ " + strongifyHTML(d["City"]);
-          out += " $ " + d["Message"], d["City"]; 
+          out += " $ " + d["Message"]; 
           
-          return out;
+          return lightMarkdown.toHtml(out);
         }
 
         // function formatStatus(jsonLine) {
@@ -161,7 +187,7 @@
 
           jQuery.each(data, function () {
             // console.log(this);
-            html += formatPS1(this) + "\n";  
+            html += formatPS1(this);  
           });
 
           chat.innerHTML = html;
@@ -228,36 +254,50 @@
           }
         });
 
-        text.onkeydown = function (e) {
-          // // If pushed a button that wasn't enter.
-          // if (e.keyCode !== 13) { 
-
-          //   var typing = $('#text').val();
-
-          //   //  and there is text in the field.
-          //   if (typing !== "") { // (use new identifier for text field)
-          //     console.log('Sending ***');
-          //     console.log('typing = ' + typing);
-          //     ws.send('***');  
-            
-          //   } 
-
-          //   if (typing === "") {
-          //     //remove is typing display
-          //     console.log("Sending !***");
-          //     ws.send('!***');
-          //   }
-          // }
-
-          // If pushed return and field is not blank.
-          if (e.keyCode === 13 && text.value !== "") {
+        text.keyup(function (e) {
+          if (!e.shiftKey && e.which == 13 && $.trim(text.val()).length > 0) {
             console.log('Sending value ->' + text.value);
             // this should be redundant since js will re-render all data
             // ws.send("!***") 
-            ws.send(text.value); 
-            text.value = "";
+            ws.send(text.val()); 
+            
+            text.val(''); 
           }
-        };
+        })
+
+        // text.on('key') = function (e) {
+        //   // // If pushed a button that wasn't enter.
+        //   // if (e.keyCode !== 13) { 
+
+        //   //   var typing = $('#text').val();
+
+        //   //   //  and there is text in the field.
+        //   //   if (typing !== "") { // (use new identifier for text field)
+        //   //     console.log('Sending ***');
+        //   //     console.log('typing = ' + typing);
+        //   //     ws.send('***');  
+            
+        //   //   } 
+
+        //   //   if (typing === "") {
+        //   //     //remove is typing display
+        //   //     console.log("Sending !***");
+        //   //     ws.send('!***');
+        //   //   }
+        //   // }
+
+        //   // If pushed return and field is not blank.
+        //   if (e.keyCode === 13 && text.val() !== "") {
+         
+        //       console.log('Sending value ->' + text.value);
+        //       // this should be redundant since js will re-render all data
+        //       // ws.send("!***") 
+        //       ws.send(text.value); 
+        //       $("#text").empty();
+        //       // $("#text").val(''); 
+            
+        //   }
+        // };
         
         // scroll to bottom on doc ready
         $(function () {
