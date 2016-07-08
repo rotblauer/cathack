@@ -37,32 +37,8 @@ import (
 
 func getChat(c *gin.Context) {
 	http.ServeFile(c.Writer, c.Request, "index.html")
-}
-func getChatWS(c *gin.Context) {
-	m := melody.New()
-
-	m.HandleRequest(c.Writer, c.Request)
-	m.HandleMessage(func(s *melody.Session, msg []byte) {
-
-		fmt.Println("Got string.")
-		fmt.Printf(string(msg))
-
-		// status, err := lib.DelegateSendSMS(msg)
-		ps1, err := chatty.HandleChatMessage(s, msg)
-
-		if err != nil {
-			m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
-			log.Fatalln(err)
-		}
-
-		log.Printf("PS1 is %v", ps1)
-
-		m.Broadcast(ps1)
-		// m.Broadcast([]byte("I am broadcasting!!!"))
-
-		// FIXME: None of the log.Printf logs are making it into chat.log.
-
-	})
+	log.Printf("Getting chat.")
+	fmt.Println()
 }
 
 func getHack(c *gin.Context) {
@@ -70,14 +46,40 @@ func getHack(c *gin.Context) {
 }
 
 func main() {
-	//go run chat.go
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.DebugMode) // ReleaseMode
 	r := gin.Default()
-	// r // ReleaseMode)
+	m := melody.New()
 
 	r.StaticFile("/chat.txt", "./chat.txt")
 	r.GET("/", getChat)
-	r.GET("/ws", getChatWS)
+	r.GET("/ws", func(c *gin.Context) {
+		log.Printf("getChatWS")
+		fmt.Println()
+		m.HandleRequest(c.Writer, c.Request)
+	})
+
+	m.HandleMessage(func(s *melody.Session, msg []byte) {
+
+		fmt.Printf("Got WS message: %v", string(msg))
+		fmt.Println()
+
+		// status, err := lib.DelegateSendSMS(msg)
+		ps1, err := chatty.HandleChatMessage(s, msg)
+
+		if err != nil {
+			// m.Broadcast([]byte("{\"status\": \"" + err.Error() + "\"}"))
+			log.Fatalln(err)
+		}
+
+		log.Printf("Broadcasting PS1 as: %v", string(ps1))
+		fmt.Println()
+
+		m.Broadcast(ps1)
+		// m.Broadcast([]byte("I am broadcasting!!!"))
+
+		// FIXME: None of the log.Printf logs are making it into chat.log.
+
+	})
 
 	r.Run(":5000")
 }

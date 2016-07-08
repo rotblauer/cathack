@@ -13,21 +13,25 @@ import (
 	"../lib"
 )
 
+// http://stackoverflow.com/questions/26327391/go-json-marshalstruct-returns
 type ChatMessageAs struct {
-	time           string
-	unixNano       string
-	message        string
-	ip             string
-	bootsIP        string
-	lat            string
-	lon            string
-	city           string
-	subdiv         string
-	countryIsoCode string
-	tz             string
+	Time           string `json: "time"`
+	UnixNano       string `json: "unixNano"`
+	Message        string `json: "message"`
+	Ip             string `json: "ip"`
+	BootsIP        string `json: "bootsIP"`
+	Lat            string `json: "lat"`
+	Lon            string `json: "lon"`
+	City           string `json: "city"`
+	Subdiv         string `json: "subdiv"`
+	CountryIsoCode string `json: "countryIsoCode"`
+	Tz             string `json: "tz"`
 }
 
 func saveChat(data []byte) (bytes int, err error) {
+
+	fmt.Printf("Saving chat: %v", string(data))
+	fmt.Println()
 
 	// Open database.
 	f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
@@ -49,7 +53,10 @@ func saveChat(data []byte) (bytes int, err error) {
 	return bytes, err
 }
 
-func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
+func HandleChatMessage(s *melody.Session, msg []byte) ([]byte, error) {
+
+	fmt.Printf("Handling Chat Message: %v", string(msg))
+	fmt.Println()
 
 	// Timestamp.
 	timeUnixNano := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
@@ -69,24 +76,40 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 
 	// From message struct.
 	newChatMessage := ChatMessageAs{
-		time:           timeString,
-		unixNano:       timeUnixNano,
-		message:        string(msg),
-		ip:             ip,
-		bootsIP:        lib.BootsEncoded(ip),
-		lat:            geoip["lat"],
-		lon:            geoip["lon"],
-		city:           geoip["city"],
-		subdiv:         geoip["subdiv"],
-		countryIsoCode: geoip["countryIsoCode"],
-		tz:             geoip["tz"]}
+		Time:           timeString,
+		UnixNano:       timeUnixNano,
+		Message:        string(msg),
+		Ip:             ip,
+		BootsIP:        lib.BootsEncoded(ip),
+		Lat:            geoip["lat"],
+		Lon:            geoip["lon"],
+		City:           geoip["city"],
+		Subdiv:         geoip["subdiv"],
+		CountryIsoCode: geoip["countryIsoCode"],
+		Tz:             geoip["tz"], // hanging comma necessary?! https://golang.org/pkg/encoding/json/#example_Marshal
+	}
 
-	out, _ = json.Marshal(newChatMessage)
+	fmt.Printf("newChatMessage constructed: %v", newChatMessage)
+	fmt.Println()
+
+	// func Marshal(v interface{}) ([]byte, error)
+	out, err := json.Marshal(newChatMessage)
+
+	fmt.Printf("Marshaled out: %v", string(out))
+	fmt.Println()
+
+	if err != nil {
+		fmt.Printf("Error marshaling newChatMessage: %v", err)
+		fmt.Println()
+	}
 
 	bytes, err := saveChat(out)
 	fmt.Printf("Wrote %d bytes to file\n", bytes)
+	fmt.Println()
 
 	if err != nil {
+		fmt.Printf("There was an error in HandleChatMessage. %v", err.Error())
+		fmt.Println()
 		return nil, err
 	}
 	return out, nil

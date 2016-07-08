@@ -98,15 +98,19 @@
         var data = [];
         
         function formatDate(goTimeString) {
-        
-          var cleanString = goTimeString.replace(' UTC', '');
-          var a = moment.utc(cleanString);
-          var b = a.local().format(" kk:mm:ss ddd DMMM");
-        
-          if (a.isValid()) {
-            return b;  
+          
+          if (goTimeString) {
+            var cleanString = goTimeString.replace(' UTC', '');
+            var a = moment.utc(cleanString);
+            var b = a.local().format(" kk:mm:ss ddd DMMM");
+            
+            if (a.isValid()) {
+              return b;  
+            } else {
+              return goTimeString;
+            }  
           } else {
-            return goTimeString
+            return "";
           }
         }
         
@@ -128,9 +132,9 @@
           var d = JSON.parse(jsonLine);
           var out = "";
         
-          out += formatDate(d["time"]);
-          out += " @ " + strongifyHTML(d["city"]);
-          out += " $ " + d["message"], d["city"];
+          out += formatDate(d["Time"]);
+          out += " @ " + strongifyHTML(d["City"]);
+          out += " $ " + d["Message"], d["City"];
         
           return out;
         }
@@ -138,6 +142,7 @@
           var d = JSON.parse(jsonLine);
           return "\> " + classifyString(d["status"], 'label label-primary')
         }
+
         // http://stackoverflow.com/questions/10191941/jquery-unique-on-an-array-of-strings
         // function unique(array) {
         //   return array.filter(function(el, index, arr) {
@@ -148,7 +153,7 @@
         function renderData(data) {
           html = "";
           jQuery.each(data, function () {
-            if (JSON.parse(this)["status"]) {
+            if (JSON.parse(this)["Status"]) {
               html += formatStatus(this) + "\n";
             } else {
               html += formatPS1(this) + "\n";  
@@ -175,22 +180,20 @@
             var oFrame = document.getElementById("frmFile");
         
             var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
+
             var arrLines = strRawContents.split("\n");
             for (var i = 0; i < arrLines.length - 1; i++) {
                 var curLine = arrLines[i];
+                
                 data.push(curLine);
-                // chat.innerText += handleLineFormatting(curLine) + "\n";
-                // chat.innerHTML += handleLineFormatting(curLine) + "\n";
             }
+
             renderData(data);
         }
         
         ws.onmessage = function (msg) {
           var line = msg.data;
-        
-          // handle line formatting
-          // chat.innerText += handleLineFormatting(line) + "\n";
-          // chat.innerHTML += handleLineFormatting(line) + "\n";
+
           data.push(line);
           renderData(data);
         
