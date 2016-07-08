@@ -72,7 +72,7 @@ func getHack(c *gin.Context) {
 }
 
 func main() {
-	gin.SetMode(gin.DebugMode) // ReleaseMode
+	gin.SetMode(gin.ReleaseMode) // DebugMode
 	r := gin.Default()
 	m := melody.New()
 
@@ -129,7 +129,9 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		fmt.Printf("SMS: %v", string(sms))
+		fmt.Println()
 
 		// Error sending SMS.
 		// if err != nil {

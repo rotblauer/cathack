@@ -64,6 +64,7 @@ func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 	re, err := regexp.Compile(`@(\w+)`) // FIXME: this should capture only the name, not the @ part. it captures @name. don't know why.
 	if err != nil {
 		log.Printf("Error compiling regex: %v", err)
+		log.Println()
 	}
 
 	if re.MatchString(messageString) {
@@ -71,6 +72,7 @@ func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 		status = []byte("NOFIND")
 
 		log.Printf("Regex matches. Sending smss.")
+		log.Println()
 
 		// get @names
 		names := re.FindAllString(messageString, 3) // limit to first 3 matches (from left -> right)
@@ -84,6 +86,7 @@ func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 			phoneNumber := phoneBook[strings.Replace(string(name), "@", "", 1)]
 
 			log.Printf("Name: %v, Number: %v", name, phoneNumber)
+			log.Println()
 
 			// if the phone number exists for the given name
 			if len(phoneNumber) > 0 {
@@ -92,6 +95,7 @@ func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 
 				if err != nil {
 					log.Printf("Textbelt error: %v", err)
+					log.Println()
 					status = nil
 				} else {
 					log.Printf("Sent SMS to %v with content: %v", phoneNumber, messageString)
