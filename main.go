@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -43,6 +44,9 @@ func getChatWS(c *gin.Context) {
 	m.HandleRequest(c.Writer, c.Request)
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
 
+		fmt.Println("Got string.")
+		fmt.Printf(string(msg))
+
 		// status, err := lib.DelegateSendSMS(msg)
 		ps1, err := chatty.HandleChatMessage(s, msg)
 
@@ -67,7 +71,9 @@ func getHack(c *gin.Context) {
 
 func main() {
 	//go run chat.go
+	gin.SetMode(gin.DebugMode)
 	r := gin.Default()
+	// r // ReleaseMode)
 
 	r.StaticFile("/chat.txt", "./chat.txt")
 	r.GET("/", getChat)

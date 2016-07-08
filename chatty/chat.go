@@ -1,30 +1,30 @@
 package chatty
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
-	"log"
-	"fmt"
-	"encoding/json"
-	
+
 	"github.com/olahol/melody"
 
 	"../lib"
 )
 
 type ChatMessageAs struct {
-	time string
-	unixNano string
-	message string
-	ip string
-	bootsIP string
-	lat string
-	lon string
-	city string
-	subdiv string
+	time           string
+	unixNano       string
+	message        string
+	ip             string
+	bootsIP        string
+	lat            string
+	lon            string
+	city           string
+	subdiv         string
 	countryIsoCode string
-	tz string
+	tz             string
 }
 
 func saveChat(data []byte) (bytes int, err error) {
@@ -43,14 +43,14 @@ func saveChat(data []byte) (bytes int, err error) {
 	}
 
 	fmt.Println(line)
-	
+
 	f.Close()
 
 	return bytes, err
 }
 
 func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
-	
+
 	// Timestamp.
 	timeUnixNano := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	timeString := time.Now().UTC().String()
@@ -61,7 +61,7 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 		log.Fatalln("Error getting client IP: ", err)
 	}
 
-	// Geo from IP. 
+	// Geo from IP.
 	geoip, err := lib.GetGeoFromIP(ip)
 	if err != nil {
 		log.Fatalln("Error getting Geo IP.", err)
@@ -69,23 +69,23 @@ func HandleChatMessage(s *melody.Session, msg []byte) (out []byte, err error) {
 
 	// From message struct.
 	newChatMessage := ChatMessageAs{
-		time: timeString,
-		unixNano: timeUnixNano,
-		message: string(msg),
-		ip: ip,
-		bootsIP: lib.BootsEncoded(ip),
-		lat: geoip["lat"],
-		lon: geoip["lon"],
-		city: geoip["city"],
-		subdiv: geoip["subdiv"],
+		time:           timeString,
+		unixNano:       timeUnixNano,
+		message:        string(msg),
+		ip:             ip,
+		bootsIP:        lib.BootsEncoded(ip),
+		lat:            geoip["lat"],
+		lon:            geoip["lon"],
+		city:           geoip["city"],
+		subdiv:         geoip["subdiv"],
 		countryIsoCode: geoip["countryIsoCode"],
-		tz: geoip["tz"]}
+		tz:             geoip["tz"]}
 
 	out, _ = json.Marshal(newChatMessage)
 
 	bytes, err := saveChat(out)
 	fmt.Printf("Wrote %d bytes to file\n", bytes)
-	
+
 	if err != nil {
 		return nil, err
 	}
