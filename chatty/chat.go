@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/olahol/melody"
+	ghfmd "github.com/shurcooL/github_flavored_markdown"
 
 	"../lib"
 )
@@ -74,11 +75,13 @@ func HandleChatMessage(s *melody.Session, msg []byte) ([]byte, error) {
 		log.Fatalln("Error getting Geo IP.", err)
 	}
 
+	markdowned := ghfmd.Markdown(msg)
+
 	// From message struct.
 	newChatMessage := ChatMessageAs{
 		Time:           timeString,
 		UnixNano:       timeUnixNano,
-		Message:        string(msg),
+		Message:        string(markdowned),
 		Ip:             ip,
 		BootsIP:        lib.BootsEncoded(ip),
 		Lat:            geoip["lat"],

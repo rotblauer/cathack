@@ -16,8 +16,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
 
   <!-- light markdown -->
-  <script src="https://cdn.rawgit.com/Tonkean/lightMarkdown/0.1.2/dist/light-markdown.min.js"></script>
+ <!--  <script src="https://cdn.rawgit.com/Tonkean/lightMarkdown/0.1.2/dist/light-markdown.min.js"></script> -->
  
+ <!-- highlightjs   -->
+ <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css">
+ <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
+
   <style>
     body {
       background-color: black;
@@ -37,25 +41,47 @@
       overflow: auto;
       display: block;
       font-family: monospace;
-      white-space: pre;
+      /*white-space: pre;*/
       margin: 1em 0;
 
     }
-    #chat p {
+    p {
       margin: 0;
-      line-height: 1.6rem;
+      line-height: 1.8rem;
+      -webkit-margin-before: 0em;
+      -webkit-margin-after: 0.3rem;
+      -webkit-margin-start: 0px;
+      -webkit-margin-end: 0px;
     }
-    #chat pre {
+/*    .row:before {
+      content: none;
+      display: none;
+    }
+    .row:after {
+      display: none;
+    }
+    .col-sm-4:before, .col-sm-4:after {
+      display: none;
+    }
+    .col-sm-8:before, .col-sm-8:after {
+      display: none;
+    }*/
+ /*   .row {
+      margin: 0 -15 0 15px;
+      padding: 0;
+    }
+    .col-sm-3, .col-sm-9 {
+     margin: 0 -15 0 15px;
+     padding: 0; 
+    }*/
+    pre {
       display: block;
-      padding: 2rem;
-      margin: 2rem;
-      font-size: 13px;
-      line-height: 1.42857143;
-      color: #fff;
+      padding: 1rem;
+      margin: 2 0 6 0rem;
+      /*font-size: 1rem;*/
+      /*line-height: 1.4rem;*/
       word-break: break-all;
       word-wrap: break-word;
-      background-color: #000;
-      border: none;
       border-radius: 2px;
     }
     .input-holder {
@@ -108,7 +134,7 @@
               <label for="">
                 <span id="other-is-typing" style="display: none;"><small>Somebody else is typing...</small></span>
               </label>
-              <textarea class="form-control" placeholder="$ echo" id="text" type="text"></textarea>
+              <textarea class="form-control" placeholder="$ echo" row="3" id="text" type="text"></textarea>
             </div>  
           </div>
           
@@ -151,7 +177,7 @@
           return '<small>' + string + '</small>';
         }
         function strongifyHTML(string) {
-          return '*' + string + '*'; 
+          return '<strong>' + string + '</strong>'; 
         }
         function classifyString(string, classs) {
           return '<span class="' + classs + '">' + string + '</span>';  
@@ -159,14 +185,31 @@
         
         function formatPS1(line) {
       
-          var out = "";
+          var ps = "";
           var d = JSON.parse(line);
 
-          out += formatDate(d["Time"]);
-          out += " @ " + strongifyHTML(d["City"]);
-          out += " $ " + d["Message"]; 
+          // ps += formatDate(d["Time"]);
+          // ps += " @ " + strongifyHTML(d["City"]) + " $ ";
+          // var position = d["Message"].indexOf(">") + 1; // <p>
+          // var out = [d["Message"].slice(0,position), ps, d["Message"].slice(position)].join(''); 
           
-          return lightMarkdown.toHtml(out);
+          // // return lightMarkdown.toHtml(out);
+          // return out;
+          var out = "<div class='row'>";
+
+          var ps = "<div class='col-xs-4'>";
+          ps += "<p>";
+          ps += "<span class='hidden-xs'>" + formatDate(d["Time"]) + " @ " + "</span>";
+          ps += strongifyHTML(d["City"]) + " $ ";
+          ps += "</p></div>";
+
+          var says = "<div class='col-xs-8'>";
+          says += d["Message"];
+          says += "</div>";
+
+          out += ps + says;
+          out += "</div>";
+          return out;
         }
 
         // function formatStatus(jsonLine) {
@@ -191,6 +234,10 @@
           });
 
           chat.innerHTML = html;
+
+          $('pre').each(function(i, block) {
+              hljs.highlightBlock(block);
+            });
         }
         function showOtherIsTyping() {
           isTypingDisplay.show();
@@ -256,7 +303,7 @@
 
         text.keyup(function (e) {
           if (!e.shiftKey && e.which == 13 && $.trim(text.val()).length > 0) {
-            console.log('Sending value ->' + text.value);
+            console.log('Sending value ->' + text.val());
             // this should be redundant since js will re-render all data
             // ws.send("!***") 
             ws.send(text.val()); 
@@ -303,10 +350,10 @@
         $(function () {
           scrollChat();
 
-
         });
 
     </script>
+    
     
 
   </body>
