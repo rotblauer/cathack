@@ -9,8 +9,10 @@ import (
 	"./chatty"
 	"./lib"
 	// "encoding/json"
+	"encoding/json"
 	"github.com/olahol/melody"
 	"io/ioutil"
+	"strings"
 )
 
 // -------------------------------------------------
@@ -61,6 +63,19 @@ import (
 // Status: 500 BAD
 // Body: "Failed to send SMS."
 // -------------------------------------------------
+type ChatMessage struct {
+	Time           string
+	UnixNano       string
+	Message        string
+	Ip             string
+	BootsIP        string
+	Lat            string
+	Lon            string
+	City           string
+	Subdiv         string
+	CountryIsoCode string
+	Tz             string
+}
 
 func getChat(c *gin.Context) {
 	http.ServeFile(c.Writer, c.Request, "index.html")
@@ -70,12 +85,28 @@ func getChat(c *gin.Context) {
 
 func getChatData(c *gin.Context) {
 	// func ReadFile(filename string) ([]byte, error)
-	fileContents := ioutil.ReadFile("./chat.txt")
+	fileContents, err := ioutil.ReadFile("./chat.txt")
+	if err != nil {
+		fmt.Printf("Error ioutiling chat.txt: %v", err)
+	}
+
+	messageStrings := strings.Split(string(fileContents), "\n")
+
+	var collection []ChatMessage
+
+	for _, messageString := range messageStrings {
+		bytes := []byte(messageString)
+		var cm ChatMessage
+		json.Unmarshal(bytes, &cm)
+		collection = append(collection, cm)
+	}
+
+	collectionBytes, err := json.Marshal(collection) // []byte
 
 	c.JSON(200, gin.H{
 		"status": "200 OK",
-		"data": string(fileContents)
-		})
+		"data":   string(collectionBytes), // again, the hanging commas are strangely necessary
+	})
 }
 
 func getHack(c *gin.Context) {

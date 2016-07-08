@@ -127,7 +127,7 @@
     }
   </style>
 
-  <iframe id="frmFile" src="chat.txt" onload="LoadFile();" style="display: none" ></iframe>
+<!--   <iframe id="frmFile" src="chat.txt" onload="LoadFile();" style="display: none" ></iframe> -->
 
   <body>
 
@@ -218,7 +218,8 @@
         function formatPS1(line) {
       
           var ps = "";
-          var d = JSON.parse(line);
+          // var d = JSON.parse(line);
+          var d = line;
 
           // ps += formatDate(d["Time"]);
           // ps += " @ " + strongifyHTML(d["City"]) + " $ ";
@@ -257,6 +258,7 @@
         //     });
         // }
         
+        // get JSON.parsed data now
         function renderData(data) {
 
           html = "";
@@ -285,20 +287,34 @@
         }
         
         //Seems like this might not be the way to handle loadin up a text file
-        function LoadFile() {
-            var oFrame = document.getElementById("frmFile");
+        // function LoadFile() {
+        //     var oFrame = document.getElementById("frmFile");
         
-            var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
+        //     var strRawContents = oFrame.contentWindow.document.body.childNodes[0].innerHTML;
 
-            var arrLines = strRawContents.split("\n");
-            for (var i = 0; i < arrLines.length - 1; i++) {
-                var curLine = arrLines[i];
+        //     var arrLines = strRawContents.split("\n");
+        //     for (var i = 0; i < arrLines.length - 1; i++) {
+        //         var curLine = arrLines[i];
                 
-                data.push(curLine);
-            }
+        //         data.push(curLine);
+        //     }
 
-            renderData(data);
-            scrollChat();
+        //     renderData(data);
+        //     scrollChat();
+        // }
+        function getChatJSON() {
+          $.ajax({
+            type: "GET",
+            url: "/r/chat",
+            error: function() {
+              console.log("Error ajaxing chat data.");
+            },
+            success: function(res) {
+              console.log(res);
+              renderData(JSON.parse(res.data));
+              scrollChat();
+            }
+          });
         }
         
         ws.onmessage = function (msg) {
@@ -382,8 +398,8 @@
         
         // scroll to bottom on doc ready
         $(function () {
-          scrollChat();
-
+          getChatJSON();
+          // scrollChat();
         });
 
     </script>
