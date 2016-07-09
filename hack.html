@@ -36,7 +36,8 @@
 
   <style>
     .CodeMirror {
-      height: auto;
+      /*height: auto;*/
+      height: 90vh;
     }
     .label-info {
       background-color: #BEE0FC;
@@ -57,7 +58,7 @@
       <iframe src="http://www.chat.areteh.co:5000/" id="theFrame" style="width:100%; height: 60vh;" frameborder="0"></iframe>
       </div>
 
-      <div class="row text-center" id="toggle-chat" style="color: lightgreen; background: black;">
+      <div class="row text-center" id="toggle-chat" style="color: lightgreen; background: #322931;">
 
         <span >
           <span class="octicon octicon-keyboard"></span>
@@ -75,7 +76,9 @@
       <div class="row" style="height: 60vh;">
         
         <div class="col-sm-3">
-          <span id="createSnippet" class="text-success">+ Create snippet</span>
+          <div class="row padding">
+          <span id="createSnippet" style="margin-top: 1rem;" class="label label-success">+ New Snippet</span>
+          </div>
           <div id="snippetsLib" class="row padding">
             snips go here
           </div>
@@ -99,11 +102,14 @@
               <option value="textile">Textile</option>
             </select>
 
-            <small id="snippetTime" class="text-muted"></small>
+            <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
+            <small id="destroySnippet" class="text-danger pull-right">
+              <i class="octicon octicon-trashcan"></i>
+            </small>
           </div>
           <!-- currentSnippet editor -->
           <div class="col-xs-12">
-            <div id="editor" style="min-height: 70vh;"></div>
+            <div id="editor" ></div>
           </div>
         </div>
 
@@ -128,6 +134,7 @@
       var snippetsInLibElems = $(".snip");
 
       var createSnippetElem = $("#createSnippet");
+      var destroySnippetElem = $("#destroySnippet");
 
       var editor          = $("#editor");
       
@@ -309,15 +316,15 @@
 
         function snipIsActiveElem() {
           if (snippetObj.id === currentSnippet.id) {
-            return "<i class='octicon octicon-file-code'></i>&nbsp;";  
+            return "label-warning";  
           } else {
-            return "";
+            return "label-primary";
           }
         } 
 
         var snipWrapBegin = "<p class='snip' " + attrFunc + cssId + ">";
 
-        var snipNameElem = "<span class='label label-primary name'" + cssId + attrFunc + ">" +
+        var snipNameElem = "<span class='label " + snipIsActiveElem() + " name'" + cssId + attrFunc + ">" +
                             snippetObj.name + 
                             "</span>&nbsp;";
 
@@ -335,7 +342,6 @@
 
         
         return  snipWrapBegin + 
-                snipIsActiveElem() + 
                 snipNameElem + 
                 snipLangElem + 
                 snipTimeElem + 
