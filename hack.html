@@ -12,9 +12,13 @@
   <!-- jquery -->
   <script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
 
-  <!-- highlightjs   -->
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
+  <!-- codemirror -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.min.css">
+    <!-- go  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/go/go.min.js"></script>
+    <!-- js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/javascript/javascript.min.js"></script>
 
   <style>
     
@@ -25,9 +29,19 @@
     <div class="container-fluid">
       <h1 style="color: #BEE0FC;">/hack <i class="octicon octicon-octocat"></i></h1>
 
-      <div id="draft" contenteditable="true" style="min-height: 60vh; width: 60%;">
-        write here
+      <div class="row">
+        <div class="col-md-3">
+          <select name="" id="mode-picker">
+            <option value="javascript" selected="selected">JS</option>
+            <option value="go">Go</option>
+          </select>
+        </div>
+
+        <div class="col-md-9">
+          <div id="editor"></div>
+        </div>
       </div>
+      
 
     </div>
 
@@ -35,41 +49,43 @@
       
       var url = "ws://" + window.location.host + "/hack/ws";
       var ws = new WebSocket(url);
-      var draft = $("#draft");
-      var typo = $("#typo");
-      function highlighter() {
-        // highlight.js each pre
-        $('#draft').each(function(i, block) {
-          hljs.highlightBlock(block);
-        });
-      }
-      ws.onmessage = function (msg) {
-        var d = msg.data;
-        console.log("received onmessage -> " + d);
-        draft.html(d);  
-        // highlighter();
-      };
+      var editor = $("#editor");
+      var modePicker = $("#mode-picker");
 
-      $(document).keyup(function (e) {
-        if (!e.shiftKey && e.which == 13) {
-          
-          var t = draft.html();
-          console.log("sending " + t);
-          ws.send(t);
-          // highlighter();
-        }
-      })
-      $(function () {
-        highlighter();
+      var cm = CodeMirror(editor[0], {
+        mode:  "javascript",
+        lineNumbers: true,
+        tabSize: 2
       });
 
-      // pingpongers
-      // draft.bind("DOMSubtreeModified", function () {
-      //   console.log('changed');
-      //   var t = draft.html();
-      //   console.log('t -> ' + t);
-      //   ws.send(draft.html());
-      // });
+      // get val
+      ws.onmessage = function (msg) {
+        var d = msg.data;
+        console.log("received onmessage -> " + JSON.stringify(d));
+        var j = JSON.parse(d);
+
+        modePicker.val(j.language);
+        cm.setOption("mode", j.language);
+        cm.setValue(j.content);
+      };
+
+      function sendUpdate() {
+        var lang = $('#mode-picker').val();
+        var t = cm.getValue();
+        var s = JSON.stringify({language: lang, content: t});
+        ws.send(s);
+      }
+
+      // send updates 
+      // on key up
+      editor.keyup(function (e) {
+        sendUpdate();
+      });
+      // on mode picking
+      modePicker.on("change", function () {
+        cm.setOption("mode", $(this).val());
+        sendUpdate();
+      });
 
     </script>
     
