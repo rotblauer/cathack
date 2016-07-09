@@ -3,65 +3,17 @@ package main
 import (
 	"./chatty"
 	"./lib"
-	"encoding/json"
+	"./web"
 	"fmt"
+	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"strings"
 )
 
-type ChatMessage struct {
-	Time           string
-	UnixNano       string
-	Message        string
-	Ip             string
-	BootsIP        string
-	Lat            string
-	Lon            string
-	City           string
-	Subdiv         string
-	CountryIsoCode string
-	Tz             string
-}
-
-func getChat(c *gin.Context) {
-	http.ServeFile(c.Writer, c.Request, "index.html")
-	log.Printf("Getting chat.")
-	fmt.Println()
-}
-
-func getChatData(c *gin.Context) {
-	// func ReadFile(filename string) ([]byte, error)
-	fileContents, err := ioutil.ReadFile("./chat.txt")
-	if err != nil {
-		fmt.Printf("Error ioutiling chat.txt: %v", err)
-	}
-
-	messageStrings := strings.Split(string(fileContents), "\n")
-
-	var collection []ChatMessage
-
-	for _, messageString := range messageStrings {
-		bytes := []byte(messageString)
-		var cm ChatMessage
-		json.Unmarshal(bytes, &cm)
-		collection = append(collection, cm)
-	}
-
-	collectionBytes, err := json.Marshal(collection) // []byte
-
-	c.JSON(200, gin.H{
-		"status": "200 OK",
-		"data":   string(collectionBytes), // again, the hanging commas are strangely necessary
-	})
-}
-
-func getHack(c *gin.Context) {
-	http.ServeFile(c.Writer, c.Request, "hack.html")
-}
+// const (
+// 	snippetsBucketName := []byte("snippets")
+// )
 
 func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
@@ -69,25 +21,58 @@ func main() {
 	m := melody.New()
 	h := melody.New()
 
+	// Open the my.db data file in your current directory.
+	// It will be created if it doesn't exist.
+	db, err := bolt.Open("hack.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("snippets"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
 	// r.StaticFile("/chat.txt", "./chat.txt")
-	r.GET("/", getChat)
-	r.GET("/r/chat", getChatData)
+	r.GET("/", web.GetChat)
+	r.GET("/r/chat", web.GetChatData)
 	r.GET("/ws", func(c *gin.Context) {
 		log.Printf("getChatWS")
 		fmt.Println()
 		m.HandleRequest(c.Writer, c.Request)
 	})
 
-	r.GET("/hack", getHack)
+	r.GET("/hack", web.GetHack)
 	r.GET("/hack/ws", func(c *gin.Context) {
 		fmt.Println("Got hack/ws request.")
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
-	h.HandleMessage(func(s *melody.Session, msg []byte) {
-		fmt.Printf("HackHandleMessage: %v", string(msg))
+	h.HandleConnect(func(s *melody.Session) {
+		db.View(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("snippets"))
+			v := b.Get([]byte("testSnip"))
+			s.Write(v)
+			return nil
+		})
+
+	})
+
+	h.HandleMessage(func(s *melody.Session, hackery []byte) {
+		fmt.Printf("HackHandleMessage: %v", string(hackery))
 		fmt.Println()
-		h.BroadcastOthers(msg, s)
+		h.BroadcastOthers(hackery, s)
+		db.Update(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("snippets"))
+			err := b.Put([]byte("testSnip"), hackery)
+			if err != nil {
+				return fmt.Errorf("putting to bucket: %s", err)
+			}
+			return err
+		})
 	})
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
