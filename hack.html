@@ -19,27 +19,77 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/go/go.min.js"></script>
     <!-- js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/javascript/javascript.min.js"></script>
+    <!-- markdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/markdown/markdown.min.js"></script>
+    <!-- python -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/python/python.min.js"></script>
+    <!-- ruby -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/ruby/ruby.min.js"></script>
+    <!-- r -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/r/r.min.js"></script>
+    <!-- shell -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/shell/shell.min.js"></script>
+    <!-- swift -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/swift/swift.min.js"></script>
+    <!-- textile -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/textile/textile.min.js"></script>
 
   <style>
-    
+    .CodeMirror {
+      height: auto;
+    }
+    .label-info {
+      background-color: #BEE0FC;
+    }
+    .text-info {
+      color: #BEE0FC;
+    }
+    .padding {
+      padding: 1rem;
+    }
   </style>
 
   <body>
 
     <div class="container-fluid">
-      <h1 style="color: #BEE0FC;">/hack <i class="octicon octicon-octocat"></i></h1>
+      
 
       <div class="row">
-        <div class="col-md-3">
-          <select name="" id="mode-picker">
-            <option value="javascript" selected="selected">JS</option>
-            <option value="go">Go</option>
-          </select>
+        <div class="col-sm-3">
+          <span style="color: #BEE0FC;">cat * | hack</span>
+          <hr>
+          <span id="createSnippet" class="text-success">+ Create snippet</span>
+          <div id="snippetsLib" class="row padding">
+            stuff goes here
+          </div>
+        </div>
+        <div class="col-sm-9">
+          <!-- currentSnippet metadata -->
+          <div class="col-xs-12">
+            <span id="snippetId" class="text-primary"></span>
+            <code id="snippetName" contenteditable="true">testSnip</code>
+            
+            <select name="" id="snippetLang">
+              <option value="javascript" selected="selected">JS</option>
+              <option value="go">Go</option>
+              <option value="markdown">Markdown</option>
+              <option value="python">Python</option>
+              <option value="ruby">Ruby</option>
+              <option value="r">R</option>
+              <option value="shell">Shell</option>
+              <option value="swift">Swift</option>
+              <option value="textile">Textile</option>
+            </select>
+
+            <small id="snippetTime" class="text-muted"></small>
+          </div>
+          <!-- currentSnippet editor -->
+          <div class="col-xs-12">
+            <div id="editor" style="min-height: 70vh;"></div>
+          </div>
         </div>
 
-        <div class="col-md-9">
-          <div id="editor"></div>
-        </div>
+
       </div>
       
 
@@ -49,43 +99,277 @@
       
       var url = "ws://" + window.location.host + "/hack/ws";
       var ws = new WebSocket(url);
-      var editor = $("#editor");
-      var modePicker = $("#mode-picker");
+      
+      var snippetIdElem   = $("#snippetId");
+      var snippetNameElem = $("#snippetName");
+      var snippetTimeElem = $("#snippetTime");
+      var snippetLangElem = $("#snippetLang");
 
+      var snippetsLibElem = $("#snippetsLib");
+      var snippetsInLibElems = $(".snip");
+
+      var createSnippetElem = $("#createSnippet");
+
+      var editor          = $("#editor");
+      
       var cm = CodeMirror(editor[0], {
         mode:  "javascript",
         lineNumbers: true,
-        tabSize: 2
+        tabSize: 2,
+        inputStyle: "contenteditable"
       });
+      
+      var snippetsLib = {}; // Lookup obj for all snippets (received from HandleConnect).
+      var currentSnippet = {};
+
+
+
+      function toSnippetObj(id, name, lang, content, timestamp) {
+        return {
+          id: id, 
+          name: name,
+          language: lang,
+          content: content, 
+          timestamp: timestamp // int
+        };
+      }
+
+      // http://stackoverflow.com/questions/7390426/better-way-to-get-type-of-a-javascript-variable
+      function typeOf (obj) {
+        return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
+      }
+      // typeOf(); //undefined
+      // typeOf(null); //null
+      // typeOf(NaN); //number
+      // typeOf(5); //number
+      // typeOf({}); //object
+      // typeOf([]); //array
+      // typeOf(''); //string
+      // typeOf(function () {}); //function
+      // typeOf(/a/) //regexp
+      // typeOf(new Date()) //date
+
 
       // get val
       ws.onmessage = function (msg) {
         var d = msg.data;
         console.log("received onmessage -> " + JSON.stringify(d));
+
+        // Receive either an array (HandleConnect, gets all snippets) 
+        //                or object (HandleMessage, snippet that was updated)
         var j = JSON.parse(d);
 
-        modePicker.val(j.language);
-        cm.setOption("mode", j.language);
-        cm.setValue(j.content);
+        // Array --> 
+        if (typeOf(j) === 'array') {
+          
+          snippetsLib = {}; // reset in case there was a delete.
+
+          // Store all snippets in snippetsLib {} var (as lookup).
+          for (var i = 0, len = j.length; i < len; i++) {  
+            snippetsLib[j[i].id] = j[i]; // assign snippetsLib by id, ie {"1": snippet, "2": othersnippet}
+          }
+
+          // If currentSnippet is an empty obj (as per init)...
+          // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
+          if (Object.keys(currentSnippet).length === 0 && currentSnippet.constructor === Object) {
+
+            // ...set currentSnippet to be first in incoming array.
+            // (Easier than looping through snippetsLib {}) 
+            // 
+            // TODO: Set currentSnippet by most recent. 
+            currentSnippet = j[0];
+            refreshGUIForSnippet(currentSnippet);
+          }
+
+          // Refresh GUI for snippets lib. 
+          refreshGUIForSnippetsLib(snippetsLib);
+
+        // Object --> 
+        // (another session made an update to a snippet.)
+        } else if (typeOf(j) === 'object') {
+          
+          // If incoming snippet matches current snippet by Id, 
+          // update our var and GUI to reflect the incoming change.
+          if (j.id === currentSnippet.id) {
+            refreshGUIForSnippet(setAsCurrentSnippet(j));
+          }
+
+          updateSnippetsLibForObj(j);
+        }
       };
 
-      function sendUpdate() {
-        var lang = $('#mode-picker').val();
-        var t = cm.getValue();
-        var s = JSON.stringify({language: lang, content: t});
+      function updateSnippetsLibForObj(snippetObj) {
+        snippetsLib[snippetObj.id] = snippetObj;
+        refreshGUIForSnippetsLib(snippetsLib);
+      }
+
+
+      // Lib.
+      // 
+      // Sets GUI to reflect state of a givent snippetsLib object {} var. 
+      function refreshGUIForSnippetsLib(snippetsLib) {
+        listHhtml = "";
+        $.each(snippetsLib, function (key, val) {
+          listHhtml += formatLibrarySnippetHTML(val);
+        });
+        snippetsLibElem.html(listHhtml);
+      }
+
+      // Snippet. 
+      // 
+      // GUI -> snippetObj
+      // Sets GUI to reflect state of a given snippet object. 
+      function refreshGUIForSnippet(snippetObj) {
+        snippetIdElem.text(snippetObj.id);
+        snippetNameElem.text(snippetObj.name);
+        snippetLangElem.val(snippetObj.language);
+        snippetTimeElem.text(snippetObj.timestamp);
+
+        cm.setValue(snippetObj.content); 
+        cm.setOption("mode", snippetObj.language);
+      }
+      // 
+      // currentSnippet -> GUI
+      // Updates currentSnippet var to match GUI content. 
+      function updateCurrentSnippetFromGUI() {
+        currentSnippet.name = snippetNameElem.text();
+        currentSnippet.language = snippetLangElem.val();
+        currentSnippet.content = cm.getValue();
+        currentSnippet.timestamp = Date.now();
+
+        snippetsLib[currentSnippet.id] = currentSnippet;
+
+        snippetTimeElem.text(currentSnippet.timestamp); // just update GUI time so it's obvious it has been saved
+        refreshGUIForSnippetsLib(snippetsLib);
+
+        return currentSnippet;
+      }
+
+
+      // New Snippet.
+      // 
+      // Helper: Increment id, return as string. 
+      function incrementedSnippetId(lib) {
+        var max = 0;
+        $.each(lib, function (k,v) {
+          if (parseInt(v.id) > max) {
+            max = parseInt(v.id);
+          }
+        });
+        return (max + 1).toString();
+      }
+      // Create new snippet with incremented id.
+      function buildNewSnippet() {
+        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'new snippet', 'javascript', '', Date.now());
+        snippetsLib[n.id] = n; // add to library
+        return n;
+      }
+
+      // Helpers 
+      // 
+      // Updates currentSnippet var to match incoming WS object.
+      function setAsCurrentSnippet(snippetObj) {
+        currentSnippet = snippetObj;
+        return currentSnippet;
+      }
+      // Sets currentSnippet var to selected snippet from lib (by id). 
+      function setCurrentSnippetFromLibById(snippetId) {
+        currentSnippet = snippetsLib[snippetId];
+        return currentSnippet;
+      }
+      // Updates GUI snippet from lib. 
+      function selectSnippetFromLib(snippetId) {
+        refreshGUIForSnippet(setCurrentSnippetFromLibById(snippetId));
+        refreshGUIForSnippetsLib(snippetsLib);
+      }
+      // Formats each a snip for the lib.
+      function formatLibrarySnippetHTML(snippetObj) {
+
+        var attrFunc = "onClick='return handleLibrarySnippetClick(this)' ";
+        var cssId = "id='snip-" + snippetObj.id + "' ";
+
+        function snipIsActiveElem() {
+          if (snippetObj.id === currentSnippet.id) {
+            return "<i class='octicon octicon-file-code'></i>&nbsp;";  
+          } else {
+            return "";
+          }
+        } 
+
+        var snipWrapBegin = "<p class='snip' " + attrFunc + cssId + ">";
+
+        var snipNameElem = "&nbsp;<span class='label label-info name'" + cssId + attrFunc + ">" +
+                            snippetObj.name + 
+                            "</span>&nbsp;";
+
+        var snipLangElem = "<span class='text-info lang'>" + 
+                            snippetObj.language + 
+                            "</span>";
+
+        var snipTimeElem = "<small class='text-muted time'> " + 
+                           snippetObj.timestamp + 
+                           " </small>";
+
+        var snipWrapEnd = "</p>";
+
+        var snipIconElem = "";
+
+        
+        return  snipWrapBegin + 
+                snipIsActiveElem() + 
+                snipNameElem + 
+                snipLangElem + 
+                snipTimeElem + 
+                snipWrapEnd;
+      }
+
+
+      // WS persistence.
+      // 
+      // Sends to server for a given snippet object.
+      function sendUpdate(snippetObj) {
+
+        var s = JSON.stringify(snippetObj);
+        
+        console.log("sending update: " + s);
         ws.send(s);
       }
 
-      // send updates 
-      // on key up
+      // Make snippet update on...
+      // 
+      // content editing (via key up)
       editor.keyup(function (e) {
-        sendUpdate();
+        sendUpdate(updateCurrentSnippetFromGUI()); // updateCurrentSnippetFromGUI returns currentSnippet {} var
       });
-      // on mode picking
-      modePicker.on("change", function () {
+      // mode picking
+      snippetLangElem.on("change", function () {
         cm.setOption("mode", $(this).val());
-        sendUpdate();
+        sendUpdate(updateCurrentSnippetFromGUI());
       });
+      // name change
+      snippetNameElem.on("input", function () {
+        sendUpdate(updateCurrentSnippetFromGUI());
+      });
+
+      // choose from lib
+      function handleLibrarySnippetClick(elem) {
+        console.log(elem);
+        snipId = $(elem).attr('id').replace('snip-', '');
+        console.log(snipId);
+        selectSnippetFromLib(snipId);
+      }
+
+      createSnippetElem.on("click", function () {
+        n = buildNewSnippet();
+        refreshGUIForSnippet(setAsCurrentSnippet(n));
+
+        updateSnippetsLibForObj(n);
+        
+        sendUpdate(currentSnippet); // n is now currentSnippet
+
+        snippetNameElem.focus();
+      })
+
 
     </script>
     

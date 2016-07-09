@@ -4,6 +4,7 @@ import (
 	"./chatty"
 	"./lib"
 	"./web"
+	"encoding/json"
 	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -11,9 +12,13 @@ import (
 	"log"
 )
 
-// const (
-// 	snippetsBucketName := []byte("snippets")
-// )
+type Snippet struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Language  string `json:"language"`
+	Content   string `json:"content"`
+	TimeStamp int    `json:"timestamp"`
+}
 
 func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
@@ -51,11 +56,28 @@ func main() {
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
+	// Send all of the snippets when a user connects.
 	h.HandleConnect(func(s *melody.Session) {
 		db.View(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("snippets"))
-			v := b.Get([]byte("testSnip"))
-			s.Write(v)
+			// v := b.Get([]byte("testSnip"))
+
+			// iterate through snippets
+			c := b.Cursor()
+			var snippets []Snippet // Array of Go snippet structs
+
+			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+				var snip Snippet
+				json.Unmarshal(snipval, &snip)
+				snippets = append(snippets, snip)
+			}
+
+			o, err := json.Marshal(snippets) // JSON-ified array of snippets
+			if err != nil {
+				fmt.Printf("Error marshaling snippet array: %v", err)
+			}
+
+			s.Write(o)
 			return nil
 		})
 
@@ -65,9 +87,16 @@ func main() {
 		fmt.Printf("HackHandleMessage: %v", string(hackery))
 		fmt.Println()
 		h.BroadcastOthers(hackery, s)
+
+		var snip Snippet
+
+		json.Unmarshal(hackery, &snip)
+		id := snip.Id // find snippet name and update db by id
+
 		db.Update(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("snippets"))
-			err := b.Put([]byte("testSnip"), hackery)
+			err := b.Put([]byte(id), hackery)
+
 			if err != nil {
 				return fmt.Errorf("putting to bucket: %s", err)
 			}
