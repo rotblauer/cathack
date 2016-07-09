@@ -56,6 +56,59 @@ func main() {
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
+	r.DELETE("/hack/:snippetId", func(c *gin.Context) {
+
+		id := c.Param("snippetId") // func (c *Context) Param(key string) string
+
+		// remove given snippet by id
+		err := db.Update(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("snippets"))
+			err := b.Delete([]byte(id))
+			if err != nil {
+				fmt.Printf("Error deleting from bucket: %v", err)
+				return err
+			}
+			return nil
+		})
+
+		if err != nil {
+			c.JSON(400, "No snippet found with id: "+id)
+		} else {
+
+			// broadcast new index
+			err := db.View(func(tx *bolt.Tx) error {
+				b := tx.Bucket([]byte("snippets"))
+				// v := b.Get([]byte("testSnip"))
+
+				// iterate through snippets
+				c := b.Cursor()
+				var snippets []Snippet // Array of Go snippet structs
+
+				for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+					var snip Snippet
+					json.Unmarshal(snipval, &snip)
+					snippets = append(snippets, snip)
+				}
+
+				o, err := json.Marshal(snippets) // JSON-ified array of snippets
+				if err != nil {
+					fmt.Printf("Error marshaling snippet array: %v", err)
+					return err
+				}
+
+				h.Broadcast(o)
+				return nil
+			})
+
+			if err == nil {
+				c.JSON(200, "Deleted snippet: "+id)
+			} else {
+				c.JSON(500, "Internal server error.")
+			}
+		}
+
+	})
+
 	// Send all of the snippets when a user connects.
 	h.HandleConnect(func(s *melody.Session) {
 		db.View(func(tx *bolt.Tx) error {

@@ -88,7 +88,7 @@
           <!-- currentSnippet metadata -->
           <div class="col-xs-12">
             <span id="snippetId" class="text-primary"></span>
-            <code id="snippetName" contenteditable="true">testSnip</code>
+            <code id="snippetName" contenteditable="true">boots.js</code>
             
             <select name="" id="snippetLang">
               <option value="javascript" selected="selected">JS</option>
@@ -221,6 +221,10 @@
           }
 
           updateSnippetsLibForObj(j);
+        } else if (typeOf(j) === 'null') {
+          currentSnippet = buildNewSnippet();
+          // snippetsLib[currentSnippet.id] = currentSnippet;
+          refreshGUIForSnippet(currentSnippet);
         }
       };
 
@@ -275,18 +279,15 @@
       // New Snippet.
       // 
       // Helper: Increment id, return as string. 
+      // CHANGELOG: We'll use random hash ids to avoid collisions on Create/Destroys. 
+      // Plus, hashes are cool. Bro. 
       function incrementedSnippetId(lib) {
-        var max = 0;
-        $.each(lib, function (k,v) {
-          if (parseInt(v.id) > max) {
-            max = parseInt(v.id);
-          }
-        });
-        return (max + 1).toString();
+        // http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
+        return Math.random().toString(36).substring(7);
       }
       // Create new snippet with incremented id.
       function buildNewSnippet() {
-        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'new snippet', 'javascript', '', Date.now());
+        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'boots.js', 'javascript', '', Date.now());
         snippetsLib[n.id] = n; // add to library
         return n;
       }
@@ -304,9 +305,21 @@
         return currentSnippet;
       }
       // Updates GUI snippet from lib. 
-      function selectSnippetFromLib(snippetId) {
+      function selectSnippetFromLibById(snippetId) {
         refreshGUIForSnippet(setCurrentSnippetFromLibById(snippetId));
         refreshGUIForSnippetsLib(snippetsLib);
+      }
+      // Find another snippet to show (for when one has been destroyed.)
+      // Returns snippet obj. 
+      function findSnippetThatIsnt(snippetId) {
+        var s; 
+        $.each(snippetsLib, function (id,snippet) {
+          if (id !== snippetId) {
+            s = snippet;
+            false; // break out
+          }
+        });
+        return s;
       }
       // Formats each a snip for the lib.
       function formatLibrarySnippetHTML(snippetObj) {
@@ -381,7 +394,7 @@
         console.log(elem);
         snipId = $(elem).attr('id').replace('snip-', '');
         console.log(snipId);
-        selectSnippetFromLib(snipId);
+        selectSnippetFromLibById(snipId);
       }
 
       createSnippetElem.on("click", function () {
@@ -393,7 +406,45 @@
         sendUpdate(currentSnippet); // n is now currentSnippet
 
         snippetNameElem.focus();
-      })
+      });
+
+      destroySnippetElem.on('click', function () {
+        console.log('clicking');
+        ID = currentSnippet.id;
+        delete snippetsLib[ID];
+        refreshGUIForSnippetsLib(snippetsLib);
+
+        // set current snippet to another or new
+        var nextSnippet = findSnippetThatIsnt(ID);
+        
+        if (typeOf(nextSnippet) !== 'undefined') {
+          selectSnippetFromLibById(nextSnippet.id);  
+        
+        } else { // deleted the last remaining snippet
+          // snippetsLib = {}; // reset 
+          // currentSnippet = buildNewSnippet();
+          // refreshGUIForSnippet(currentSnippet);
+
+        }
+        
+
+        // send destroy signal to /hack
+        $.ajax({
+          method: "DELETE",
+          url: "/hack/" + ID,
+          error: function (e) {
+            console.log("Ajax error.");
+          },
+          success: function (res) {
+            console.log(res);
+          }
+        });
+        
+        // expect broadcast of new snippets index
+        
+        // NOTE: If another person is viewing/working on the snippet which is to be deleted, it won't be removed from their currentSnippet var.
+        // Thus, if they modify that var in any way, the snippet will return. 
+      });
 
 
     </script>
