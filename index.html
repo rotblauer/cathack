@@ -191,8 +191,13 @@
         
         function formatPS1(line) {
       
+          // console.log("formatting line: " + JSON.stringify(line));
+
           var ps = "";
           var d = line;
+          if (d["Time"] === "") {
+            return "";
+          }
 
           var out = "<div class='row'>";
           var timeFormat = "kk:mmdddDMMM";
@@ -217,7 +222,7 @@
 
           html = "";
 
-          jQuery.each(data, function () {
+          $.each(data, function () {
             // console.log(this);
             html += formatPS1(this);  
           });
