@@ -12,6 +12,10 @@
   <!-- jquery -->
   <script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
 
+  <!-- highlightjs   -->
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
+
   <style>
     
   </style>
@@ -19,7 +23,7 @@
   <body>
 
     <div class="container-fluid">
-      <h1>/hack <i class="octicon octicon-octocat"></i></h1>
+      <h1 style="color: #BEE0FC;">/hack <i class="octicon octicon-octocat"></i></h1>
 
       <div id="draft" contenteditable="true" style="min-height: 60vh; width: 60%;">
         write here
@@ -33,20 +37,31 @@
       var ws = new WebSocket(url);
       var draft = $("#draft");
       var typo = $("#typo");
-
+      function highlighter() {
+        // highlight.js each pre
+        $('#draft').each(function(i, block) {
+          hljs.highlightBlock(block);
+        });
+      }
       ws.onmessage = function (msg) {
         var d = msg.data;
         console.log("received onmessage -> " + d);
-        draft.text(d);
+        draft.html(d);
+        // highlighter();
       };
 
       $(document).keyup(function (e) {
         if (!e.shiftKey && e.which == 13) {
+          
           var t = draft.html();
           console.log("sending " + t);
           ws.send(t);
+          // highlighter();
         }
       })
+      $(function () {
+        highlighter();
+      });
 
       // pingpongers
       // draft.bind("DOMSubtreeModified", function () {
