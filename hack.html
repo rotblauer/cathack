@@ -74,89 +74,123 @@
     .padding {
       padding: 1rem;
     }
+    .catchat {
+      color: lightgreen; 
+      background: black;
+      margin-right: -30px;
+      margin-top: -5px;
+      padding: 0.5rem 1.2rem 0.5rem 1rem;
+    }
+    .snip {
+      padding-top: 0.4rem;
+      padding-bottom: 0.4rem;
+    }
+    .snip .name {
+      font-weight: bold;
+    }
+    #snippetMeta {
+      background: #eee;
+    }
 
-    .ide-wrapper, .chat-wrapper {
-      position: absolute;
-    }
-    .ide-wrapper {
-      top: 0px;
-      left:;
-    }
   </style>
 
   <body>
 
     <div id="show-error" class="error" style="display: none; position: fixed; top:0 ; height: 30vh; width: 100%; background: red; color: white; z-index: 10;"></div>
+<!--     <div id="chat-container" class="row" style="display: none;">
+    <iframe src="http://www.chat.areteh.co:5000/" id="theFrame" style="width:100%; height: 60vh;" frameborder="0"></iframe>
+    </div> -->
+    
+
 
     <div class="container-fluid">
-      
-      <div id="chat-container" class="row" style="display: none;">
-      <iframe src="http://www.chat.areteh.co:5000/" id="theFrame" style="width:100%; height: 60vh;" frameborder="0"></iframe>
-      </div>
+       
+       <!-- toggle chat bar -->
+    <!--    <div class="row text-center" id="toggle-chat" style="color: lightgreen; background: #322931;">
+         <span >
+           <span class="octicon octicon-keyboard"></span>
+           <span id="chat-chevron" class="octicon octicon-chevron-down"></span>
+         </span>
+       </div> -->
+       
+       <script>
+         // $("#toggle-chat").click(function () {
+         //   $('#chat-container').slideToggle(300);
+         //   $('#chat-chevron').toggleClass("octicon-chevron-down octicon-chevron-up");
+         // });
+       </script>
+     
+     
+       
+       <div class="row" style="min-height: 60vh;">
+         
+         <div id="lib" class="col-sm-3">
+           <div class="row padding">
+           <span id="createSnippet" style="margin-top: 1rem;" class="label label-success">+ New Snippet</span>
+           </div>
+           <div id="snippetsLib" class="row padding">
+             snips go here
+           </div>
+         </div>
+         
+         <div id="editing" class="col-sm-9">
+           <!-- currentSnippet metadata -->
+           <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
+             <span id="snippetId" class="text-primary"></span>
+             <code id="snippetName" contenteditable="true">boots.js</code>
+             
+       <!--             <select name="" id="snippetLang">
+               <option value="javascript" selected="selected">JS</option>
+               <option value="html">HTML</option>
+               <option value="go">Go</option>
+               <option value="markdown">Markdown</option>
+               <option value="python">Python</option>
+               <option value="ruby">Ruby</option>
+               <option value="r">R</option>
+               <option value="shell">Shell</option>
+               <option value="swift">Swift</option>
+               <option value="textile">Textile</option>
+             </select> -->
+             <small id="snippetLang" class="text-warning"></small>
+       
+             <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
+             
+             <small id="destroySnippet" class="text-danger">
+               Delete <i class="octicon octicon-trashcan"></i>
+             </small>
 
-      <div class="row text-center" id="toggle-chat" style="color: lightgreen; background: #322931;">
+              <small id="catchattoggler" class="catchat pull-right" style="position: relative; top: 0; right: 0;">CatChat&nbsp;<i class="octicon octicon-keyboard"></i></small>
 
-        <span >
-          <span class="octicon octicon-keyboard"></span>
-          <span id="chat-chevron" class="octicon octicon-chevron-down"></span>
-        </span>
-      </div>
-      
-      <script>
-        $("#toggle-chat").click(function () {
-          $('#chat-container').slideToggle(300);
-          $('#chat-chevron').toggleClass("octicon-chevron-down octicon-chevron-up");
-        });
-      </script>
-      
-      <div class="row" style="height: 60vh;">
-        
-        <div class="col-sm-3">
-          <div class="row padding">
-          <span id="createSnippet" style="margin-top: 1rem;" class="label label-success">+ New Snippet</span>
-          </div>
-          <div id="snippetsLib" class="row padding">
-            snips go here
-          </div>
-        </div>
-        
-        <div class="col-sm-9">
-          <!-- currentSnippet metadata -->
-          <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
-            <span id="snippetId" class="text-primary"></span>
-            <code id="snippetName" contenteditable="true">boots.js</code>
-            
-      <!--             <select name="" id="snippetLang">
-              <option value="javascript" selected="selected">JS</option>
-              <option value="html">HTML</option>
-              <option value="go">Go</option>
-              <option value="markdown">Markdown</option>
-              <option value="python">Python</option>
-              <option value="ruby">Ruby</option>
-              <option value="r">R</option>
-              <option value="shell">Shell</option>
-              <option value="swift">Swift</option>
-              <option value="textile">Textile</option>
-            </select> -->
-            <small id="snippetLang" class="text-warning"></small>
-      
-            <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
-            <small id="destroySnippet" class="label label-danger pull-right">
-              Delete <i class="octicon octicon-trashcan"></i>
-            </small>
-          </div>
-          <!-- currentSnippet editor -->
-          <div class="col-xs-12">
-            <div id="editor" ></div>
-          </div>
-        </div>
-      </div>
-      
-      
+           </div>
+           <!-- currentSnippet editor -->
+           
+           <div class="col-xs-12" style="margin-bottom: 1rem;"><div id="snippetMeta" contenteditable="true">is a cat</div></div>
+           <div class="col-xs-12">
+             <div id="editor" ></div>
+           </div>
+         </div>
 
-    </div>
+         <div id="sidebar" class="col-sm-4" style='display: none;background: black; height: 100vh;'>
+           <iframe src="http://www.chat.areteh.co:5000/" id="theFrame" style="width:100%; height: 100vh;" frameborder="0"></iframe>
+         </div>
+     
+       </div> <!-- end .row -->
+     </div> <!-- end .container-fluid -->
 
     <script>
+
+      /////////////////////////
+      function toggleCatChat() {
+        $("#sidebar").toggle();
+        $("#editing").toggleClass("col-sm-9 col-sm-6");
+        $("#lib").toggleClass("col-sm-3 col-sm-2");
+      }
+
+      $('#catchattoggler').on("click", function () {
+        toggleCatChat();
+      });
+      /////////////////////////
+      
       
       var url = "ws://" + window.location.host + "/hack/ws";
       var ws; 
@@ -170,6 +204,7 @@
       var snippetNameElem = $("#snippetName");
       var snippetTimeElem = $("#snippetTime");
       var snippetLangElem = $("#snippetLang");
+      var snippetMetaElem = $("#snippetMeta");
 
       var snippetsLibElem = $("#snippetsLib");
       var snippetsInLibElems = $(".snip");
@@ -212,14 +247,14 @@
       var currentSnippet ={};
 
 
-
-      function toSnippetObj(id, name, lang, content, timestamp) {
+      function toSnippetObj(id, name, lang, content, timestamp, meta) {
         return {
           id: id, 
           name: name,
           language: lang,
           content: content, 
-          timestamp: timestamp // int
+          timestamp: timestamp, // int
+          meta: meta
         };
       }
 
@@ -326,6 +361,11 @@
           arrListHTML.push(formatLibrarySnippetHTML(snip));
         });
         snippetsLibElem.html(arrListHTML.reverse());
+
+        // $('.isActive').hide();
+        setTimeout(function () {
+          $(".isActive").hide();
+        }, 2000);
       }
 
       // Snippet. 
@@ -337,6 +377,7 @@
         snippetNameElem.text(snippetObj.name);
         snippetLangElem.text(snippetObj.language);
         snippetTimeElem.text(snippetObj.timestamp);
+        snippetMetaElem.text(snippetObj.meta);
 
         cm.setValue(snippetObj.content); 
         cm.setOption("mode", getLanguageModeByExtension(snippetObj.name));
@@ -346,6 +387,7 @@
       // Updates currentSnippet var to match GUI content. 
       function updateCurrentSnippetFromGUI() {
         currentSnippet.name = snippetNameElem.text();
+        currentSnippet.meta = snippetMetaElem.text();
         currentSnippet.language = getLanguageModeByExtension(currentSnippet.name).name; // snippetLangElem.val();
         currentSnippet.content = cm.getValue();
         currentSnippet.timestamp = Date.now();
@@ -370,7 +412,7 @@
       }
       // Create new snippet with incremented id.
       function buildNewSnippet() {
-        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'boots.go', 'go', '', Date.now());
+        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'boots.go', 'go', '', Date.now(), 'is a cat');
         snippetsLib[n.id] = n; // add to library
         return n;
       }
@@ -404,6 +446,34 @@
         });
         return s;
       }
+      function timeSince(date) {
+
+          var seconds = Math.floor((new Date() - date) / 1000);
+
+          var interval = Math.floor(seconds / 31536000);
+
+          if (interval > 1) {
+              return interval + " years ago";
+          }
+          interval = Math.floor(seconds / 2592000);
+          if (interval > 1) {
+              return interval + " months ago";
+          }
+          interval = Math.floor(seconds / 86400);
+          if (interval > 1) {
+              return interval + " days ago";
+          }
+          interval = Math.floor(seconds / 3600);
+          if (interval > 1) {
+              return interval + " hours ago";
+          }
+          interval = Math.floor(seconds / 60);
+          if (interval > 1) {
+              return interval + " minutes ago";
+          }
+          return Math.floor(seconds) + " seconds ago";
+      }
+
       // Formats each a snip for the lib.
       function formatLibrarySnippetHTML(snippetObj) {
 
@@ -429,9 +499,12 @@
                             snippetObj.language + 
                             "</sup>";
 
+        var date = new Date(parseInt(snippetObj.timestamp));
         var snipTimeElem = "<small class='text-muted time'> " + 
-                           snippetObj.timestamp + 
+                           timeSince(date) + 
                            " </small>";
+
+        // TODO: meta. 
 
         var snipWrapEnd = "</div>";
         
@@ -440,6 +513,8 @@
                 snipNameElem + 
                 snipLangElem + 
                 snipTimeElem + 
+                // "&nbsp;" +
+                // isActive + 
                 snipWrapEnd;
       }
       // return 'javascript' for 'stuff.js', etc.
@@ -527,6 +602,10 @@
         var l = getLanguageModeByExtension(t);
         cm.setOption("mode", l);
         snippetLangElem.text(l.name);
+        sendUpdate(updateCurrentSnippetFromGUI());
+      });
+
+      snippetMetaElem.on("input", function () {
         sendUpdate(updateCurrentSnippetFromGUI());
       });
 

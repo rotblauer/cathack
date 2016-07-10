@@ -18,6 +18,7 @@ type Snippet struct {
 	Language  string `json:"language"`
 	Content   string `json:"content"`
 	TimeStamp int    `json:"timestamp"`
+	Meta      string `json:"meta"`
 }
 
 func main() {
