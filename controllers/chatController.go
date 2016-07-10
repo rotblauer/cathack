@@ -1,14 +1,15 @@
-package web
+package controllers
 
 import (
-	"../chatty"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"../chatty"
+	"github.com/gin-gonic/gin"
 )
 
 func GetChat(c *gin.Context) {

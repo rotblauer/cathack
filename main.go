@@ -1,28 +1,24 @@
 package main
 
 import (
-	"./chatty"
-	"./lib"
-	"./web"
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+
+	"./chatty"
+	"./controllers"
+	"./lib"
+	"./models"
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
-	io "io/ioutil"
-	"log"
-	"os"
-	fp "path/filepath"
 )
 
-type Snippet struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Language  string `json:"language"`
-	Content   string `json:"content"`
-	TimeStamp int    `json:"timestamp"`
-	Meta      string `json:"meta"`
-}
+const (
+	hacksRootPath         string = "./hacks/"
+	placeHolderBucketName string = "snippets"
+)
 
 func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
@@ -42,7 +38,7 @@ func main() {
 	}
 	defer db.Close()
 	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("snippets"))
+		_, err := tx.CreateBucketIfNotExists([]byte(placeHolderBucketName))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -50,57 +46,36 @@ func main() {
 	})
 
 	// r.StaticFile("/chat.txt", "./chat.txt")
-	r.GET("/", web.GetChat)
-	r.GET("/r/chat", web.GetChatData)
+	r.GET("/", controllers.GetChat)
+	r.GET("/r/chat", controllers.GetChatData)
 	r.GET("/ws", func(c *gin.Context) {
 		log.Printf("getChatWS")
 		fmt.Println()
 		m.HandleRequest(c.Writer, c.Request)
 	})
 
-	r.GET("/hack", web.GetHack)
+	r.GET("/hack", controllers.GetHack)
 	r.GET("/hack/ws", func(c *gin.Context) {
 		fmt.Println("Got hack/ws request.")
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
 	// Save bucket as files on server.
-	r.GET("/hack/repofy/:bucketId", func(c *gin.Context) {
+	r.GET("/hack/repofy/:bucketName", func(c *gin.Context) {
 
-		bucketid := c.Param("bucketId") //string
-		hacksBucketRootPath := "./hacks/" + bucketid + "/"
+		var err error
+
+		bucketName := c.Param("bucketName") //string
 
 		// clean it out (in case file names have changed)
 		// FIXME: danger.
-		rerr := os.RemoveAll(hacksBucketRootPath)
-		if rerr != nil {
-			fmt.Printf("Error cleaning bucket path: %v", rerr)
+		err = os.RemoveAll(hacksRootPath + bucketName)
+		if err != nil {
+			fmt.Printf("Error cleaning bucket path: %v", err)
 		}
 
-		// broadcast new index
-		err := db.View(func(tx *bolt.Tx) (viewerr error) {
-
-			b := tx.Bucket([]byte(bucketid))
-			c := b.Cursor()
-
-			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-				var snip Snippet
-				json.Unmarshal(snipval, &snip)
-
-				// snip.Name -> /some/where/./in//here/boots.go
-				cleanFullName := fp.Clean(snip.Name)
-
-				filepath := fp.Dir(cleanFullName)
-				if filepath == "." {
-					filepath = ""
-				}
-				// make filepath
-				// returns nil if exists
-				viewerr = os.MkdirAll(hacksBucketRootPath+filepath, 0777)                                                   //rw
-				viewerr = io.WriteFile(hacksBucketRootPath+filepath+"/"+fp.Base(cleanFullName), []byte(snip.Content), 0666) //rw, truncates before write
-			}
-
-			return viewerr // hopefully nil
+		err = db.View(func(tx *bolt.Tx) error {
+			return models.WriteBucketToFileSys(hacksRootPath, bucketName, tx)
 		})
 
 		if err == nil {
@@ -111,96 +86,41 @@ func main() {
 	})
 
 	r.DELETE("/hack/s/:snippetId", func(c *gin.Context) {
+		snippetId := c.Param("snippetId") // func (c *Context) Param(key string) string
 
-		id := c.Param("snippetId") // func (c *Context) Param(key string) string
-
-		// remove given snippet by id
+		// remove given snippet by snippetId
 		err := db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("snippets"))
-
-			// remove from os
-			// get snippet so can access Name
-			var snip Snippet
-			v := b.Get([]byte(id))
-			json.Unmarshal(v, &snip)
-
-			path := "./hacks/snippets/" + snip.Name
-			fmt.Printf("Removing file at path: %v", path)
-			err := os.Remove(path)
-			if err != nil {
-				fmt.Printf("Error removing file: %v", err)
-				return err
-			} else {
-				// remove from bucket
-				err := b.Delete([]byte(id))
-
-				if err != nil {
-					fmt.Printf("Error deleting from bucket: %v", err)
-					return err
-				}
-			}
-			return nil
+			return models.DeleteSnippet(snippetId, placeHolderBucketName, tx)
 		})
 
 		if err != nil {
-			c.JSON(400, "No snippet found with id: "+id)
+			c.JSON(400, "No snippet found with snippetId: "+snippetId)
 		} else {
 
 			// broadcast new index
 			err := db.View(func(tx *bolt.Tx) error {
-				b := tx.Bucket([]byte("snippets"))
-				// v := b.Get([]byte("testSnip"))
-
-				// iterate through snippets
-				c := b.Cursor()
-				var snippets []Snippet // Array of Go snippet structs
-
-				for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-					var snip Snippet
-					json.Unmarshal(snipval, &snip)
-					snippets = append(snippets, snip)
-				}
-
-				o, err := json.Marshal(snippets) // JSON-ified array of snippets
-				if err != nil {
-					fmt.Printf("Error marshaling snippet array: %v", err)
-					return err
-				}
-
+				snippets, _ := models.IndexSnippets(placeHolderBucketName, tx)
+				o, _ := json.Marshal(snippets) // JSON-ified array of snippets
 				h.Broadcast(o)
 				return nil
 			})
 
 			if err == nil {
-				c.JSON(200, "Deleted snippet: "+id)
+				c.JSON(200, "Deleted snippet: "+snippetId)
 			} else {
 				c.JSON(500, "Internal server error.")
 			}
 		}
-
 	})
 
 	// Send all of the snippets when a user connects.
 	h.HandleConnect(func(s *melody.Session) {
 		db.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("snippets"))
-			// v := b.Get([]byte("testSnip"))
-
-			// iterate through snippets
-			c := b.Cursor()
-			var snippets []Snippet // Array of Go snippet structs
-
-			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-				var snip Snippet
-				json.Unmarshal(snipval, &snip)
-				snippets = append(snippets, snip)
-			}
-
-			o, err := json.Marshal(snippets) // JSON-ified array of snippets
+			snips, err := models.IndexSnippets(placeHolderBucketName, tx)
+			o, err := json.Marshal(snips) // JSON-ified array of snippets
 			if err != nil {
 				fmt.Printf("Error marshaling snippet array: %v", err)
 			}
-
 			s.Write(o)
 			return nil
 		})
@@ -212,19 +132,8 @@ func main() {
 		fmt.Println()
 		h.BroadcastOthers(hackery, s)
 
-		var snip Snippet
-
-		json.Unmarshal(hackery, &snip)
-		id := snip.Id // find snippet name and update db by id
-
 		db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("snippets"))
-			err := b.Put([]byte(id), hackery)
-
-			if err != nil {
-				return fmt.Errorf("putting to bucket: %s", err)
-			}
-			return err
+			return models.SetSnippet(models.SnipFromJSON(hackery).Id, hackery, placeHolderBucketName, tx)
 		})
 	})
 
