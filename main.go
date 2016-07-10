@@ -29,7 +29,7 @@ func main() {
 	r := gin.Default()
 	m := melody.New()
 	h := melody.New()
-	// Overclock: set this to 100KB = 1MB
+	// Overclock: set this to 1000KB = 1MB
 	// https://sourcegraph.com/github.com/olahol/melody/-/info/GoPackage/github.com/olahol/melody/-/New
 	m.Config.MaxMessageSize = 1024 * 1000
 	h.Config.MaxMessageSize = 1024 * 1000 // (default was 512). suckas.

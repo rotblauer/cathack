@@ -300,7 +300,7 @@
       };
       ws.onclose = function (e) {
         console.log('WebSocket closed!');
-        errorElem.html("<h1 onClick='return openWS()'>WebSocket closed! Click to try to reopen.</h1>");
+        errorElem.html("<h1 onClick='return openWS()'>WebSocket closed! Try refreshing.</h1>");
         errorElem.show();
       };
       ws.onerror = function (err) {
@@ -699,7 +699,7 @@
           },
           success: function (res) {
             console.log(res);
-            showAlert('success', '😀 Great success! Bucket has been saved!');
+            showAlert('success', '😀 Great success! Bucket has been filed!');
             setWriteBucketButtonInActive();
           }
         });
