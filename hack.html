@@ -78,6 +78,8 @@
 
   <body>
 
+    <div id="show-error" class="error" style="display: none; position: fixed; top:0 ; height: 30vh; width: 100%; background: red; color: white; z-index: 10;"></div>
+
     <div class="container-fluid">
       
       <div id="chat-container" class="row" style="display: none;">
@@ -150,7 +152,12 @@
     <script>
       
       var url = "ws://" + window.location.host + "/hack/ws";
-      var ws = new WebSocket(url);
+      var ws; 
+      function openWS() {
+        console.log("Trying to open WS.");
+        ws = new WebSocket(url);
+      }
+      openWS();
       
       var snippetIdElem   = $("#snippetId");
       var snippetNameElem = $("#snippetName");
@@ -164,6 +171,8 @@
       var destroySnippetElem = $("#destroySnippet");
 
       var editor          = $("#editor");
+
+      var errorElem = $("#show-error");
       
       var cm = CodeMirror(editor[0], {
         mode:  "javascript",
@@ -206,8 +215,21 @@
       // typeOf(function () {}); //function
       // typeOf(/a/) //regexp
       // typeOf(new Date()) //date
-
-
+      ws.onopen = function (e) {
+        console.log('WebSocket open.');
+        errorElem.hide();
+      };
+      ws.onclose = function (e) {
+        console.log('WebSocket closed!');
+        errorElem.html("<h1 onClick='return openWS()'>WebSocket closed! Click to try to reopen.</h1>");
+        errorElem.show();
+      };
+      ws.onerror = function (err) {
+        console.error('WebSocket error!');
+        console.error(err);
+        errorElem.html("<h1 onClick='return openWS()'>WebSocket error: " + err.type + "</h1>");
+        errorElem.show();
+      };
       // get val
       ws.onmessage = function (msg) {
         var d = msg.data;
@@ -414,7 +436,7 @@
       editor.keyup(function (e) {
         // http://stackoverflow.com/questions/2257070/detect-numbers-or-letters-with-jquery-javascript
         var inp = String.fromCharCode(e.keyCode);
-        if ((/\S/.test(inp) || e.keyCode === 8 || e.keyCode ===  9) && (!e.metaKey || e.ctrlKey || e.altKey)) { // 224
+        if ((/\S/.test(inp) || e.which === 13 || e.keyCode === 8 || e.keyCode ===  9) && (!e.metaKey || e.ctrlKey || e.altKey)) { // 224
           sendUpdate(updateCurrentSnippetFromGUI()); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
         }
       });
