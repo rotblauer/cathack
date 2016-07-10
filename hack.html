@@ -447,7 +447,13 @@
       });
       // name change
       snippetNameElem.on("input", function () {
-        sendUpdate(updateCurrentSnippetFromGUI());
+        if ($(this).text().trim() !== "") { // if name isn't blank
+          sendUpdate(updateCurrentSnippetFromGUI());  
+        } else {
+          $(this).text("_");
+          sendUpdate(updateCurrentSnippetFromGUI());
+        }
+        
       });
 
       // choose from lib
