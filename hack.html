@@ -74,6 +74,14 @@
     .padding {
       padding: 1rem;
     }
+
+    .ide-wrapper, .chat-wrapper {
+      position: absolute;
+    }
+    .ide-wrapper {
+      top: 0px;
+      left:;
+    }
   </style>
 
   <body>
@@ -100,7 +108,7 @@
           $('#chat-chevron').toggleClass("octicon-chevron-down octicon-chevron-up");
         });
       </script>
-
+      
       <div class="row" style="height: 60vh;">
         
         <div class="col-sm-3">
@@ -118,7 +126,7 @@
             <span id="snippetId" class="text-primary"></span>
             <code id="snippetName" contenteditable="true">boots.js</code>
             
-<!--             <select name="" id="snippetLang">
+      <!--             <select name="" id="snippetLang">
               <option value="javascript" selected="selected">JS</option>
               <option value="html">HTML</option>
               <option value="go">Go</option>
@@ -131,7 +139,7 @@
               <option value="textile">Textile</option>
             </select> -->
             <small id="snippetLang" class="text-warning"></small>
-
+      
             <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
             <small id="destroySnippet" class="label label-danger pull-right">
               Delete <i class="octicon octicon-trashcan"></i>
@@ -142,8 +150,6 @@
             <div id="editor" ></div>
           </div>
         </div>
-
-
       </div>
       
       
