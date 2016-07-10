@@ -24,7 +24,11 @@ func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
 	r := gin.Default()
 	m := melody.New()
+
 	h := melody.New()
+	// Overclock: set this to 100KB = 1MB
+	// https://sourcegraph.com/github.com/olahol/melody/-/info/GoPackage/github.com/olahol/melody/-/New
+	h.Config.MaxMessageSize = 1024 * 1000 // (default was 512). suckas.
 
 	// Open the my.db data file in your current directory.
 	// It will be created if it doesn't exist.
@@ -155,6 +159,11 @@ func main() {
 			}
 			return err
 		})
+	})
+
+	// Handle error for hackery.
+	h.HandleError(func(s *melody.Session, err error) {
+		fmt.Printf("Melody error: %v", err)
 	})
 
 	m.HandleMessage(func(s *melody.Session, msg []byte) {
