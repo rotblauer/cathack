@@ -127,7 +127,7 @@
          <div id="lib" class="col-sm-3">
            <div class="row padding">
            <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
-           <button id="saveBucket" class="btn btn-success btn-sm"><i class="octicon octicon-repo-clone"></i> Write to filesystem</button>
+           <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-clone"></i> Write to filesystem</button>
            </div>
            <div id="snippetsLib" class="row padding">
              snips go here
@@ -197,6 +197,20 @@
       function showAlert(status, text) {
         $('.alert-'+status).text(text).show().delay(2000).fadeOut(300);
       }
+      function setWriteBucketButtonActive() {
+        // make write to repo button active since changes have occured
+        if (!$("#saveBucket").hasClass("btn-primary")) {
+          $("#saveBucket").removeClass("btn-default").addClass("btn-primary");
+        }  
+      }
+      function setWriteBucketButtonInActive() {
+        // make write to repo button active since changes have occured
+        if (!$("#saveBucket").hasClass("btn-default")) {
+          $("#saveBucket").removeClass("btn-primary").addClass("btn-default");
+        }  
+      }
+
+      
       /////////////////////////
       
       
@@ -347,6 +361,8 @@
           refreshGUIForSnippet(currentSnippet);
 
         }
+
+        setWriteBucketButtonInActive();
 
       };
 
@@ -581,6 +597,8 @@
       function sendUpdate(snippetObj) {
 
         var s = JSON.stringify(snippetObj);
+
+        setWriteBucketButtonActive();
         
         console.log("sending update: " + s);
         ws.send(s);
