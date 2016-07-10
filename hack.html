@@ -33,10 +33,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/shell/shell.min.js"></script>
     <!-- swift -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/swift/swift.min.js"></script>
-    <!-- textile -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/textile/textile.min.js"></script>
     <!-- html -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/htmlembedded/htmlembedded.min.js"></script>
 
     <!-- addons -->
     <script src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/selection/mark-selection.min.js'></script>
@@ -118,7 +118,7 @@
             <span id="snippetId" class="text-primary"></span>
             <code id="snippetName" contenteditable="true">boots.js</code>
             
-            <select name="" id="snippetLang">
+<!--             <select name="" id="snippetLang">
               <option value="javascript" selected="selected">JS</option>
               <option value="html">HTML</option>
               <option value="go">Go</option>
@@ -129,7 +129,8 @@
               <option value="shell">Shell</option>
               <option value="swift">Swift</option>
               <option value="textile">Textile</option>
-            </select>
+            </select> -->
+            <small id="snippetLang" class="text-warning"></small>
 
             <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
             <small id="destroySnippet" class="label label-danger pull-right">
@@ -173,9 +174,24 @@
       var editor          = $("#editor");
 
       var errorElem = $("#show-error");
+
+      var goMode = {name: 'go'};
+      var javascriptMode = {name: 'javascript'};
+      var markdownMode = {name: 'markdown'};
+      var pythonMode = {name: 'python'};
+      var rubyMode = {name: 'ruby'};
+      var rMode = {name: 'r'};
+      var shellMode = {name: 'shell'};
+      var swiftMode = {name: 'swift'};
+      var htmlmixedMode = {name: 'htmlmixed', scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
+                       mode: null},
+                      {matches: /(text|application)\/(x-)?vb(a|script)/i,
+                       mode: "vbscript"}]};
+      var htmlembeddedMode = {name: 'htmlembedded'};
+
       
       var cm = CodeMirror(editor[0], {
-        mode:  "javascript",
+        mode:  htmlmixedMode,
         lineNumbers: true,
         tabSize: 2,
         inputStyle: "contenteditable",
@@ -295,11 +311,15 @@
       // 
       // Sets GUI to reflect state of a givent snippetsLib object {} var. 
       function refreshGUIForSnippetsLib(snippetsLib) {
-        listHhtml = "";
-        $.each(snippetsLib, function (key, val) {
-          listHhtml += formatLibrarySnippetHTML(val);
+        arrListHTML = [];
+        // sort by most recently edited
+        var keysSorted = Object.keys(snippetsLib).sort(function(a,b){return snippetsLib[a].timestamp-snippetsLib[b].timestamp});
+
+        $.each(keysSorted, function (i, key) {
+          var snip = snippetsLib[key];
+          arrListHTML.push(formatLibrarySnippetHTML(snip));
         });
-        snippetsLibElem.html(listHhtml);
+        snippetsLibElem.html(arrListHTML.reverse());
       }
 
       // Snippet. 
@@ -309,18 +329,18 @@
       function refreshGUIForSnippet(snippetObj) {
         snippetIdElem.text(snippetObj.id);
         snippetNameElem.text(snippetObj.name);
-        snippetLangElem.val(snippetObj.language);
+        snippetLangElem.text(snippetObj.language);
         snippetTimeElem.text(snippetObj.timestamp);
 
         cm.setValue(snippetObj.content); 
-        cm.setOption("mode", snippetObj.language);
+        cm.setOption("mode", getLanguageModeByExtension(snippetObj.name));
       }
       // 
       // currentSnippet -> GUI
       // Updates currentSnippet var to match GUI content. 
       function updateCurrentSnippetFromGUI() {
         currentSnippet.name = snippetNameElem.text();
-        currentSnippet.language = snippetLangElem.val();
+        currentSnippet.language = getLanguageModeByExtension(currentSnippet.name).name; // snippetLangElem.val();
         currentSnippet.content = cm.getValue();
         currentSnippet.timestamp = Date.now();
 
@@ -416,6 +436,54 @@
                 snipTimeElem + 
                 snipWrapEnd;
       }
+      // return 'javascript' for 'stuff.js', etc.
+      function getLanguageModeByExtension(name) {
+        var o = "";
+        var exs = name.split(".");
+        console.log('exs -> ' + JSON.stringify(exs));
+        // will take the last extension, ie name.js.md -> markdown
+        for (var i = 0; i < exs.length ; i++) {
+          var ex = exs[i];
+          console.log("checking case: " + ex);
+          switch (ex) {
+            case 'js':
+              o = javascriptMode;
+              break;
+            case 'html':
+              o = htmlmixedMode;
+              break;
+            case 'go':
+              o = goMode;
+              break;
+            case 'md':
+            case 'mdown':
+            case 'markdown':
+              o = markdownMode;
+              break;
+            case 'py':
+              o = pythonMode;
+              break;
+            case 'rb':
+              o = rubyMode;
+              break;
+            case 'r':
+              o = rMode;
+              break;
+            case 'sh':
+            case 'zsh':
+              o = shellMode;
+              break;
+            case 'swift':
+              o = swiftMode;
+              break;
+            default: 
+              o = markdownMode;
+              break;
+          }  
+        }
+        console.log("language by extension -> " + o);
+        return o;
+      }
 
 
       // WS persistence.
@@ -440,18 +508,20 @@
         }
       });
       // mode picking
-      snippetLangElem.on("change", function () {
-        cm.setOption("mode", $(this).val());
-        sendUpdate(updateCurrentSnippetFromGUI());
-      });
+      // snippetLangElem.on("change", function () {
+      //   cm.setOption("mode", $(this).val());
+      //   sendUpdate(updateCurrentSnippetFromGUI());
+      // });
       // name change
       snippetNameElem.on("input", function () {
-        if ($(this).text().trim() !== "") { // if name isn't blank
-          sendUpdate(updateCurrentSnippetFromGUI());  
-        } else {
+        var t = $(this).text().trim();
+        if (t === "") { // if name is blank replace with _
           $(this).text("_");
-          sendUpdate(updateCurrentSnippetFromGUI());
         }
+        var l = getLanguageModeByExtension(t);
+        cm.setOption("mode", l);
+        snippetLangElem.text(l.name);
+        sendUpdate(updateCurrentSnippetFromGUI());
       });
 
       // choose from lib
