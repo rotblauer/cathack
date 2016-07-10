@@ -25,10 +25,10 @@ func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
 	r := gin.Default()
 	m := melody.New()
-
 	h := melody.New()
 	// Overclock: set this to 100KB = 1MB
 	// https://sourcegraph.com/github.com/olahol/melody/-/info/GoPackage/github.com/olahol/melody/-/New
+	m.Config.MaxMessageSize = 1024 * 1000
 	h.Config.MaxMessageSize = 1024 * 1000 // (default was 512). suckas.
 
 	// Open the my.db data file in your current directory.
@@ -61,7 +61,7 @@ func main() {
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
-	r.DELETE("/hack/:snippetId", func(c *gin.Context) {
+	r.DELETE("/hack/s/:snippetId", func(c *gin.Context) {
 
 		id := c.Param("snippetId") // func (c *Context) Param(key string) string
 
