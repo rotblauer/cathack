@@ -12,6 +12,7 @@ import (
 	io "io/ioutil"
 	"log"
 	"os"
+	fp "path/filepath"
 )
 
 type Snippet struct {
@@ -64,13 +65,20 @@ func main() {
 	})
 
 	// Save bucket as files on server.
-	r.GET("/hack/b/:bucketId", func(c *gin.Context) {
+	r.GET("/hack/repofy/:bucketId", func(c *gin.Context) {
 
 		bucketid := c.Param("bucketId") //string
-		hacksPath := "./hacks/" + bucketid + "/"
+		hacksBucketRootPath := "./hacks/" + bucketid + "/"
+
+		// clean it out (in case file names have changed)
+		// FIXME: danger.
+		rerr := os.RemoveAll(hacksBucketRootPath)
+		if rerr != nil {
+			fmt.Printf("Error cleaning bucket path: %v", rerr)
+		}
 
 		// broadcast new index
-		err := db.View(func(tx *bolt.Tx) (ver error) {
+		err := db.View(func(tx *bolt.Tx) (viewerr error) {
 
 			b := tx.Bucket([]byte(bucketid))
 			c := b.Cursor()
@@ -79,14 +87,20 @@ func main() {
 				var snip Snippet
 				json.Unmarshal(snipval, &snip)
 
-				filepath := hacksPath + snip.Name
-				// make directory
+				// snip.Name -> /some/where/./in//here/boots.go
+				cleanFullName := fp.Clean(snip.Name)
+
+				filepath := fp.Dir(cleanFullName)
+				if filepath == "." {
+					filepath = ""
+				}
+				// make filepath
 				// returns nil if exists
-				ver = os.MkdirAll(hacksPath, 0777)                       //rw
-				ver = io.WriteFile(filepath, []byte(snip.Content), 0666) //rw, truncates before write
+				viewerr = os.MkdirAll(hacksBucketRootPath+filepath, 0777)                                                   //rw
+				viewerr = io.WriteFile(hacksBucketRootPath+filepath+"/"+fp.Base(cleanFullName), []byte(snip.Content), 0666) //rw, truncates before write
 			}
 
-			return ver // hopefully nil
+			return viewerr // hopefully nil
 		})
 
 		if err == nil {
@@ -103,10 +117,27 @@ func main() {
 		// remove given snippet by id
 		err := db.Update(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("snippets"))
-			err := b.Delete([]byte(id))
+
+			// remove from os
+			// get snippet so can access Name
+			var snip Snippet
+			v := b.Get([]byte(id))
+			json.Unmarshal(v, &snip)
+
+			path := "./hacks/snippets/" + snip.Name
+			fmt.Printf("Removing file at path: %v", path)
+			err := os.Remove(path)
 			if err != nil {
-				fmt.Printf("Error deleting from bucket: %v", err)
+				fmt.Printf("Error removing file: %v", err)
 				return err
+			} else {
+				// remove from bucket
+				err := b.Delete([]byte(id))
+
+				if err != nil {
+					fmt.Printf("Error deleting from bucket: %v", err)
+					return err
+				}
 			}
 			return nil
 		})
@@ -128,15 +159,6 @@ func main() {
 					var snip Snippet
 					json.Unmarshal(snipval, &snip)
 					snippets = append(snippets, snip)
-
-					// Remove the actual os file copy (if it exists)
-					// TODO: put this somewhere else.
-					if string(snipkey) == id {
-						err := os.RemoveAll("./hacks/snippets/" + snip.Name)
-						if err != nil {
-							fmt.Printf("Error deleting file: %v", err)
-						}
-					}
 				}
 
 				o, err := json.Marshal(snippets) // JSON-ified array of snippets

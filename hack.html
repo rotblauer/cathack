@@ -126,8 +126,8 @@
          
          <div id="lib" class="col-sm-3">
            <div class="row padding">
-           <span id="createSnippet" style="margin-top: 1rem;" class="label label-success">+ New Snippet</span>
-           <span id="saveBucket" style="margin-top: 1rem;" class="label label-success"><i class="octicon octicon-repo-clone"></i> Save Bucket</span>
+           <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
+           <button id="saveBucket" class="btn btn-success btn-sm"><i class="octicon octicon-repo-clone"></i> Write to filesystem</button>
            </div>
            <div id="snippetsLib" class="row padding">
              snips go here
@@ -178,6 +178,9 @@
        </div> <!-- end .row -->
      </div> <!-- end .container-fluid -->
 
+     <div class="alert alert-success" style="z-index: 100; display: none; position: fixed; bottom: 20; left: 20; width: 30%;"></div>
+     <div class="alert alert-danger" style="z-index: 100; display: none; position: fixed; bottom: 20; left: 20; width: 30%;"></div>
+
     <script>
 
       /////////////////////////
@@ -190,6 +193,10 @@
       $('#catchattoggler').on("click", function () {
         toggleCatChat();
       });
+
+      function showAlert(status, text) {
+        $('.alert-'+status).text(text).show().delay(2000).fadeOut(300);
+      }
       /////////////////////////
       
       
@@ -630,7 +637,7 @@
       });
 
       destroySnippetElem.on('click', function () {
-        var reallyreally = window.confirm("Really really?");
+        var reallyreally = window.confirm("Really really?\nThis will also destroy the file on freya if it exists.");
         if (reallyreally) {
           ID = currentSnippet.id;
           delete snippetsLib[ID];
@@ -666,12 +673,14 @@
       $('#saveBucket').on("click", function () {
         $.ajax({
           method: "GET",
-          url: "/hack/b/snippets",
+          url: "/hack/repofy/snippets",
           error: function (e) {
             console.error(e);
+            showAlert('danger', '😒 Failed to save bucket. Error: ' + e);
           },
           success: function (res) {
             console.log(res);
+            showAlert('success', '😀 Great success! Bucket has been saved!');
           }
         });
       });
