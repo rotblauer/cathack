@@ -9,7 +9,9 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
+	io "io/ioutil"
 	"log"
+	"os"
 )
 
 type Snippet struct {
@@ -61,6 +63,39 @@ func main() {
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
+	// Save bucket as files on server.
+	r.GET("/hack/b/:bucketId", func(c *gin.Context) {
+
+		bucketid := c.Param("bucketId") //string
+		hacksPath := "./hacks/" + bucketid + "/"
+
+		// broadcast new index
+		err := db.View(func(tx *bolt.Tx) (ver error) {
+
+			b := tx.Bucket([]byte(bucketid))
+			c := b.Cursor()
+
+			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+				var snip Snippet
+				json.Unmarshal(snipval, &snip)
+
+				filepath := hacksPath + snip.Name
+				// make directory
+				// returns nil if exists
+				ver = os.MkdirAll(hacksPath, 0777)                       //rw
+				ver = io.WriteFile(filepath, []byte(snip.Content), 0666) //rw, truncates before write
+			}
+
+			return ver // hopefully nil
+		})
+
+		if err == nil {
+			c.JSON(200, "Saved bucket.")
+		} else {
+			c.JSON(500, "Internal server error."+err.Error())
+		}
+	})
+
 	r.DELETE("/hack/s/:snippetId", func(c *gin.Context) {
 
 		id := c.Param("snippetId") // func (c *Context) Param(key string) string
@@ -93,6 +128,15 @@ func main() {
 					var snip Snippet
 					json.Unmarshal(snipval, &snip)
 					snippets = append(snippets, snip)
+
+					// Remove the actual os file copy (if it exists)
+					// TODO: put this somewhere else.
+					if string(snipkey) == id {
+						err := os.RemoveAll("./hacks/snippets/" + snip.Name)
+						if err != nil {
+							fmt.Printf("Error deleting file: %v", err)
+						}
+					}
 				}
 
 				o, err := json.Marshal(snippets) // JSON-ified array of snippets

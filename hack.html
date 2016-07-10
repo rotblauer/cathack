@@ -127,6 +127,7 @@
          <div id="lib" class="col-sm-3">
            <div class="row padding">
            <span id="createSnippet" style="margin-top: 1rem;" class="label label-success">+ New Snippet</span>
+           <span id="saveBucket" style="margin-top: 1rem;" class="label label-success"><i class="octicon octicon-repo-clone"></i> Save Bucket</span>
            </div>
            <div id="snippetsLib" class="row padding">
              snips go here
@@ -660,6 +661,19 @@
         }
         // NOTE: If another person is viewing/working on the snippet which is to be deleted, it won't be removed from their currentSnippet var.
         // Thus, if they modify that var in any way, the snippet will return. 
+      });
+
+      $('#saveBucket').on("click", function () {
+        $.ajax({
+          method: "GET",
+          url: "/hack/b/snippets",
+          error: function (e) {
+            console.error(e);
+          },
+          success: function (res) {
+            console.log(res);
+          }
+        });
       });
 
 
