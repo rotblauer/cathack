@@ -516,6 +516,7 @@
         var snipIconElem = "<span class='octicon octicon-file-code'></span>&nbsp;";
 
         var snipNameElem = "<span class='" + " name'" + cssId + attrFunc + ">" +
+                            "[snippets] " +
                             snippetObj.name + 
                             "</span>&nbsp;";
 
@@ -688,7 +689,7 @@
         // Thus, if they modify that var in any way, the snippet will return. 
       });
 
-      $('#saveBucket').on("click", function () {
+      function saveTheBucket() {
         $.ajax({
           method: "GET",
           url: "/hack/repofy/snippets",
@@ -699,9 +700,12 @@
           success: function (res) {
             console.log(res);
             showAlert('success', '😀 Great success! Bucket has been saved!');
+            setWriteBucketButtonInActive();
           }
         });
-      });
+      }
+
+      $('#saveBucket').on("click", saveTheBucket);
 
 
     </script>
