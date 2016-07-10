@@ -15,6 +15,8 @@
   <!-- codemirror -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.min.css">
+
+    <!-- modes -->
     <!-- go  -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/go/go.min.js"></script>
     <!-- js -->
@@ -33,12 +35,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/swift/swift.min.js"></script>
     <!-- textile -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/textile/textile.min.js"></script>
+    <!-- html -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <!-- addons -->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/selection/mark-selection.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/javascript-hint.min.js'></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/edit/closebrackets.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/show-hint.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/show-hint.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/html-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/lint/javascript-lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/anyword-hint.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/keymap/vim.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/theme/hopscotch.min.css">
+
 
   <style>
     .CodeMirror {
       /*height: auto;*/
       height: 90vh;
     }
+    .CodeMirror-selected  { background: #cccccc !important;}
+    .CodeMirror-selectedtext { color: blue; }
+
     .label-info {
       background-color: #BEE0FC;
     }
@@ -92,6 +118,7 @@
             
             <select name="" id="snippetLang">
               <option value="javascript" selected="selected">JS</option>
+              <option value="html">HTML</option>
               <option value="go">Go</option>
               <option value="markdown">Markdown</option>
               <option value="python">Python</option>
@@ -142,11 +169,16 @@
         mode:  "javascript",
         lineNumbers: true,
         tabSize: 2,
-        inputStyle: "contenteditable"
+        inputStyle: "contenteditable",
+        styleSelectedText: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        showHint: true
+        // theme: 'hopscotch'
       });
       
       var snippetsLib = {}; // Lookup obj for all snippets (received from HandleConnect).
-      var currentSnippet = {};
+      var currentSnippet ={};
 
 
 
@@ -196,6 +228,7 @@
           }
 
           // If currentSnippet is an empty obj (as per init)...
+          // 
           // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
           if (Object.keys(currentSnippet).length === 0 && currentSnippet.constructor === Object) {
 
@@ -225,7 +258,9 @@
           currentSnippet = buildNewSnippet();
           // snippetsLib[currentSnippet.id] = currentSnippet;
           refreshGUIForSnippet(currentSnippet);
+
         }
+
       };
 
       function updateSnippetsLibForObj(snippetObj) {
@@ -287,7 +322,7 @@
       }
       // Create new snippet with incremented id.
       function buildNewSnippet() {
-        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'boots.js', 'javascript', '', Date.now());
+        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'boots.go', 'go', '', Date.now());
         snippetsLib[n.id] = n; // add to library
         return n;
       }
@@ -377,7 +412,11 @@
       // 
       // content editing (via key up)
       editor.keyup(function (e) {
-        sendUpdate(updateCurrentSnippetFromGUI()); // updateCurrentSnippetFromGUI returns currentSnippet {} var
+        // http://stackoverflow.com/questions/2257070/detect-numbers-or-letters-with-jquery-javascript
+        var inp = String.fromCharCode(e.keyCode);
+        if ((/\S/.test(inp) || e.keyCode === 8 || e.keyCode ===  9) && (!e.metaKey || e.ctrlKey || e.altKey)) { // 224
+          sendUpdate(updateCurrentSnippetFromGUI()); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
+        }
       });
       // mode picking
       snippetLangElem.on("change", function () {
@@ -409,39 +448,35 @@
       });
 
       destroySnippetElem.on('click', function () {
-        console.log('clicking');
-        ID = currentSnippet.id;
-        delete snippetsLib[ID];
-        refreshGUIForSnippetsLib(snippetsLib);
+        var reallyreally = window.confirm("Really really?");
+        if (reallyreally) {
+          ID = currentSnippet.id;
+          delete snippetsLib[ID];
+          refreshGUIForSnippetsLib(snippetsLib);
 
-        // set current snippet to another or new
-        var nextSnippet = findSnippetThatIsnt(ID);
-        
-        if (typeOf(nextSnippet) !== 'undefined') {
-          selectSnippetFromLibById(nextSnippet.id);  
-        
-        } else { // deleted the last remaining snippet
-          // snippetsLib = {}; // reset 
-          // currentSnippet = buildNewSnippet();
-          // refreshGUIForSnippet(currentSnippet);
-
-        }
-        
-
-        // send destroy signal to /hack
-        $.ajax({
-          method: "DELETE",
-          url: "/hack/" + ID,
-          error: function (e) {
-            console.log("Ajax error.");
-          },
-          success: function (res) {
-            console.log(res);
+          // set current snippet to another or new
+          var nextSnippet = findSnippetThatIsnt(ID);
+          
+          if (typeOf(nextSnippet) !== 'undefined') {
+            selectSnippetFromLibById(nextSnippet.id);  
+          
+          } else { // deleted the last remaining snippet
+            // handled in the onmessage handlers
           }
-        });
-        
-        // expect broadcast of new snippets index
-        
+
+          // send destroy signal to /hack
+          $.ajax({
+            method: "DELETE",
+            url: "/hack/" + ID,
+            error: function (e) {
+              console.log("Ajax error.");
+            },
+            success: function (res) {
+              console.log(res);
+            }
+          });  
+          // --> expect broadcast of new snippets index
+        }
         // NOTE: If another person is viewing/working on the snippet which is to be deleted, it won't be removed from their currentSnippet var.
         // Thus, if they modify that var in any way, the snippet will return. 
       });
