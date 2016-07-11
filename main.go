@@ -17,6 +17,7 @@ import (
 
 const (
 	hacksRootPath         string = "./hacks/"
+	hacksDBPath           string = "hack.db"
 	placeHolderBucketName string = "snippets"
 )
 
