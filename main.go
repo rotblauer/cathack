@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"./chatty"
@@ -46,7 +47,7 @@ func main() {
 		return nil
 	})
 
-	// r.StaticFile("/chat.txt", "./chat.txt")
+	r.StaticFS("/assets", http.Dir("assets"))
 	r.GET("/", controllers.GetChat)
 	r.GET("/r/chat", controllers.GetChatData)
 	r.GET("/ws", func(c *gin.Context) {
@@ -86,8 +87,56 @@ func main() {
 		}
 	})
 
+	//////////
+
+	// Get Snippet.
+	r.GET("/hack/s/:snippetId", func(c *gin.Context) {
+
+	})
+
+	// Get all snippets for single bucket.
+	r.GET("/hack/b/:bucketId", func(c *gin.Context) {
+		bid := c.Param("bucketId")
+		var snippets models.Snippets
+
+		err := db.View(func(tx *bolt.Tx) error {
+			snippets, _ = models.IndexSnippets(bid, tx)
+			return nil
+		})
+		if err != nil {
+			c.JSON(500, err)
+		} else {
+			c.JSON(200, snippets)
+		}
+	})
+
+	// Get all buckets.
+	// Returns list of bucket names.
+	r.GET("/hack/b", func(c *gin.Context) {
+
+		// Buckets slice struct.
+		// Will return once full.
+		var buckets models.SnippetBuckets
+
+		err := db.View(func(tx *bolt.Tx) error {
+			tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+				buckets = append(buckets, models.SnippetBucket{Name: string(name)})
+				return nil
+			})
+			return nil
+		})
+		if err != nil {
+			c.JSON(500, err)
+		} else {
+			c.JSON(200, buckets)
+		}
+	})
+
+	// DELETE SNIPPET.
+	// /hack/s/:snippetId?bucket=snippets
 	r.DELETE("/hack/s/:snippetId", func(c *gin.Context) {
 		snippetId := c.Param("snippetId") // func (c *Context) Param(key string) string
+		// bucketId := c.DefaultQuery("bucket", "snippets")
 
 		// remove given snippet by snippetId
 		err := db.Update(func(tx *bolt.Tx) error {
@@ -115,6 +164,9 @@ func main() {
 	})
 
 	// Send all of the snippets when a user connects.
+	// h.HandleConnect(func(s *melody.Session) {
+	// 	s.Write([]byte("Connected."))
+	// })
 	h.HandleConnect(func(s *melody.Session) {
 		db.View(func(tx *bolt.Tx) error {
 			snips, err := models.IndexSnippets(placeHolderBucketName, tx)
@@ -125,7 +177,6 @@ func main() {
 			s.Write(o)
 			return nil
 		})
-
 	})
 
 	h.HandleMessage(func(s *melody.Session, hackery []byte) {
