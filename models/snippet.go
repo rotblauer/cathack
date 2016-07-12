@@ -36,9 +36,9 @@ func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets Snippets, err error
 	return snippets, err
 }
 
-func SetSnippet(snippetid string, data []byte, bucketname string, tx *bolt.Tx) (err error) {
+func SetSnippet(snippetid string, contents []byte, bucketname string, tx *bolt.Tx) (err error) {
 	b := tx.Bucket([]byte(bucketname))
-	err = b.Put([]byte(snippetid), data)
+	err = b.Put([]byte(snippetid), contents)
 
 	if err != nil {
 		return fmt.Errorf("putting to bucket: %s", err)

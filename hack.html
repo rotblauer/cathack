@@ -125,9 +125,14 @@
        <div class="row" style="min-height: 60vh;">
          
          <div id="lib" class="col-sm-3">
+           
            <div class="row padding">
+           
            <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
-           <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-clone"></i> Write to filesystem</button>
+           <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-clone"></i> Repofy</button>
+           <button id="boltifyBuckets" class="btn btn-warning btn-sm"><i class="octicon octicon-repo-push"></i></button>
+  
+
            </div>
 
           <div id="bucketsLib" class="row padding">
@@ -220,7 +225,7 @@
 
 
       var url = "ws://" + window.location.host + "/hack/ws";
-      var apiUrl = "http://www.chat.areteh.co:5000/hack";
+      var apiUrl = "http://chat.areteh.co:5000/hack"; // www.
 
       var ws; 
       function openWS() {
@@ -239,6 +244,7 @@
       var snippetsInLibElems = $(".snip");
 
       var bucketsLibElem = $("#bucketsLib");
+      var boltifyBucketsElem = $("#boltifyBuckets");
 
       var createSnippetElem = $("#createSnippet");
       var destroySnippetElem = $("#destroySnippet");
@@ -275,6 +281,7 @@
       });
       
       var snippetsLib = {}; // Lookup obj for all snippets (received from HandleConnect).
+      var currentBucket = "snippets";
       var currentSnippet ={};
 
 
@@ -330,7 +337,8 @@
         // Array --> 
         if (typeOf(j) === 'array') {
           
-          handleIncomingBucket(j);
+          // Also inits default bucket name. 
+          handleIncomingBucket(currentBucket, j); 
 
         // Object --> 
         // (another session made an update to a snippet.)
@@ -380,9 +388,14 @@
         }, 2000);
       }
 
-      function handleIncomingBucket(array) {
+      // Buckets.
+      // 
+
+      function handleIncomingBucket(name, array) {
         var j = array;
         snippetsLib = {}; // reset in case there was a delete.
+
+        currentBucket = name;
 
         // Store all snippets in snippetsLib {} var (as lookup).
         for (var i = 0, len = j.length; i < len; i++) {  
@@ -406,10 +419,6 @@
         refreshGUIForSnippetsLib(snippetsLib);
       }
 
-      
-      // Buckets.
-      // 
-
       function renderBuckets(buckets) {
         h = "";
         $.each(buckets, function (k,v) {
@@ -417,9 +426,6 @@
         });
         bucketsLibElem.html(h);
       }
-      // $('.buck').on('click', function (elem) {
-      //   getBucket($(this).text().replace('bucket-', ''));
-      // });
 
       function getAvailableBuckets() {
         return $.ajax({
@@ -435,6 +441,7 @@
           }
         });
       }
+      // Init: get all available buckets. 
       getAvailableBuckets();
 
       function getBucket(name) {
@@ -447,7 +454,7 @@
           }, 
           success: function (res) {
             console.log("got bucket -> " + JSON.stringify(res));
-            handleIncomingBucket(res);
+            handleIncomingBucket(name, res);
           }
         });
       }
@@ -576,7 +583,8 @@
         var snipIconElem = "<span class='octicon octicon-file-code'></span>&nbsp;";
 
         var snipNameElem = "<span class='" + " name'" + cssId + attrFunc + ">" +
-                            "[snippets] " +
+                            // "[snippets] " +
+                            "[" + currentBucket + "] " +
                             snippetObj.name + 
                             "</span>&nbsp;";
 
@@ -766,6 +774,23 @@
       }
 
       $('#saveBucket').on("click", saveTheBucket);
+
+      function boltify() {
+        $.ajax({
+          method: "GET",
+          url: "/hack/boltify",
+          error: function (e) {
+            console.error(e);
+            showAlert('danger', '😒 Failed to Boltify. Error: ' + e);
+          },
+          success: function (res) {
+            console.log(res);
+            showAlert('success', '😀 Great success! Buckets have been boltified!');
+            renderBuckets(res);
+          }
+        });
+      }
+      boltifyBucketsElem.on('click', boltify);
 
 
     </script>

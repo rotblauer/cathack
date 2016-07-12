@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"./chatty"
 	"./controllers"
@@ -21,6 +24,13 @@ const (
 	hacksDBPath           string = "hack.db"
 	placeHolderBucketName string = "snippets"
 )
+
+//CORSMiddleware ...
+// func CORSMiddleware() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://chat.areteh.co:5000")
+// 	}
+// }
 
 func main() {
 	gin.SetMode(gin.ReleaseMode) // DebugMode
@@ -63,6 +73,7 @@ func main() {
 	})
 
 	// Save bucket as files on server.
+	//
 	r.GET("/hack/repofy/:bucketName", func(c *gin.Context) {
 
 		var err error
@@ -85,6 +96,65 @@ func main() {
 		} else {
 			c.JSON(500, "Internal server error."+err.Error())
 		}
+	})
+
+	// Save all files within HacksRootPath to Bolt db.
+	// Controller should respond with index of bolt buckets.
+	//
+	r.GET("/hack/boltify", func(c *gin.Context) {
+
+		werr := filepath.Walk(hacksRootPath, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				return nil
+			}
+			if !info.IsDir() {
+
+				// Get file contents and parse path (if not dir).
+				contents, ioerr := ioutil.ReadFile(path)
+
+				cleanPath := filepath.Clean(path)
+				dir := filepath.Dir(cleanPath)
+				fromBaseDir := strings.Replace(dir, "hacks/", "", 1)
+				bucket := strings.Split(fromBaseDir, "/")[0]
+				fromBucketDir := strings.Replace(fromBaseDir, bucket+"/", "", 1)
+				name := fromBucketDir + "/" + info.Name()
+
+				if ioerr != nil {
+					fmt.Printf("Error reading file: %v\n", ioerr)
+
+				} else {
+					fmt.Printf("Saving to bucket: %v\n", bucket)
+					fmt.Printf("Name within bucket: %v\n", name)
+					fmt.Printf("Contents: \n---\n%v\n---\n", string(contents))
+
+					// Save snippet to given bucket.
+					dberr := db.Update(func(tx *bolt.Tx) error {
+						return models.SetSnippet(name, contents, bucket, tx)
+					})
+					if dberr != nil {
+						fmt.Printf("Error saving file snippet to bolt: %v\n", dberr)
+					}
+				}
+			}
+			return nil
+		})
+
+		var buckets models.SnippetBuckets
+
+		indexerr := db.View(func(tx *bolt.Tx) error {
+			tx.ForEach(func(name []byte, b *bolt.Bucket) error {
+				buckets = append(buckets, models.SnippetBucket{Name: string(name)})
+				return nil
+			})
+			return nil
+		})
+		if indexerr != nil {
+			c.JSON(500, indexerr)
+		} else {
+			c.JSON(200, buckets)
+		}
+
 	})
 
 	//////////
