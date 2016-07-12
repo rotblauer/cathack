@@ -133,7 +133,7 @@ func main() {
 					fmt.Printf("name: %v\n", name)
 					fmt.Printf("Contents: \n---\n%v\n---\n", string(contents))
 
-					// Snippify.
+					// Snippify.a
 					var snip models.Snippet
 					snip.Name = name
 					snip.BucketName = bucket
