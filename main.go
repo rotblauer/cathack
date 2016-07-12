@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"./chatty"
 	"./controllers"
@@ -132,9 +133,26 @@ func main() {
 					fmt.Printf("name: %v\n", name)
 					fmt.Printf("Contents: \n---\n%v\n---\n", string(contents))
 
+					// Snippify.
+					var snip models.Snippet
+					snip.Name = name
+					snip.BucketName = bucket
+					snip.Content = string(contents)
+
+					// t := time.Now().UTC().Unix() * 1000 // int64
+					// var tt int
+					// tt = int(t)
+					snip.TimeStamp = int(time.Now().UTC().Unix() * 1000)
+
+					newId := lib.RandSeq(6)
+					snip.Id = newId
+
+					snipJSONBytes, _ := json.Marshal(snip)
+
 					// Save snippet to given bucket.
 					dberr := db.Update(func(tx *bolt.Tx) error {
-						return models.SetSnippet(name, contents, bucket, tx)
+
+						return models.SetSnippet(newId, snipJSONBytes, bucket, tx)
 					})
 					if dberr != nil {
 						fmt.Printf("Error saving file snippet to bolt: %v\n", dberr)

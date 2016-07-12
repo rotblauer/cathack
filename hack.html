@@ -809,7 +809,7 @@
       function saveTheBucket() {
         $.ajax({
           method: "GET",
-          url: "/hack/repofy/snippets",
+          url: "/hack/repofy/" + currentBucket, // snippets",
           error: function (e) {
             console.error(e);
             showAlert('danger', '😒 Failed to save bucket. Error: ' + e);
