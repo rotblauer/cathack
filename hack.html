@@ -91,7 +91,12 @@
     #snippetMeta {
       background: #eee;
     }
-
+    .testes {
+      border: 3px solid pink;
+    }
+    .activeBucket {
+      background-color: #BEE0FC;
+    }
   </style>
 
   <body>
@@ -101,7 +106,10 @@
     <iframe src="http://www.chat.areteh.co:5000/" id="theFrame" style="width:100%; height: 60vh;" frameborder="0"></iframe>
     </div> -->
     
-
+ <!--    <div id="testes" class="testes">
+      
+    </div>
+ -->
 
     <div class="container-fluid">
        
@@ -129,8 +137,8 @@
            <div class="row padding">
            
            <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
-           <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-clone"></i> Repofy</button>
-           <button id="boltifyBuckets" class="btn btn-warning btn-sm"><i class="octicon octicon-repo-push"></i></button>
+           <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-clone"></i> Write</button>
+           <button id="boltifyBuckets" class="btn btn-warning btn-sm"><i class="octicon octicon-repo-push"></i> Read</button>
   
 
            </div>
@@ -148,6 +156,7 @@
            <!-- currentSnippet metadata -->
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
              <span id="snippetId" class="text-primary"></span>
+             <span id="snippetBucketName" style="font-weight: bold;"></span>
              <code id="snippetName" contenteditable="true">boots.js</code>
              
        <!--             <select name="" id="snippetLang">
@@ -235,6 +244,7 @@
       openWS();
       
       var snippetIdElem   = $("#snippetId");
+      var snippetBucketNameElem = $("#snippetBucketName");
       var snippetNameElem = $("#snippetName");
       var snippetTimeElem = $("#snippetTime");
       var snippetLangElem = $("#snippetLang");
@@ -282,12 +292,13 @@
       
       var snippetsLib = {}; // Lookup obj for all snippets (received from HandleConnect).
       var currentBucket = "snippets";
-      var currentSnippet ={};
+      var currentSnippet = {};
 
 
-      function toSnippetObj(id, name, lang, content, timestamp, meta) {
+      function toSnippetObj(id, bucketName, name, lang, content, timestamp, meta) {
         return {
           id: id, 
+          bucketName: bucketName,
           name: name,
           language: lang,
           content: content, 
@@ -352,7 +363,7 @@
 
           updateSnippetsLibForObj(j);
         } else if (typeOf(j) === 'null') {
-          currentSnippet = buildNewSnippet();
+          currentSnippet = buildNewSnippet(currentBucket);
           // snippetsLib[currentSnippet.id] = currentSnippet;
           refreshGUIForSnippet(currentSnippet);
 
@@ -372,6 +383,13 @@
       // 
       // Sets GUI to reflect state of a givent snippetsLib object {} var. 
       function refreshGUIForSnippetsLib(snippetsLib) {
+        
+        // TESTES
+        // 
+        // $('#testes').text(JSON.stringify(snippetsLib));
+        //
+        //
+
         arrListHTML = [];
         // sort by most recently edited
         var keysSorted = Object.keys(snippetsLib).sort(function(a,b){return snippetsLib[a].timestamp-snippetsLib[b].timestamp});
@@ -393,36 +411,63 @@
 
       function handleIncomingBucket(name, array) {
         var j = array;
+        
+        var snippetsLibKeys = [];
+        var snippetsLibTimes = []; 
+        var snipTimeKey = {}; // {time: id} <-- lookup by most recent
+
+
         snippetsLib = {}; // reset in case there was a delete.
 
-        currentBucket = name;
+        
 
+        // Create lookup var. 
         // Store all snippets in snippetsLib {} var (as lookup).
         for (var i = 0, len = j.length; i < len; i++) {  
-          snippetsLib[j[i].id] = j[i]; // assign snippetsLib by id, ie {"1": snippet, "2": othersnippet}
+          if (j[i].id !== "") {
+            
+            snippetsLibKeys.push(j[i].id);
+            snippetsLibTimes.push(j[i].timestamp);
+            snipTimeKey[j[i].timestamp] = j[i].id
+            
+            snippetsLib[j[i].id] = j[i]; // {"1": snippet, "2": othersnippet}  
+          }
+          
         }
 
-        // If currentSnippet is an empty obj (as per init)...
-        // 
-        // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
+        console.log("current snippet: " + JSON.stringify(currentSnippet));
+
+        // If currentSnippet is {[empty]}
         if (Object.keys(currentSnippet).length === 0 && currentSnippet.constructor === Object) {
 
-          // ...set currentSnippet to be first in incoming array.
-          // (Easier than looping through snippetsLib {}) 
-          // 
-          // TODO: Set currentSnippet by most recent. 
-          currentSnippet = j[0];
+          // Set currentSnippet to be most recent. 
+          var max = Math.max(...snippetsLibTimes); // the new spread operator!
+          currentSnippet = snippetsLib[snipTimeKey[max]];
+          
           refreshGUIForSnippet(currentSnippet);
         }
 
         // Refresh GUI for snippets lib. 
         refreshGUIForSnippetsLib(snippetsLib);
+
+        // Add active class to bucket. 
+        currentBucket = name;
+        setCurrentBucketActive();
+      }
+      function setCurrentBucketActive() {
+        bucketsLibElem.children('.col-xs-12').each(function() {
+          if (currentBucket == $(this).attr('id').replace("bucket-","")) {
+            $(this).addClass("activeBucket");
+          } else {
+            $(this).removeClass("activeBucket");
+          }
+        });
       }
 
       function renderBuckets(buckets) {
         h = "";
         $.each(buckets, function (k,v) {
-          h += '<p class="buck text-warning" id="bucket-' + v.name + '" onClick="return getBucket(\'' + v.name + '\')"><strong><span class="octicon octicon-repo"></span>&nbsp;' + v.name + '</strong></p>';
+          h += '<div class="col-xs-12" id="bucket-' + v.name + '" onClick="return getBucket(\'' + v.name + '\')"><strong class="buck"><span class="octicon octicon-repo"></span>&nbsp;' + v.name + '</strong></div>';
         });
         bucketsLibElem.html(h);
       }
@@ -465,6 +510,7 @@
       // Sets GUI to reflect state of a given snippet object. 
       function refreshGUIForSnippet(snippetObj) {
         snippetIdElem.text(snippetObj.id);
+        snippetBucketNameElem.text(snippetObj.bucketName);
         snippetNameElem.text(snippetObj.name);
         snippetLangElem.text(snippetObj.language);
         snippetTimeElem.text(snippetObj.timestamp);
@@ -482,7 +528,7 @@
         currentSnippet.language = getLanguageModeByExtension(currentSnippet.name).name; // snippetLangElem.val();
         currentSnippet.content = cm.getValue();
         currentSnippet.timestamp = Date.now();
-
+        
         snippetsLib[currentSnippet.id] = currentSnippet;
 
         snippetTimeElem.text(currentSnippet.timestamp); // just update GUI time so it's obvious it has been saved
@@ -502,8 +548,8 @@
         return Math.random().toString(36).substring(7);
       }
       // Create new snippet with incremented id.
-      function buildNewSnippet() {
-        var n = toSnippetObj(incrementedSnippetId(snippetsLib), 'boots.go', 'go', '', Date.now(), 'is a cat');
+      function buildNewSnippet(currentBucket) {
+        var n = toSnippetObj(incrementedSnippetId(snippetsLib), currentBucket, 'boots.go', 'go', '', Date.now(), 'is a cat');
         snippetsLib[n.id] = n; // add to library
         return n;
       }
@@ -513,17 +559,20 @@
       // Updates currentSnippet var to match incoming WS object.
       function setAsCurrentSnippet(snippetObj) {
         currentSnippet = snippetObj;
+        currentBucket = currentSnippet.bucketName;
         return currentSnippet;
       }
       // Sets currentSnippet var to selected snippet from lib (by id). 
       function setCurrentSnippetFromLibById(snippetId) {
         currentSnippet = snippetsLib[snippetId];
+        currentBucket = currentSnippet.bucketName;
         return currentSnippet;
       }
       // Updates GUI snippet from lib. 
       function selectSnippetFromLibById(snippetId) {
         refreshGUIForSnippet(setCurrentSnippetFromLibById(snippetId));
         refreshGUIForSnippetsLib(snippetsLib);
+        setCurrentBucketActive();
       }
       // Find another snippet to show (for when one has been destroyed.)
       // Returns snippet obj. 
@@ -584,7 +633,7 @@
 
         var snipNameElem = "<span class='" + " name'" + cssId + attrFunc + ">" +
                             // "[snippets] " +
-                            "[" + currentBucket + "] " +
+                            "[" + snippetObj.bucketName + "] " +
                             snippetObj.name + 
                             "</span>&nbsp;";
 
@@ -713,7 +762,7 @@
       }
 
       createSnippetElem.on("click", function () {
-        n = buildNewSnippet();
+        n = buildNewSnippet(currentBucket);
         refreshGUIForSnippet(setAsCurrentSnippet(n));
 
         updateSnippetsLibForObj(n);
@@ -743,7 +792,7 @@
           // send destroy signal to /hack
           $.ajax({
             method: "DELETE",
-            url: "/hack/s/" + ID,
+            url: "/hack/s/" + ID + "?bucket=" + currentSnippet.bucketName,
             error: function (e) {
               console.log("Ajax error.");
             },
@@ -781,7 +830,7 @@
           url: "/hack/boltify",
           error: function (e) {
             console.error(e);
-            showAlert('danger', '😒 Failed to Boltify. Error: ' + e);
+            showAlert('danger', '😒 Failed to Boltify. Error: ' + JSON.stringify(e));
           },
           success: function (res) {
             console.log(res);

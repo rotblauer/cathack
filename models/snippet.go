@@ -9,12 +9,13 @@ import (
 )
 
 type Snippet struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Language  string `json:"language"`
-	Content   string `json:"content"`
-	TimeStamp int    `json:"timestamp"`
-	Meta      string `json:"meta"`
+	Id         string `json:"id"`
+	BucketName string `json:"bucketName"`
+	Name       string `json:"name"`
+	Language   string `json:"language"`
+	Content    string `json:"content"`
+	TimeStamp  int    `json:"timestamp"`
+	Meta       string `json:"meta"`
 }
 type Snippets []Snippet
 
@@ -27,6 +28,8 @@ func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets Snippets, err error
 	b := tx.Bucket([]byte(bucketname))
 	c := b.Cursor()
 
+	// b.Delete([]byte("")) // Get rid of snippets with blank ids.
+
 	for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
 		var snip Snippet
 		json.Unmarshal(snipval, &snip)
@@ -37,13 +40,22 @@ func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets Snippets, err error
 }
 
 func SetSnippet(snippetid string, contents []byte, bucketname string, tx *bolt.Tx) (err error) {
-	b := tx.Bucket([]byte(bucketname))
-	err = b.Put([]byte(snippetid), contents)
-
-	if err != nil {
-		return fmt.Errorf("putting to bucket: %s", err)
+	b, berr := tx.CreateBucketIfNotExists([]byte(bucketname))
+	if berr != nil {
+		fmt.Printf("Error creating bucket: %v\n", berr)
+		return berr
+	} else {
+		if !(snippetid == "" || snippetid == "\\") {
+			err = b.Put([]byte(snippetid), contents)
+			if err != nil {
+				return fmt.Errorf("putting to bucket: %s", err)
+				return err
+			}
+		} else {
+			b.Delete([]byte(snippetid))
+		}
 	}
-	return err
+	return nil
 }
 
 func DeleteSnippet(snippetid string, bucketid string, tx *bolt.Tx) (err error) {

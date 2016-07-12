@@ -18,7 +18,7 @@ type SnippetBuckets []SnippetBucket
 
 func WriteBucketToFileSys(storageRootPath string, bucketname string, tx *bolt.Tx) (err error) {
 
-	bucketRootPath := storageRootPath + bucketname + "/"
+	bucketRootPath := storageRootPath + "/" + bucketname + "/"
 
 	var snippets []Snippet
 	snippets, err = IndexSnippets(bucketname, tx)

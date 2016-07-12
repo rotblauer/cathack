@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	hacksRootPath         string = "./hacks/"
+	hacksRootPath         string = "hacks"
 	hacksDBPath           string = "hack.db"
 	placeHolderBucketName string = "snippets"
 )
@@ -82,7 +82,7 @@ func main() {
 
 		// clean it out (in case file names have changed)
 		// FIXME: danger.
-		err = os.RemoveAll(hacksRootPath + bucketName)
+		err = os.RemoveAll(hacksRootPath + "/" + bucketName)
 		if err != nil {
 			fmt.Printf("Error cleaning bucket path: %v", err)
 		}
@@ -110,22 +110,26 @@ func main() {
 			}
 			if !info.IsDir() {
 
+				cleanPath := filepath.Clean(path) // hacks/snippets/todo/MOAR
+				dir := filepath.Dir(cleanPath)    // hacks/snippets/todo
+				withinHacksRootDir := strings.Replace(dir, hacksRootPath+"/", "", 1)
+				bucket := strings.Split(withinHacksRootDir, "/")[0]
+				withinBucketDir := strings.Replace(withinHacksRootDir, bucket, "", 1)
+				name := withinBucketDir + "/" + info.Name()
+
 				// Get file contents and parse path (if not dir).
 				contents, ioerr := ioutil.ReadFile(path)
-
-				cleanPath := filepath.Clean(path)
-				dir := filepath.Dir(cleanPath)
-				fromBaseDir := strings.Replace(dir, "hacks/", "", 1)
-				bucket := strings.Split(fromBaseDir, "/")[0]
-				fromBucketDir := strings.Replace(fromBaseDir, bucket+"/", "", 1)
-				name := fromBucketDir + "/" + info.Name()
 
 				if ioerr != nil {
 					fmt.Printf("Error reading file: %v\n", ioerr)
 
 				} else {
-					fmt.Printf("Saving to bucket: %v\n", bucket)
-					fmt.Printf("Name within bucket: %v\n", name)
+					fmt.Printf("cleanPath: %v\n", cleanPath)
+					fmt.Printf("dir: %v\n", dir)
+					fmt.Printf("withinHacksRootDir: %v\n", withinHacksRootDir)
+					fmt.Printf("bucket: %v\n", bucket)
+					fmt.Printf("withinBucketDir: %v\n", withinBucketDir)
+					fmt.Printf("name: %v\n", name)
 					fmt.Printf("Contents: \n---\n%v\n---\n", string(contents))
 
 					// Save snippet to given bucket.
@@ -139,6 +143,10 @@ func main() {
 			}
 			return nil
 		})
+
+		if werr != nil {
+			fmt.Println("Impossible.")
+		}
 
 		var buckets models.SnippetBuckets
 
@@ -206,11 +214,11 @@ func main() {
 	// /hack/s/:snippetId?bucket=snippets
 	r.DELETE("/hack/s/:snippetId", func(c *gin.Context) {
 		snippetId := c.Param("snippetId") // func (c *Context) Param(key string) string
-		// bucketId := c.DefaultQuery("bucket", "snippets")
+		bucketId := c.DefaultQuery("bucket", "snippets")
 
 		// remove given snippet by snippetId
 		err := db.Update(func(tx *bolt.Tx) error {
-			return models.DeleteSnippet(snippetId, placeHolderBucketName, tx)
+			return models.DeleteSnippet(snippetId, bucketId, tx)
 		})
 
 		if err != nil {
@@ -219,7 +227,7 @@ func main() {
 
 			// broadcast new index
 			err := db.View(func(tx *bolt.Tx) error {
-				snippets, _ := models.IndexSnippets(placeHolderBucketName, tx)
+				snippets, _ := models.IndexSnippets(bucketId, tx)
 				o, _ := json.Marshal(snippets) // JSON-ified array of snippets
 				h.Broadcast(o)
 				return nil
@@ -255,7 +263,7 @@ func main() {
 		h.BroadcastOthers(hackery, s)
 
 		db.Update(func(tx *bolt.Tx) error {
-			return models.SetSnippet(models.SnipFromJSON(hackery).Id, hackery, placeHolderBucketName, tx)
+			return models.SetSnippet(models.SnipFromJSON(hackery).Id, hackery, models.SnipFromJSON(hackery).BucketName, tx)
 		})
 	})
 
