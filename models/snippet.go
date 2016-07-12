@@ -16,19 +16,16 @@ type Snippet struct {
 	TimeStamp int    `json:"timestamp"`
 	Meta      string `json:"meta"`
 }
+type Snippets []Snippet
 
 func SnipFromJSON(snippetBytes []byte) (snippet Snippet) {
 	json.Unmarshal(snippetBytes, &snippet)
 	return snippet
 }
 
-func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets []Snippet, err error) {
+func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets Snippets, err error) {
 	b := tx.Bucket([]byte(bucketname))
-	// v := b.Get([]byte("testSnip"))
-
-	// iterate through snippets
 	c := b.Cursor()
-	// var snippets []Snippet // Array of Go snippet structs
 
 	for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
 		var snip Snippet

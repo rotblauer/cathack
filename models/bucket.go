@@ -9,6 +9,13 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// Bucket struct.
+// Used for sending as json.
+type SnippetBucket struct {
+	Name string `json:"name"`
+}
+type SnippetBuckets []SnippetBucket
+
 func WriteBucketToFileSys(storageRootPath string, bucketname string, tx *bolt.Tx) (err error) {
 
 	bucketRootPath := storageRootPath + bucketname + "/"
