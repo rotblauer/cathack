@@ -129,6 +129,11 @@
            <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
            <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-clone"></i> Write to filesystem</button>
            </div>
+
+          <div id="bucketsLib" class="row padding">
+            buckets go here
+          </div>
+
            <div id="snippetsLib" class="row padding">
              snips go here
            </div>
@@ -212,9 +217,11 @@
 
       
       /////////////////////////
-      
-      
+
+
       var url = "ws://" + window.location.host + "/hack/ws";
+      var apiUrl = "http://www.chat.areteh.co:5000/hack";
+
       var ws; 
       function openWS() {
         console.log("Trying to open WS.");
@@ -230,6 +237,8 @@
 
       var snippetsLibElem = $("#snippetsLib");
       var snippetsInLibElems = $(".snip");
+
+      var bucketsLibElem = $("#bucketsLib");
 
       var createSnippetElem = $("#createSnippet");
       var destroySnippetElem = $("#destroySnippet");
@@ -321,28 +330,7 @@
         // Array --> 
         if (typeOf(j) === 'array') {
           
-          snippetsLib = {}; // reset in case there was a delete.
-
-          // Store all snippets in snippetsLib {} var (as lookup).
-          for (var i = 0, len = j.length; i < len; i++) {  
-            snippetsLib[j[i].id] = j[i]; // assign snippetsLib by id, ie {"1": snippet, "2": othersnippet}
-          }
-
-          // If currentSnippet is an empty obj (as per init)...
-          // 
-          // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
-          if (Object.keys(currentSnippet).length === 0 && currentSnippet.constructor === Object) {
-
-            // ...set currentSnippet to be first in incoming array.
-            // (Easier than looping through snippetsLib {}) 
-            // 
-            // TODO: Set currentSnippet by most recent. 
-            currentSnippet = j[0];
-            refreshGUIForSnippet(currentSnippet);
-          }
-
-          // Refresh GUI for snippets lib. 
-          refreshGUIForSnippetsLib(snippetsLib);
+          handleIncomingBucket(j);
 
         // Object --> 
         // (another session made an update to a snippet.)
@@ -391,6 +379,62 @@
           $(".isActive").hide();
         }, 2000);
       }
+
+      function handleIncomingBucket(array) {
+        var j = array;
+        snippetsLib = {}; // reset in case there was a delete.
+
+        // Store all snippets in snippetsLib {} var (as lookup).
+        for (var i = 0, len = j.length; i < len; i++) {  
+          snippetsLib[j[i].id] = j[i]; // assign snippetsLib by id, ie {"1": snippet, "2": othersnippet}
+        }
+
+        // If currentSnippet is an empty obj (as per init)...
+        // 
+        // http://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
+        if (Object.keys(currentSnippet).length === 0 && currentSnippet.constructor === Object) {
+
+          // ...set currentSnippet to be first in incoming array.
+          // (Easier than looping through snippetsLib {}) 
+          // 
+          // TODO: Set currentSnippet by most recent. 
+          currentSnippet = j[0];
+          refreshGUIForSnippet(currentSnippet);
+        }
+
+        // Refresh GUI for snippets lib. 
+        refreshGUIForSnippetsLib(snippetsLib);
+      }
+
+      
+      // Buckets.
+      // 
+
+      function renderBuckets(buckets) {
+        h = "";
+        $.each(buckets, function (k,v) {
+          h += '<p><strong>[' + v.name + ']</strong></p>';
+        });
+        bucketsLibElem.html(h);
+      }
+
+      function getAvailableBuckets() {
+        return $.ajax({
+          method: "GET",
+          url: apiUrl + "/b",
+          error: function (e) {
+            console.log(e);
+            showAlert('danger', JSON.stringify(e));
+          }, 
+          success: function (res) {
+            console.log("got buckets -> " + JSON.stringify(res));
+            renderBuckets(res);
+          }
+        });
+      }
+      getAvailableBuckets();
+
+
 
       // Snippet. 
       // 
