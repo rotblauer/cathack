@@ -39,6 +39,24 @@ func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets Snippets, err error
 	return snippets, err
 }
 
+func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snippet) {
+	b := tx.Bucket([]byte(bucketname))
+	c := b.Cursor()
+
+	for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+		snip := SnipFromJSON(snipval)
+		if snip.Name == name {
+			snippet = snip
+			break
+		}
+	}
+	if snippet == (Snippet{}) {
+		return Snippet{}
+	} else {
+		return snippet
+	}
+}
+
 func SetSnippet(snippetid string, contents []byte, bucketname string, tx *bolt.Tx) (err error) {
 	b, berr := tx.CreateBucketIfNotExists([]byte(bucketname))
 	if berr != nil {
@@ -46,6 +64,7 @@ func SetSnippet(snippetid string, contents []byte, bucketname string, tx *bolt.T
 		return berr
 	} else {
 		if !(snippetid == "" || snippetid == "\\") {
+			fmt.Printf("Saving snippet to bolt: %v\n", snippetid)
 			err = b.Put([]byte(snippetid), contents)
 			if err != nil {
 				return fmt.Errorf("putting to bucket: %s", err)

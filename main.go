@@ -109,12 +109,16 @@ func main() {
 				fmt.Printf("Error: %v\n", err)
 				return nil
 			}
+
+			// Only for files.
 			if !info.IsDir() {
 
+				// Handle paths.
 				cleanPath := filepath.Clean(path) // hacks/snippets/todo/MOAR
 				dir := filepath.Dir(cleanPath)    // hacks/snippets/todo
 				withinHacksRootDir := strings.Replace(dir, hacksRootPath+"/", "", 1)
-				bucket := strings.Split(withinHacksRootDir, "/")[0]
+				folders := strings.Split(withinHacksRootDir, "/")
+				bucket := folders[0]
 				withinBucketDir := strings.Replace(withinHacksRootDir, bucket, "", 1)
 				name := withinBucketDir + "/" + info.Name()
 
@@ -123,7 +127,6 @@ func main() {
 
 				if ioerr != nil {
 					fmt.Printf("Error reading file: %v\n", ioerr)
-
 				} else {
 					fmt.Printf("cleanPath: %v\n", cleanPath)
 					fmt.Printf("dir: %v\n", dir)
@@ -133,26 +136,38 @@ func main() {
 					fmt.Printf("name: %v\n", name)
 					fmt.Printf("Contents: \n---\n%v\n---\n", string(contents))
 
-					// Snippify.a
+					// Get snippet if exists by bucket name and filename.
+					// FIXME: ew.
+					// var snip models.Snippet
+
 					var snip models.Snippet
-					snip.Name = name
-					snip.BucketName = bucket
+
+					db.View(func(tx *bolt.Tx) error {
+						snip = models.GetSnippetByName(bucket, name, tx)
+						return nil
+					})
+
+					if snip == (models.Snippet{}) {
+
+						// Snippify.
+						snip.Name = name
+						snip.BucketName = bucket
+						newId := lib.RandSeq(6)
+						snip.Id = newId
+
+					}
+
+					// Make updates.
 					snip.Content = string(contents)
-
-					// t := time.Now().UTC().Unix() * 1000 // int64
-					// var tt int
-					// tt = int(t)
+					snip.Language = lib.GetLanguageModeByExtension(name)
 					snip.TimeStamp = int(time.Now().UTC().Unix() * 1000)
-
-					newId := lib.RandSeq(6)
-					snip.Id = newId
 
 					snipJSONBytes, _ := json.Marshal(snip)
 
 					// Save snippet to given bucket.
 					dberr := db.Update(func(tx *bolt.Tx) error {
 
-						return models.SetSnippet(newId, snipJSONBytes, bucket, tx)
+						return models.SetSnippet(snip.Id, snipJSONBytes, bucket, tx)
 					})
 					if dberr != nil {
 						fmt.Printf("Error saving file snippet to bolt: %v\n", dberr)
