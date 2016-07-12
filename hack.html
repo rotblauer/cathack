@@ -413,10 +413,13 @@
       function renderBuckets(buckets) {
         h = "";
         $.each(buckets, function (k,v) {
-          h += '<p><strong>[' + v.name + ']</strong></p>';
+          h += '<p class="buck text-warning" id="bucket-' + v.name + '" onClick="return getBucket(\'' + v.name + '\')"><strong><span class="octicon octicon-repo"></span>&nbsp;' + v.name + '</strong></p>';
         });
         bucketsLibElem.html(h);
       }
+      // $('.buck').on('click', function (elem) {
+      //   getBucket($(this).text().replace('bucket-', ''));
+      // });
 
       function getAvailableBuckets() {
         return $.ajax({
@@ -434,7 +437,20 @@
       }
       getAvailableBuckets();
 
-
+      function getBucket(name) {
+        return $.ajax({
+          method: "GET",
+          url: apiUrl + "/b/" + name,
+          error: function (e) {
+            console.log(e);
+            showAlert('danger', JSON.stringify(e));
+          }, 
+          success: function (res) {
+            console.log("got bucket -> " + JSON.stringify(res));
+            handleIncomingBucket(res);
+          }
+        });
+      }
 
       // Snippet. 
       // 
