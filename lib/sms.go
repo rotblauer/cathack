@@ -1,10 +1,11 @@
 package lib
 
 import (
-	"gopkg.in/dietsche/textbelt.v1"
 	"log"
 	"regexp"
 	"strings"
+
+	"gopkg.in/dietsche/textbelt.v1"
 )
 
 func sendSMS(number string, message string) error {
@@ -27,6 +28,7 @@ func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 	phoneBook := make(map[string]string)
 	phoneBook["john"] = "2182606849"
 	phoneBook["isaac"] = "2183494908"
+	phoneBook["sharif"] = "6073420398"
 
 	re, err := regexp.Compile(`@(\w+)`) // FIXME: this should capture only the name, not the @ part. it captures @name. don't know why.
 	if err != nil {
