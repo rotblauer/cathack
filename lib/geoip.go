@@ -4,10 +4,11 @@ import (
 	// "fmt"
 	"errors"
 	"fmt"
-	"github.com/oschwald/geoip2-golang"
 	"log"
 	"net"
 	"strconv"
+
+	"github.com/oschwald/geoip2-golang"
 )
 
 func GetGeoFromIP(ip string) (out map[string]string, err error) {
@@ -49,23 +50,14 @@ func GetGeoFromIP(ip string) (out map[string]string, err error) {
 	// ISO country code: GB
 	// Time zone: Europe/London
 	// Coordinates: 51.5142, -0.0931
-
 	out["lat"] = strconv.FormatFloat(record.Location.Latitude, 'f', 6, 64)
-	// fmt.Printf("out['lat'] -> %v", out["lat"])
 	out["lon"] = strconv.FormatFloat(record.Location.Longitude, 'f', 6, 64)
-	// fmt.Printf("out['lon'] -> %v", out["lon"])
 	out["tz"] = record.Location.TimeZone
-	// fmt.Printf("out['tz'] -> %v", out["tz"])
 	out["countryIsoCode"] = record.Country.IsoCode
-	// fmt.Printf("out['countryIsoCode'] -> %v", out["countryIsoCode"])
 	out["subdiv"] = record.Subdivisions[0].Names["en"]
-	// fmt.Printf("out['subdiv'] -> %v", out["subdiv"])
 	out["city"] = record.City.Names["en"]
-	// fmt.Printf("out['city'] -> %v", out["city"])
-	//
-	fmt.Printf("GeoIP: %v", out)
+	fmt.Printf("GeoIP: %v\n", out)
 	fmt.Println()
-
 	if err != nil {
 		return out, err
 	}

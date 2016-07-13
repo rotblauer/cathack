@@ -4,57 +4,20 @@
   </head>
 
   <!-- bootstrap -->
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" href="/assets/bootstrap-3.3.6-dist/css/bootstrap.min.css">
 
   <!-- octicons? -->
+  <!-- <link rel="stylesheet" href="/assets/octicons-4.3.0/build/octicons.min.css"> -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css">
 
   <!-- jquery -->
-  <script   src="https://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
   <!-- codemirror -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/codemirror.min.css">
-
-    <!-- modes -->
-    <!-- go  -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/go/go.min.js"></script>
-    <!-- js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/javascript/javascript.min.js"></script>
-    <!-- markdown -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/markdown/markdown.min.js"></script>
-    <!-- python -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/python/python.min.js"></script>
-    <!-- ruby -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/ruby/ruby.min.js"></script>
-    <!-- r -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/r/r.min.js"></script>
-    <!-- shell -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/shell/shell.min.js"></script>
-    <!-- swift -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/swift/swift.min.js"></script>
-    <!-- html -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/htmlmixed/htmlmixed.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/mode/htmlembedded/htmlembedded.min.js"></script>
-
-    <!-- addons -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/selection/mark-selection.min.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/javascript-hint.min.js'></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/edit/matchbrackets.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/edit/closebrackets.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/show-hint.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/show-hint.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/html-hint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/lint/javascript-lint.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/addon/hint/anyword-hint.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/keymap/vim.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.16.0/theme/hopscotch.min.css">
+  <script src="/assets/codemirror-compressed-2.js"></script>
+  <link rel="stylesheet" href="/assets/codemirror-5.16.0/lib/codemirror.css">
+    <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/hint/show-hint.css">
+    <!-- <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/lint/lint.css"> -->
 
 
   <style>
@@ -191,7 +154,7 @@
          </div>
 
          <div id="sidebar" class="col-sm-4" style='display: none;background: black; height: 100vh;'>
-           <iframe src="http://www.chat.areteh.co:5000/" id="theFrame" style="width:100%; height: 100vh;" frameborder="0"></iframe>
+           <iframe src="/" id="theFrame" style="width:100%; height: 100vh;" frameborder="0"></iframe>
          </div>
      
        </div> <!-- end .row -->
@@ -228,13 +191,16 @@
           $("#saveBucket").removeClass("btn-primary").addClass("btn-default");
         }  
       }
+      
 
       
       /////////////////////////
 
 
       var url = "ws://" + window.location.host + "/hack/ws";
-      var apiUrl = "http://chat.areteh.co:5000/hack"; // www.
+      // var apiUrl = "http://chat.areteh.co:5000/hack"; // www.
+      var apiUrl = "http://" + window.location.host + "/hack";
+      var chatUrl = "http://" + window.location.host + "/";
 
       var ws; 
       function openWS() {
