@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
 
 type SnippetController struct{}
 
@@ -30,9 +34,11 @@ func (ctrl SnippetController) Delete(c *gin.Context) {
 }
 
 func (ctrl SnippetController) All(c *gin.Context) {
-	bucketId := c.Param("bucketid")
+	bucketId := c.Param("bucketId")
+	fmt.Printf("Bucket id: %v\n", bucketId)
 	snippets, err := snippetModel.All(bucketId)
 	if err != nil {
+		fmt.Printf("Error: %v\n", err.Error())
 		c.JSON(500, err)
 	} else {
 		c.JSON(200, snippets)

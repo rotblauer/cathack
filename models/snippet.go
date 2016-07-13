@@ -46,13 +46,23 @@ func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snip
 func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucketId))
-		c := b.Cursor()
-		for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-			var snip Snippet
-			json.Unmarshal(snipval, &snip)
-			snippets = append(snippets, snip)
+		if b == nil {
+			return nil
 		}
-		return nil
+
+		if b.Stats().KeyN > 0 {
+
+			c := b.Cursor()
+			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+				var snip Snippet
+				json.Unmarshal(snipval, &snip)
+				snippets = append(snippets, snip)
+			}
+			return nil
+
+		} else {
+			return nil
+		}
 	})
 	return snippets, err
 }

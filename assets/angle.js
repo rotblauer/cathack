@@ -66,10 +66,7 @@ app.factory("Buckets", ['$http', 'Config', function ($http, Config) {
 	function getAll() {
 		return $http({
 			method: "GET",
-			url: Config.API_URL + Config.ENDPOINTS.BUCKETS,
-			headers: {
-				'Accept':'application/json'
-			}
+			url: Config.API_URL + Config.ENDPOINTS.BUCKETS
 		});
 	}
 
@@ -244,6 +241,9 @@ app.factory("Utils", function () {
 
 app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout',
 	function ($scope, WS, Buckets, Snippets, Utils, $timeout) {
+
+	$scope.testes = "this is only a test"
+
 	$scope.data = {};
 	$scope.data.msgs = WS.collection;
 	$scope.data.ws = WS.status;
@@ -252,12 +252,19 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	Buckets.getAll().then(function (res) {
 		$scope.data.buckets = res.data;	
 		$scope.data.currentBucket = $scope.data.buckets[0]; // Set current as first for now.
-		Buckets.getOne($scope.data.currentBucket.name).then(function (res) {
-			console.log(res.data[0]);
-			$scope.data.currentBucketSnippets = Buckets.setBucketAsCurrent(res.data);	
+		Buckets.getOne($scope.data.currentBucket.id).then(function (res) {
+			
+			if (res.data !== null) {
+				console.log(JSON.stringify(res));
+				// $scope.data.currentBucketSnippets = Buckets.setBucketAsCurrent(res.data);	
 
-			Snippets.setCurrentSnippetAs(res.data[0]); // Set current as first for now.
-			$scope.data.cs = Snippets.getCurrentSnippet();
+				// Snippets.setCurrentSnippetAs(res); // Set current as first for now.
+				// $scope.data.cs = Snippets.getCurrentSnippet();	
+			} else {
+				// nil in bucket
+				console.log("nil in bucket")
+			}
+			
 		});
 	});
 
@@ -275,34 +282,34 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	}
 	setEditorOpts($scope.data.cs);
 	
-	$scope.chooseSnippet = function(snippet) {
-		$scope.data.cs = Snippets.setCurrentSnippetAs(snippet);
-	};
+	// $scope.chooseSnippet = function(snippet) {
+	// 	$scope.data.cs = Snippets.setCurrentSnippetAs(snippet);
+	// };
 
 	// Now we can just watch the whole current snippet in one listener! 
 	// Pretty nifty!
 	
-		$scope.$watch('data.cs', function (old, neww, scope) {
-			console.log("o: " +JSON.stringify(old) + "\n" + "n: " + JSON.stringify(neww));
+		// $scope.$watch('data.cs', function (old, neww, scope) {
+		// 	console.log("o: " +JSON.stringify(old) + "\n" + "n: " + JSON.stringify(neww));
 			
-			if (neww !== old) {
-				console.log('stuff changed!');
-				var sendMe = {};
-				sendMe.id = neww.id;
-				// Update timestamp.
-				sendMe.timestamp = Date.now();
-				$scope.data.cs.timestamp = sendMe.timestamp
-				sendMe.name = neww.name;
-				sendMe.meta = neww.meta;
-				sendMe.content = neww.content;
-				// Check for language change.
-				if (old.language !== neww.language) {
-					sendMe.language = Utils.getLanguageModeByExtension(sendMe.name || 'boots.go');
-					setEditorOpts(sendMe.language);	
-				}	
-				WS.send(JSON.stringify(sendMe));
-			}
-		}, true);	
+		// 	if (neww !== old) {
+		// 		console.log('stuff changed!');
+		// 		var sendMe = {};
+		// 		sendMe.id = neww.id;
+		// 		// Update timestamp.
+		// 		sendMe.timestamp = Date.now();
+		// 		$scope.data.cs.timestamp = sendMe.timestamp
+		// 		sendMe.name = neww.name;
+		// 		sendMe.meta = neww.meta;
+		// 		sendMe.content = neww.content;
+		// 		// Check for language change.
+		// 		if (old.language !== neww.language) {
+		// 			sendMe.language = Utils.getLanguageModeByExtension(sendMe.name || 'boots.go');
+		// 			setEditorOpts(sendMe.language);	
+		// 		}	
+		// 		WS.send(JSON.stringify(sendMe));
+		// 	}
+		// }, true);	
 	
 	
 
