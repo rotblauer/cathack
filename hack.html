@@ -10,11 +10,7 @@
   <!-- <link rel="stylesheet" href="/assets/octicons-4.3.0/build/octicons.min.css"> -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css">
 
-  <!-- jquery -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-
   <!-- codemirror -->
-  <script src="/assets/codemirror-compressed-2.js"></script>
   <link rel="stylesheet" href="/assets/codemirror-5.16.0/lib/codemirror.css">
     <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/hint/show-hint.css">
     <!-- <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/lint/lint.css"> -->
@@ -35,10 +31,62 @@
         <!-- library -->
          <div id="lib" class="col-sm-3">
            <div class="row padding">
+
+
+          
+            <div class="btn-toolbar" role="toolbar">
+              <div class="btn-group btn-group-sm"><button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  File
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="fileDropdown">
+                  
+                  <li><a id="createSnippet" href=""><span class="text-success"><span class="octicon octicon-file-code"></span> New Snippet</span></a></li>
+
+                  <li><a id="createSnippet" href=""><span class="text-success"><span class="octicon octicon-repo"></span> New Bucket</span></a></li>
+
+                  <li role="separator" class="divider"></li>
+                  
+                  <li><a href="#">Download</a></li>
+
+                             <!--    <li><a id="saveBucket" href="">
+                    <span class="octicon octicon-repo-push"></span>
+                    Write current bucket
+                  </a></li> -->
+                             <!--    <li><a id="boltifyBuckets" href="">
+                    <span class="octicon octicon-repo-clone"></span>
+                    Read from FS
+                  </a></li> -->
+                  
+                  
+                </ul>
+                </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-default dropdown-toggle" type="button" id="bucketDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  <span class="octicon octicon-sync"></span>
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="bucketDropdown">
+               
+                  <li><a id="saveBucket" href="">
+                    <span class="octicon octicon-repo-push"></span>
+                    Write current bucket
+                  </a></li>
+                  <li><a id="boltifyBuckets" href="">
+                    <span class="octicon octicon-repo-clone"></span>
+                    Read from FS
+                  </a></li>
+                  <li role="separator" class="divider"></li>
+                  <li><a href="#">Download</a></li>
+                </ul>
+              </div>
+            </div>
+            
+
            
-             <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
+             <!-- <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
              <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-push"></i> Write</button>
-             <button id="boltifyBuckets" class="btn btn-warning btn-sm"><i class="octicon octicon-repo-clone"></i> Read</button>
+             <button id="boltifyBuckets" class="btn btn-warning btn-sm"><i class="octicon octicon-repo-clone"></i> Read</button> -->
 
            </div>
 
@@ -94,6 +142,16 @@
     
     <!-- JS -->
 
+    <!-- jquery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+    <!-- bootstrap -->
+    <script src="/assets/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+
+    <!-- codemirror -->
+    <script src="/assets/codemirror-compressed-2.js"></script>
+
+    <!-- app -->
     <script src="/assets/app.js"></script>
   </body>
 </html>

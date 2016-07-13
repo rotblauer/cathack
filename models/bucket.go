@@ -14,7 +14,7 @@ type MetaBucket struct {
 }
 
 type Bucket struct {
-	Id   []byte     `json:"name"`
+	Id   []byte     `json:"id"`
 	Meta MetaBucket `json:"meta"`
 }
 
