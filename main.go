@@ -21,6 +21,8 @@ import (
 // 	}
 // }
 
+//
+
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
@@ -59,7 +61,7 @@ func main() {
 	})
 
 	r.GET("/r/chat", controllers.GetChatData)      // Get chat.txt
-	r.GET("/hack/b/:bucketId", snippet.All)        // Get all snippets by bucket
+	r.GET("/hack/b/:bucketId", snippet.All)        // Get all snippets for a given bucket
 	r.GET("/hack/b", bucket.All)                   // Get all buckets
 	r.DELETE("/hack/s/:snippetId", snippet.Delete) // Delete snippet @ /hack/s/:snippetId?bucket=snippets
 

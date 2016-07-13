@@ -1,3 +1,54 @@
+// Visit page. 
+// - Connect WS. 
+// - AJAX Buckets.
+//  - Set currentBucket to most recent.
+//  - AJAX currentBucket's snippets. 
+//  - Set currentSnippet as most recent snippet 
+
+// Websocket onmessage figures out what kind of data it's receiving. 
+//  - bucket: 
+//    - add bucket to lib.
+//  - snippet: 
+//  - hacker: 
+
+// Clickables.
+//  - choosing bucket sends AJAX req for snippets unless they're already in memory
+//  - 
+
+
+// library: {
+//   hackers: [], 
+//   buckets: [], 
+//   snippets: []
+// }
+// 
+// l--> 
+// 
+// hackers: [{id: 1, ip: "12.34.56.78", name: "Johnny"}, ... {}]
+// buckets: [
+//   {
+  //   id: "234da123-", 
+  //   meta: {
+  //     name: "snippets", 
+  //     created: 2134234123424, 
+  //     updated: 23412312423, 
+  //     snippetsCounts: 5
+//     }
+//   }
+// ]
+// snippets: [
+  // {
+  //  id: "kj2543v", 
+  //  bucketId: "234da123-", 
+  //  name: "main.go", 
+  //  language: "go", 
+  //  timestamp: 23423234234, 
+  //  about: "just another test file",
+  //  content: "a;lsjkfopaiwjefl;kasd;lfkja;sldkjf;laksjdf;lkajsdflkajs;ldfjka;slkdjf;alksjdf;alsjdf"
+  //  }
+// ]
+
+
 /////////////////////////
 function toggleCatChat() {
   $("#sidebar").toggle();
@@ -31,7 +82,6 @@ function setWriteBucketButtonInActive() {
 
 
 var url = "ws://" + window.location.host + "/hack/ws";
-// var apiUrl = "http://chat.areteh.co:5000/hack"; // www.
 var apiUrl = "http://" + window.location.host + "/hack";
 var chatUrl = "http://" + window.location.host + "/";
 
