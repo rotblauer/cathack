@@ -1,1 +1,1 @@
-rsync -avz -L --progress --exclude=.git --exclude=*.log --exclude=chat.txt . freya:~/chat.areteh.co/
+rsync -avz -L --progress --exclude=.git --exclude=*.log --exclude=chat.txt --exclude=hack.db . freya:~/chat.areteh.co/

@@ -11,4 +11,3 @@ go build -o main main.go
 
 echo "starting main with out to main.log"
 ./main &>"$PWD/main.log" &!
-
