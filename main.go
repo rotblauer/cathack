@@ -60,9 +60,14 @@ func main() {
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
-	r.GET("/r/chat", controllers.GetChatData)      // Get chat.txt
+	r.GET("/r/chat", controllers.GetChatData) // Get chat.txt
+	r.GET("/hack/b", bucket.All)              // Get all buckets
+
+	// r.POST("/hack/b", bucket.Make)               // TODO
+	// r.DELETE("/hack/b/:bucketId", bucket.Delete) // TODO
+	// r.PUT("/hack/b/:bucketId", bucket.Set)       // TODO
+
 	r.GET("/hack/b/:bucketId", snippet.All)        // Get all snippets for a given bucket
-	r.GET("/hack/b", bucket.All)                   // Get all buckets
 	r.DELETE("/hack/s/:snippetId", snippet.Delete) // Delete snippet @ /hack/s/:snippetId?bucket=snippets
 
 	r.PUT("/hack/fs/b/:bucketId", fs.SetBucket)
