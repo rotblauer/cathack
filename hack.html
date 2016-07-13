@@ -812,11 +812,11 @@
           url: "/hack/repofy/" + currentBucket, // snippets",
           error: function (e) {
             console.error(e);
-            showAlert('danger', '😒 Failed to save bucket. Error: ' + e);
+            showAlert('danger', '😒 Failed to save "' + currentBucket + '" to the file system. Error: ' + e);
           },
           success: function (res) {
             console.log(res);
-            showAlert('success', '😀 Great success! Bucket has been filed!');
+            showAlert('success', '😀 Success! "' + currentBucket + '" has been saved to the filesystem.');
             setWriteBucketButtonInActive();
           }
         });
@@ -825,19 +825,22 @@
       $('#saveBucket').on("click", saveTheBucket);
 
       function boltify() {
-        $.ajax({
-          method: "GET",
-          url: "/hack/boltify",
-          error: function (e) {
-            console.error(e);
-            showAlert('danger', '😒 Failed to Boltify. Error: ' + JSON.stringify(e));
-          },
-          success: function (res) {
-            console.log(res);
-            showAlert('success', '😀 Great success! Buckets have been boltified!');
-            renderBuckets(res);
-          }
-        });
+        var reallyreally = window.confirm("This will overwrite any changes (in any collection) not saved to the file system yet. Is that OK?");
+        if (reallyreally) {
+          $.ajax({
+            method: "GET",
+            url: "/hack/boltify",
+            error: function (e) {
+              console.error(e);
+              showAlert('danger', '😒 Failed to read from the file system. Error: ' + JSON.stringify(e));
+            },
+            success: function (res) {
+              console.log(res);
+              showAlert('success', '😀 Success! You\'re now in sync with the file system.');
+              renderBuckets(res);
+            }
+          });  
+        }
       }
       boltifyBucketsElem.on('click', boltify);
 
