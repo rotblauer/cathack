@@ -18,25 +18,11 @@ type Snippet struct {
 	Meta       string `json:"meta"`
 }
 type Snippets []Snippet
+type SnippetModel struct{}
 
-func SnipFromJSON(snippetBytes []byte) (snippet Snippet) {
-	json.Unmarshal(snippetBytes, &snippet)
+func (m SnippetModel) SnipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {
+	json.Unmarshal(snippetJSONBytes, &snippet)
 	return snippet
-}
-
-func IndexSnippets(bucketname string, tx *bolt.Tx) (snippets Snippets, err error) {
-	b := tx.Bucket([]byte(bucketname))
-	c := b.Cursor()
-
-	// b.Delete([]byte("")) // Get rid of snippets with blank ids.
-
-	for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-		var snip Snippet
-		json.Unmarshal(snipval, &snip)
-		snippets = append(snippets, snip)
-	}
-
-	return snippets, err
 }
 
 func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snippet) {
@@ -57,49 +43,50 @@ func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snip
 	}
 }
 
-func SetSnippet(snippetid string, contents []byte, bucketname string, tx *bolt.Tx) (err error) {
-	b, berr := tx.CreateBucketIfNotExists([]byte(bucketname))
-	if berr != nil {
-		fmt.Printf("Error creating bucket: %v\n", berr)
-		return berr
-	} else {
-		if !(snippetid == "" || snippetid == "\\") {
-			fmt.Printf("Saving snippet to bolt: %v\n", snippetid)
-			err = b.Put([]byte(snippetid), contents)
-			if err != nil {
-				return fmt.Errorf("putting to bucket: %s", err)
-				return err
-			}
-		} else {
-			b.Delete([]byte(snippetid))
+func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketId))
+		c := b.Cursor()
+		for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+			var snip Snippet
+			json.Unmarshal(snipval, &snip)
+			snippets = append(snippets, snip)
 		}
-	}
-	return nil
+	})
+	return snippets, err
 }
 
-func DeleteSnippet(snippetid string, bucketid string, tx *bolt.Tx) (err error) {
-	b := tx.Bucket([]byte(bucketid))
+func (m SnippetModel) Set(snippet Snippet) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b, _ := tx.CreateBucketIfNotExists([]byte(snippet.BucketName))
+		j, _ := json.Marshal(snippet)
+		return b.Put([]byte(snippet.Id), j)
+	})
+}
 
-	// remove from os
-	// get snippet so can access Name
-	var snip Snippet
-	v := b.Get([]byte(snippetid))
-	json.Unmarshal(v, &snip)
+func (m SnippetModel) Delete(bucketid string, snippetid string) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketid))
+		// Get snippet so can access Name (to remove from FS).
+		var snip Snippet
+		v := b.Get([]byte(snippetid))
+		json.Unmarshal(v, &snip)
 
-	// remove from bucket
-	err = b.Delete([]byte(snip.Id))
-	if err != nil {
-		fmt.Printf("Error deleting from bucket: %v", err)
-		return err
-	} else {
-		// remove from bucket if was successfully deleted from bucket
-		path := "./hacks/snippets/" + snip.Name
-		fmt.Printf("Removing file at path: %v", path)
-		removeErr := os.Remove(path)
-		if removeErr != nil {
-			fmt.Printf("Error removing file: %v", removeErr)
-			// don't worry about not deleting a file that doesn't exist
+		// First, remove from bucket.
+		derr := b.Delete([]byte(snip.Id))
+		if derr != nil {
+			fmt.Printf("Error deleting from bucket: %v", derr)
+			return derr
+		} else {
+			// Remove from FS if was successfully deleted from bucket.
+			path := "./hacks/snippets/" + snip.Name
+			fmt.Printf("Removing file at path: %v", path)
+			derr = os.Remove(path)
+			if derr != nil {
+				fmt.Printf("Error removing file: %v", derr)
+			}
 		}
-	}
-	return err // return the error about deleting from bolt only
+		return derr
+	})
+	return err
 }

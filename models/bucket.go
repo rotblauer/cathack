@@ -1,38 +1,47 @@
 package models
 
 import (
-	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
+	"encoding/json"
 
 	"github.com/boltdb/bolt"
 )
 
-// Bucket struct.
-// Used for sending as json.
-type SnippetBucket struct {
-	Name string `json:"name"`
+type MetaBucket struct {
+	Name      string `json:"name"`
+	TimeStamp int    `json:"timestamp"`
+
+	// TODO: more metadata
 }
-type SnippetBuckets []SnippetBucket
 
-func WriteBucketToFileSys(storageRootPath string, bucketname string, tx *bolt.Tx) (err error) {
+type Bucket struct {
+	Id   []byte     `json:"name"`
+	Meta MetaBucket `json:"meta"`
+}
 
-	bucketRootPath := storageRootPath + "/" + bucketname + "/"
+type Buckets []Bucket
+type BucketModel struct{}
 
-	var snippets []Snippet
-	snippets, err = IndexSnippets(bucketname, tx)
-	if err != nil {
-		fmt.Printf("Error indexing snippets: %v", err)
-	}
-	for _, snippet := range snippets {
-		cleanFullName := filepath.Clean(snippet.Name)
-		fullFilePath := filepath.Dir(cleanFullName)
-		if fullFilePath == "." {
-			fullFilePath = ""
-		}
-		err = os.MkdirAll(bucketRootPath+fullFilePath, 0777)                                                                //rw
-		err = ioutil.WriteFile(bucketRootPath+fullFilePath+"/"+filepath.Base(cleanFullName), []byte(snippet.Content), 0666) //rw, truncates before write
-	}
-	return err
+func GetMeta(b *bolt.Bucket) (meta MetaBucket) {
+	m := b.Get([]byte("meta"))
+	json.Unmarshal(m, &meta)
+	return meta
+}
+
+func (m BucketModel) One(bucketId []byte) (bucket Bucket) {
+	db.View(func(tx *bolt.Tx) error {
+		bucket = tx.Bucket(bucketId)
+	})
+	return bucket
+}
+
+func (m BucketModel) All() (buckets Buckets, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		tx.ForEach(func(bucketId []byte, b *bolt.Bucket) error {
+			m := GetMeta(b)
+			buckets = append(buckets, models.Bucket{Id: bucketId, Meta: m})
+			return nil
+		})
+		return nil
+	})
+	return buckets, err
 }
