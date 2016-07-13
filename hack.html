@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>cat * | hack</title>
+    <title>cat hack</title>
   </head>
 
   <!-- bootstrap -->
@@ -18,49 +18,9 @@
   <link rel="stylesheet" href="/assets/codemirror-5.16.0/lib/codemirror.css">
     <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/hint/show-hint.css">
     <!-- <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/lint/lint.css"> -->
-
-
-  <style>
-    .CodeMirror {
-      /*height: auto;*/
-      height: 90vh;
-    }
-    .CodeMirror-selected  { background: #cccccc !important;}
-    .CodeMirror-selectedtext { color: blue; }
-
-    .label-info {
-      background-color: #BEE0FC;
-    }
-    .text-info {
-      color: #BEE0FC;
-    }
-    .padding {
-      padding: 1rem;
-    }
-    .catchat {
-      color: lightgreen; 
-      background: black;
-      margin-right: -30px;
-      margin-top: -5px;
-      padding: 0.5rem 1.2rem 0.5rem 1rem;
-    }
-    .snip {
-      padding-top: 0.4rem;
-      padding-bottom: 0.4rem;
-    }
-    .snip .name {
-      font-weight: bold;
-    }
-    #snippetMeta {
-      background: #eee;
-    }
-    .testes {
-      border: 3px solid pink;
-    }
-    .activeBucket {
-      background-color: #BEE0FC;
-    }
-  </style>
+  
+  <!-- custom style -->
+  <link rel="stylesheet" href="/assets/app.css">
 
   <body>
 
@@ -131,12 +91,9 @@
     <div class="alert alert-success" style="z-index: 100; display: none; position: fixed; bottom: 20; left: 20; width: 30%;"></div>
     <div class="alert alert-danger" style="z-index: 100; display: none; position: fixed; bottom: 20; left: 20; width: 30%;"></div>
 
-
     
     <!-- JS -->
 
     <script src="/assets/app.js"></script>
-    
-
   </body>
 </html>

@@ -1,0 +1,39 @@
+.CodeMirror {
+  /*height: auto;*/
+  height: 90vh;
+}
+.CodeMirror-selected  { background: #cccccc !important;}
+.CodeMirror-selectedtext { color: blue; }
+
+.label-info {
+  background-color: #BEE0FC;
+}
+.text-info {
+  color: #BEE0FC;
+}
+.padding {
+  padding: 1rem;
+}
+.catchat {
+  color: lightgreen; 
+  background: black;
+  margin-right: -30px;
+  margin-top: -5px;
+  padding: 0.5rem 1.2rem 0.5rem 1rem;
+}
+.snip {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+.snip .name {
+  font-weight: bold;
+}
+#snippetMeta {
+  background: #eee;
+}
+.testes {
+  border: 3px solid pink;
+}
+.activeBucket {
+  background-color: #BEE0FC;
+}
