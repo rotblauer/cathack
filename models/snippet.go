@@ -59,7 +59,7 @@ func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 
 func (m SnippetModel) Set(snippet Snippet) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		b, _ := tx.CreateBucketIfNotExists([]byte(snippet.BucketName))
+		b, _ := tx.CreateBucketIfNotExists([]byte(snippet.BucketId))
 		j, _ := json.Marshal(snippet)
 		return b.Put([]byte(snippet.Id), j)
 	})

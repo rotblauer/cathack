@@ -32,7 +32,7 @@ func (ctrl FSController) SetBucket(c *gin.Context) {
 	// }
 
 	for _, snippet := range snippets {
-		err = fsModel.SetFile(snippet)
+		err = fsModel.SetFile(bucket, snippet)
 		if err != nil {
 			break
 		}

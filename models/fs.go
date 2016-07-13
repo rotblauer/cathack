@@ -14,9 +14,9 @@ type FS struct {
 
 type FSModel struct{}
 
-func (fs FSModel) SetFile(snippet Snippet) (err error) {
+func (fs FSModel) SetFile(bucket Bucket, snippet Snippet) (err error) {
 	cleanName := filepath.Clean(snippet.Name)
-	d := filepath.Join(config.FSStorePath, snippet.BucketName, filepath.Dir(cleanName))
+	d := filepath.Join(config.FSStorePath, bucket.Meta.Name, filepath.Dir(cleanName))
 	err = os.MkdirAll(d, 0777)
 	if err != nil {
 		return err
