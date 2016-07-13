@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"../config"
 	"github.com/boltdb/bolt"
@@ -20,11 +22,27 @@ func init() {
 
 	// Ensure existence of default bucket.
 	db.Update(func(tx *bolt.Tx) error {
+		var defaultBucket Bucket
+		var defaultMetaBucket MetaBucket
+
+		defaultMetaBucket.Name = config.DefaultBucketName
+		defaultMetaBucket.TimeStamp = int(time.Now().UTC().Unix() * 1000)
+
+		defaultBucket.Meta = defaultMetaBucket
+
+		j, _ := json.Marshal(defaultMetaBucket)
+
 		b, aerr := tx.CreateBucketIfNotExists([]byte(config.DefaultBucketName))
 		if aerr != nil {
 			fmt.Errorf("create bucket err: %s", aerr)
 		} else {
 			fmt.Printf("create bucket: %v", b)
+
+			// Create meta info if it doesn't exist.
+			bb := b.Get([]byte("meta"))
+			if bb == nil {
+				b.Put([]byte("meta"), j)
+			}
 		}
 		return aerr
 	})

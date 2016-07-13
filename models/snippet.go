@@ -9,13 +9,13 @@ import (
 )
 
 type Snippet struct {
-	Id         string `json:"id"`
-	BucketName string `json:"bucketName"`
-	Name       string `json:"name"`
-	Language   string `json:"language"`
-	Content    string `json:"content"`
-	TimeStamp  int    `json:"timestamp"`
-	Meta       string `json:"meta"`
+	Id        string `json:"id"`
+	BucketId  string `json:"bucketId"`
+	Name      string `json:"name"`
+	Language  string `json:"language"`
+	Content   string `json:"content"`
+	TimeStamp int    `json:"timestamp"`
+	Meta      string `json:"meta"`
 }
 type Snippets []Snippet
 type SnippetModel struct{}
