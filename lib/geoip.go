@@ -18,7 +18,7 @@ func GetGeoFromIP(ip string) (out map[string]string, err error) {
 	out = make(map[string]string)
 	// Don't init error. Want it to be nil.
 
-	db, err := geoip2.Open("./lib/GeoLite2-City.mmdb")
+	db, err := geoip2.Open("./data/GeoLite2-City.mmdb")
 	if err != nil {
 		log.Fatal(err)
 	}

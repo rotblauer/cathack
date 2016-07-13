@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"./chatty"
+	"./catchat"
 	"./controllers"
 	"./lib"
 	"./models"
@@ -320,7 +320,7 @@ func main() {
 
 			// sent message
 		} else {
-			ps1, err := chatty.HandleChatMessage(s, msg)
+			ps1, err := catchat.HandleChatMessage(s, msg)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -328,7 +328,7 @@ func main() {
 		}
 
 		// Now check for @SMS.
-		sms, err := lib.DelegateSendSMS(msg)
+		sms, err := catchat.DelegateSendSMS(msg)
 		if err != nil {
 			log.Fatalln(err)
 		}

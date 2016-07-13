@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"../chatty"
+	"../catchat"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,18 +20,18 @@ func GetChat(c *gin.Context) {
 
 func GetChatData(c *gin.Context) {
 	// func ReadFile(filename string) ([]byte, error)
-	fileContents, err := ioutil.ReadFile("./chat.txt")
+	fileContents, err := ioutil.ReadFile("./data/chat.txt")
 	if err != nil {
 		fmt.Printf("Error ioutiling chat.txt: %v", err)
 	}
 
 	messageStrings := strings.Split(string(fileContents), "\n")
 
-	var collection []chatty.ChatMessageAs
+	var collection []catchat.ChatMessageAs
 
 	for _, messageString := range messageStrings {
 		bytes := []byte(messageString)
-		var cm chatty.ChatMessageAs
+		var cm catchat.ChatMessageAs
 		json.Unmarshal(bytes, &cm)
 		collection = append(collection, cm)
 	}

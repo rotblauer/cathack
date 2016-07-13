@@ -1,4 +1,4 @@
-package chatty
+package catchat
 
 import (
 	"encoding/json"
@@ -34,7 +34,7 @@ func saveChat(data []byte) (bytes int, err error) {
 	fmt.Println()
 
 	// Open database.
-	f, err := os.OpenFile("./chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	f, err := os.OpenFile("./data/chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		log.Fatalln("Error opening file: ", err)
 	}
