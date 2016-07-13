@@ -1,32 +1,28 @@
 package controllers
 
-import (
-	"encoding/json"
-
-	"./models"
-
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
 type SnippetController struct{}
 
-var snippetModel = new(models.SnippetModel)
-
 func (ctrl SnippetController) Delete(c *gin.Context) {
-	snippetID := c.Param("snippetid") // func (c *Context) Param(key string) string
-	bucketID := c.Param("bucketid")
-	if len(bucketid) == 0 {
-		c.JSON(400, "BucketID not present.")
+	snippetId := c.Param("snippetid") // func (c *Context) Param(key string) string
+	bucketId := c.Query("bucketid")
+	if len(bucketId) == 0 {
+		c.JSON(400, "BucketId not present.")
 	}
-	err := snippetModel.Delete(bucketID, snippetID)
+	err := snippetModel.Delete(bucketId, snippetId)
 	if err != nil {
-		c.JSON(400, "No snippet found with snippetID: "+snippetID)
+		c.JSON(400, "No snippet found with snippetId: "+snippetId)
 	} else {
-		snippets, _ := snippetModel.All(bucketID)
-		j, _ := json.Marshal(snippets)
-		h.Broadcast(o)
+		snippets, _ := snippetModel.All(bucketId)
+		// j, _ := json.Marshal(snippets)
+		// h.Broadcast(o)
 		if err == nil {
-			c.JSON(200, "Deleted snippet: "+snippetID)
+			c.JSON(200, gin.H{
+				"snippetId": snippetId,
+				"bucketId":  bucketId,
+				"snippets":  snippets,
+			})
 		} else {
 			c.JSON(500, "Internal server error.")
 		}

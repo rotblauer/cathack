@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"../config"
 )
 
 type FS struct {
@@ -14,7 +16,7 @@ type FSModel struct{}
 
 func (fs FSModel) SetFile(snippet Snippet) (err error) {
 	cleanName := filepath.Clean(snippet.Name)
-	d := filepath.Join(FSStorePath, snippet.BucketName, filepath.Dir(cleanName))
+	d := filepath.Join(config.FSStorePath, snippet.BucketName, filepath.Dir(cleanName))
 	err = os.MkdirAll(d, 0777)
 	if err != nil {
 		return err
@@ -23,23 +25,23 @@ func (fs FSModel) SetFile(snippet Snippet) (err error) {
 	return err
 }
 
-func (fs FSModel) SetDir() error {
+// func (fs FSModel) SetDir() error {
 
-}
+// }
 
-func (fs FSModel) GetOne() error {
+// func (fs FSModel) GetOne() error {
 
-}
+// }
 
-func (fs FSModel) GetAll() error {
+// func (fs FSModel) GetAll() error {
 
-}
+// }
 
-func (fs FSModel) DeleteFile() error {
+// func (fs FSModel) DeleteFile() error {
 
-}
+// }
 
-func (fs FSModel) DeleteDir(path) error {
+func (fs FSModel) DeleteDir(path string) error {
 	return os.RemoveAll(path)
 }
 

@@ -20,7 +20,7 @@ type Snippet struct {
 type Snippets []Snippet
 type SnippetModel struct{}
 
-func (m SnippetModel) SnipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {
+func snipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {
 	json.Unmarshal(snippetJSONBytes, &snippet)
 	return snippet
 }
@@ -30,7 +30,7 @@ func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snip
 	c := b.Cursor()
 
 	for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-		snip := SnipFromJSON(snipval)
+		snip := snipFromJSON(snipval)
 		if snip.Name == name {
 			snippet = snip
 			break
@@ -52,6 +52,7 @@ func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 			json.Unmarshal(snipval, &snip)
 			snippets = append(snippets, snip)
 		}
+		return nil
 	})
 	return snippets, err
 }

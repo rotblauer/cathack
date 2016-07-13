@@ -1,7 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"path/filepath"
+
+	"../config"
+	"../models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,17 +19,17 @@ func (ctrl FSController) SetBucket(c *gin.Context) {
 	bucket := bucketModel.One([]byte(bucketId))
 
 	var err error
-	var snippets snippetModel.Snippets
+	// var snippets = *snippetModel.Snippet
 
-	err = fsModel.DeleteDir(filepath.Join(Config.FSStorePath, bucketModel.GetMeta(bucket).Name))
+	err = fsModel.DeleteDir(filepath.Join(config.FSStorePath, bucket.Meta.Name))
 	if err != nil {
 		fmt.Printf("Error cleaning bucket path: %v", err)
 	}
 
-	snippets, err = snippetModel.All(bucketId)
-	if err != nil {
-		fmt.Printf("Error gettings snippets for bucketId: %v. Error:", bucketId, err)
-	}	
+	snippets, _ := snippetModel.All(bucketId)
+	// if err != nil {
+	// 	fmt.Printf("Error gettings snippets for bucketId: %v. Error:", bucketId, err)
+	// }
 
 	for _, snippet := range snippets {
 		err = fsModel.SetFile(snippet)
@@ -35,22 +39,22 @@ func (ctrl FSController) SetBucket(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(500, "Internal server error: " + err.Error())
+		c.JSON(500, "Internal server error: "+err.Error())
 	} else {
 		c.JSON(200, bucket)
 	}
 }
 
-func (ctrl FSController) SetSnippet(c *gin.Context) {
+// func (ctrl FSController) SetSnippet(c *gin.Context) {
 
-}
+// }
 
-// Does not overwrite any existing buckets.
-func (ctrl FSController) GetGently(c *gin.Context) {
-	
-}
+// // Does not overwrite any existing buckets.
+// func (ctrl FSController) GetGently(c *gin.Context) {
 
-// Get --force. 
-func (ctrl) FSController) GetForce(c *gin.Context) {
-	
-}
+// }
+
+// // Overwrite all buckets. ie --force
+// func (ctrl) FSController) GetForce(c *gin.Context) {
+
+// }
