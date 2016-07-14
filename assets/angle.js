@@ -67,18 +67,29 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 		}
 		console.log('BUCKETS: ' + JSON.stringify(buckets));
 	}
+	function getMostRecent(libObj) {
+		var timestamps = []; // [timestamps]
+		var timesIdLookup = {}; // {timestamp: {snippet}}
+		angular.forEach(libObj, function (val, key) {
+			// console.log('key: ' + key + ", val: " + val);
+			timestamps.push(val.meta.timestamp);
+			timesIdLookup[val.meta.timestamp] = val;
+		});
+		var max = Math.max(...timestamps);
+		return timesIdLookup[max];
+	}
 	function fetchAll() {
 		return $http({
 			method: "GET",
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS
 		});
 	}
-	// function fetchSnippetsFor(id) {
-	// 	return $http({
-	// 		method: "GET",
-	// 		url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + id
-	// 	});	
-	// }
+	function destroyBucket(bucket) {
+		return $http({
+			method: "DELETE",
+			url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + bucket.id
+		});
+	}
 	function createBucket(bucketName) {
 		return $http({
 			method: "POST",
@@ -90,7 +101,9 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 		storeManyBuckets: storeManyBuckets,
 		fetchAll: fetchAll,
 		getBuckets: getBuckets,
-		createBucket: createBucket
+		getMostRecent: getMostRecent,
+		createBucket: createBucket,
+		destroyBucket: destroyBucket
 	};
 }]);
 
@@ -98,7 +111,7 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 app.factory("Snippets", ['$http', "Config", "Errors",
 	function ($http, Config, Errors) {
 		// var currentSnippet = {};
-		var snippetsLib = {}; // {snippetId: [{snippet}, {snippet}], snippetId: [{snippet}, {snippet}, ... ]}
+		var snippetsLib = {}; // {snippetId: {snippet}, snippetId: {snippet}, snippetId: [{snippet}, {snippet}, ... ]}
 
 		function setOneToSnippetsLib(snippet) {
 			if (snippet.id !== "") {
@@ -484,30 +497,38 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 		})
 	};
 
+	$scope.deleteBucket = function (bucket) {
+		var ok = window.confirm("Really really? This will delete '" + bucket.meta.name + "' and all its snippets. Forever.\nOK?");
+		if (ok) {
+			Buckets.destroyBucket(bucket)
+				.then(function (res) {
+					delete Buckets.getBuckets()[bucket.id];
+					$scope.data.cb = Buckets.getMostRecent(Buckets.getBuckets());
+					// clean snippetsLib
+					angular.forEach(Snippets.getSnippetsLib(), function (val, key) { 
+						if (val.bucketId === bucket.id) {
+							delete this[key];
+						}
+					}, Snippets.getSnippetsLib());
+
+					if ($scope.data.cs.bucketId === bucket.id) { // but don't switch cs if it wasn't effected 
+						// then set to most recent existing snippet
+						$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
+					}
+				})
+				.catch(function (err) {
+					$log.log(err);
+				});	
+		} else {
+			// nada.
+		}
+		
+	};
+
 	$scope.selectBucketAsCurrent = function (bucket) {
 		$scope.data.cb = bucket;
-	}
+	};
 
 }]);
 
-// http://fdietz.github.io/recipes-with-angular-js/common-user-interface-patterns/editing-text-in-place-using-html5-content-editable.html
-// app.directive("contenteditable", function() {
-//   return {
-//     restrict: "A",
-//     require: "ngModel",
-//     link: function(scope, element, attrs, ngModel) {
 
-//       function read() {
-//         ngModel.$setViewValue(element.html());
-//       }
-
-//       ngModel.$render = function() {
-//         element.html(ngModel.$viewValue || "");
-//       };
-
-//       element.bind("blur keyup change", function() {
-//         scope.$apply(read);
-//       });
-//     }
-//   };
-// });

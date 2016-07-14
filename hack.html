@@ -73,29 +73,41 @@
 
             <!-- toolbar -->
             <div class="btn-toolbar" role="toolbar">
-              <div class="btn-group btn-group-sm"><button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                  <span class="octicon octicon-file-directory"></span>
-                  <span class="caret"></span>
-                  <span>{{data.cb.meta.name}}</span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="fileDropdown">
-                  
-                  <li ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)"><a href=""><span><span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}</span></a></li>
+              <div class="btn-group btn-group-sm">
 
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <span class="octicon octicon-file-directory"></span>
+                    <span class="caret"></span>
+                    <span>{{data.cb.meta.name}}</span>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="fileDropdown">
+                    
+                    <li ng-class="{'active': bucket.id === data.cb.id}" ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)"><a href=""><span><span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}</span></a></li>
+                  
+                    <!-- <li role="separator" class="divider"></li> -->
+                    <li>
+                      <a id="createBucket" href="" ng-click="createNewBucket()">
+                        <span class="text-success">
+                          + 
+                          new bucket
+                        </span>
+                        </a>
+                    </li>
+                  </ul>
+                </div>
                   <!-- <li role="separator" class="divider"></li> -->
-                  <li>
-                    <a id="createBucket" href="" ng-click="createNewBucket()">
-                      <span class="text-success">
-                        + 
-                        new bucket
-                      </span>
-                      </a>
-                  </li>
-                  <!-- <li role="separator" class="divider"></li> -->
+                  
                   
                   <!-- <li><a href="#"><span class="octicon octicon-cloud-download"></span>&nbsp;Download</a></li> -->
 
-                </ul>
+                
+
+                <button type="button" class="btn btn-danger" ng-click="deleteBucket(data.cb)"><span class="octicon octicon-x"></span>&nbsp;<span class="octicon octicon-file-directory"></span></button>
+                
+                
+                
+
         
 
               </div>
@@ -103,7 +115,8 @@
 
               <!-- // -->
               <div class="btn-group btn-group-sm">
-                <button class="btn btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span>&nbsp;<span class="octicon octicon-file-text"></span></button>
+                <button type="button" class="btn btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span>&nbsp;<span class="octicon octicon-file-text"></span></button>
+
               </div>
               <!-- // -->
 
@@ -157,7 +170,7 @@
           </div> -->
 
            <div id="snippetsLib" class="row padding">
-            <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active-snippet' : ''}}" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
+            <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active' : ''}}" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
               <span class="name" ng-if="snip.bucketId == data.cb.id">
                 <span class="octicon octicon-file-text"></span>&nbsp;
                 {{snip.name}}

@@ -26,3 +26,17 @@ func (m BucketController) Create(c *gin.Context) {
 		c.JSON(200, bucket)
 	}
 }
+
+func (m BucketController) Destroy(c *gin.Context) {
+	bId := c.Param("bucketId")
+	if len(bId) == 0 {
+		c.JSON(400, "Must include a bucketId as parameter.")
+	}
+
+	err := bucketModel.Destroy(bId)
+	if err != nil {
+		c.JSON(500, err)
+	} else {
+		c.JSON(200, gin.H{"status": "success"})
+	}
+}

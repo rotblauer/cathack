@@ -75,3 +75,11 @@ func (m BucketModel) Create(bucketName string) (Bucket, error) {
 	})
 	return bucket, err
 }
+
+func (m BucketModel) Destroy(bucketId string) (err error) {
+	err = db.Update(func(tx *bolt.Tx) error {
+		derr := tx.DeleteBucket([]byte(bucketId))
+		return derr
+	})
+	return err
+}
