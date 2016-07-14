@@ -103,6 +103,18 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + bucketName
 		});
 	}
+	function putBucket(bucket) {
+		var url = Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + bucket.id;
+		var param = JSON.stringify(bucket);
+		return $http.put(url, param);
+		// return $http({
+		// 	method: "PUT",
+		// 	url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + bucket.id + "?to=",
+		// 	headers: {
+
+		// 	}
+		// });
+	}
 	return {
 		storeOneBucket: storeOneBucket,
 		storeManyBuckets: storeManyBuckets,
@@ -110,7 +122,8 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 		getBuckets: getBuckets,
 		getMostRecent: getMostRecent,
 		createBucket: createBucket,
-		destroyBucket: destroyBucket
+		destroyBucket: destroyBucket,
+		putBucket: putBucket
 	};
 }]);
 
@@ -558,6 +571,16 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 
 	$scope.selectBucketAsCurrent = function (bucket) {
 		$scope.data.cb = bucket;
+	};
+
+	$scope.saveBucket = function (bucket) {
+		Buckets.putBucket(bucket)
+			.success(function (res) {
+				$log.log(res);
+			})
+			.error(function (err) {
+				$log.log(err);
+			});
 	};
 
 }]);

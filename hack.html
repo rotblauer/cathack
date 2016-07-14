@@ -81,20 +81,25 @@
                     <span class="caret"></span>
                     <span>{{data.cb.meta.name}}</span>
                   </button>
-                  <ul class="dropdown-menu" aria-labelledby="fileDropdown">
+                  <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="fileDropdown">
                     
                     <!-- // existing buckets -->
-                    <li ng-class="{'active': bucket.id === data.cb.id}" ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)">
-                      <a href="">
+                    <li class="dropdown-submenu {{bucket.id === data.cb.id ? 'active' : ''}}" ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)">
+                      <a tabindex="-1" href="">
                         <span>
                           <span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}
                         </span>
                       </a>
+                      <ul class="dropdown-menu">
+                        <li><a href="" data-toggle="modal" data-target="#myModal"><span class="text-primary"><span class="octicon octicon-pencil"></span>&nbsp;Rename</span></a></li>
+                        <li><a href="" ng-click="deleteBucket(bucket)"><span class="text-danger">
+                          <span class="octicon octicon-x"></span>&nbsp;Destroy</span></a></li>
+                      </ul>
                     </li>
                   
                     <!-- <li role="separator" class="divider"></li> -->
                     <li>
-                      <a id="createBucket" href="" ng-click="createNewBucket()">
+                      <a id="createBucket" href="" data-toggle="modal" data-target="#myModal" ng-click="createNewBucket()">
                         <span class="text-success">
                           + 
                           new bucket
@@ -121,78 +126,34 @@
 
                   </ul>
                 </div>
-                  <!-- <li role="separator" class="divider"></li> -->
-                  
-                  
-                  <!-- <li><a href="#"><span class="octicon octicon-cloud-download"></span>&nbsp;Download</a></li> -->
-
                 
-
-                <button type="button" class="btn btn-danger" ng-click="deleteBucket(data.cb)"><span class="octicon octicon-x"></span>&nbsp;<span class="octicon octicon-file-directory"></span></button>
-                
-                
-                
-
-        
-
-              </div>
-
-
-              <!-- // -->
-              <div class="btn-group btn-group-sm">
                 <button type="button" class="btn btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span>&nbsp;<span class="octicon octicon-file-text"></span></button>
-
+              
               </div>
-              <!-- // -->
-
-           <!--    <div class="btn-group btn-group-sm"><button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                  <span class="octicon octicon-file-text"></span>
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="fileDropdown">
-                  
-                  <li><a id="createSnippet" ng-click="createNewSnippet()"><span class=""><span class=" text-success octicon octicon-file-text"></span> Snippet</span></a></li>
-
-                  
-
-                  <li role="separator" class="divider"></li>
-                  
-                  <li><a href="#">Download</a></li>
-
-                </ul>
-              </div> -->
-
-              <!-- <div class="btn-group btn-group-sm">
-                <button class="btn btn-default dropdown-toggle" type="button" id="bucketDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                  <span class="octicon octicon-sync"></span>
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="bucketDropdown">
-               
-                  <li><a id="saveBucket" href="">
-                    <span class="octicon octicon-repo-push"></span>
-                    Write current bucket
-                  </a></li>
-                  <li><a id="boltifyBuckets" href="">
-                    <span class="octicon octicon-repo-clone"></span>
-                    Read from FS
-                  </a></li>
-                  <li role="separator" class="divider"></li>
-                  <li><a href="#">Download</a></li>
-                </ul>
-              </div> -->
             </div>
-        
            </div>
 
-        <!--   <div id="bucketsLib" class="row padding">
-            <div class="col-xs-12" ng-repeat="bucket in data.buckets">
-              <strong class="buck">
-                <span class="octicon octicon-file-directory"></span>&nbsp;
-                {{bucket.meta.name}}
-              </strong>
-            </div>
-          </div> -->
+           <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+             <div class="modal-dialog">
+               <div class="modal-content">
+                 <div class="modal-header">
+                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                   <h4 class="modal-title">Rename '{{data.cb.meta.name}}'</h4>
+                 </div>
+                 <div class="modal-body">
+                   <div class="input-group">
+                    <span class="input-group-addon" id="basic-addon2">/hacks/</span>
+                     <input type="text" class="form-control" placeholder="Something rad..." aria-describedby="basic-addon2" ng-model="data.cb.meta.name">
+                     
+                   </div>
+                 </div>
+                 <div class="modal-footer">
+                   <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                   <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveBucket(data.cb)">Save changes</button>
+                 </div>
+               </div><!-- /.modal-content -->
+             </div><!-- /.modal-dialog -->
+           </div><!-- /.modal -->
 
            <div id="snippetsLib" class="row padding">
             <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active' : ''}}" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">

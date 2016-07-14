@@ -83,3 +83,21 @@ func (m BucketModel) Destroy(bucketId string) (err error) {
 	})
 	return err
 }
+
+func (m BucketModel) Set(bucket Bucket) (err error) {
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket.Id))
+
+		j, jerr := json.Marshal(bucket.Meta)
+		if jerr != nil {
+			return jerr
+		}
+
+		e := b.Put([]byte("meta"), j)
+		if e != nil {
+			return e
+		}
+		return e
+	})
+	return err
+}

@@ -65,7 +65,7 @@ func main() {
 
 	r.POST("/hack/b/:bucketName", bucket.Create)  // TODO
 	r.DELETE("/hack/b/:bucketId", bucket.Destroy) // TODO
-	// r.PUT("/hack/b/:bucketId", bucket.Set)       // TODO
+	r.PUT("/hack/b/:bucketId", bucket.Set)        // TODO
 
 	r.GET("/hack/b/:bucketId", snippet.All) // Get all snippets for a given bucket
 	r.GET("/hack/s", snippet.UberAll)
