@@ -71,13 +71,16 @@ func main() {
 	r.GET("/hack/s", snippet.UberAll)
 	r.DELETE("/hack/s/:snippetId", snippet.Delete) // Delete snippet @ /hack/s/:snippetId?bucket=snippets
 
-	r.GET("/hack/fs", fs.Walk)
+	// TODO: bring into view.
+	r.GET("/hack/fs", fs.Walk)                         // Get all available filepaths.
+	r.PUT("/hack/fs/b/:bucketId", fs.WriteBucketToDir) // Write bucket to directory.
 
-	r.PUT("/hack/fs/b/:bucketId", fs.SetBucket)
+	// Should write contents of file at filePath to associated bucket (by file's /basepath).
+	r.GET("/hack/fs/s/:path") // Accepts json-ified string as param. Writes one snippet to bucket by directory structure n-1 dirname.
+	r.GET("/hack/fs/b/:path") // Write each file in path to bucket by n-1 dir name.
 
 	// Websockets.
 	//
-
 	// Hack.
 	h.HandleConnect(func(s *melody.Session) {
 		// snippets, err := snippetModel.All(config.DefaultBucketName)

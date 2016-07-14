@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"../config"
@@ -34,7 +35,7 @@ type FSModel struct{}
 // I want to use FS to walk the HacksRootDir and collect all the
 // files (and empty directories).
 
-func (fs FSModel) WalkDir() (filepaths Filepaths, err error) {
+func (fs FSModel) CollectDirPaths() (filepaths Filepaths, err error) {
 	err = filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, werr error) error {
 		if werr != nil {
 			return werr
@@ -59,6 +60,21 @@ func (fs FSModel) WalkDir() (filepaths Filepaths, err error) {
 	return filepaths, err
 }
 
+func getBucketNameByFSPath(path string) (bucketName string) {
+	c := filepath.Clean(path)
+	d := filepath.Dir(c)
+	withinHacksRootDir := strings.Replace(dir, config.FSStorePath+"/", "", 1)
+	folders := strings.Split(withinHacksRootDir, "/")
+	return folders[0]
+}
+
+func getSnippetNamebyFSPath(path string) (snippetName string) {
+	c := filepath.Clean(path)
+	d := strings.Replace(c, config.FSStorePath+"/", "", 1) // remove hacks/
+	b := getBucketNameByFSPath(path)                       //
+	snippetName = strings.Replace(d, b, "", 1)             // remove bucket/
+}
+
 // TODO: route this.?
 func (fs FSModel) SetFile(bucket Bucket, snippet Snippet) (err error) {
 	cleanName := filepath.Clean(snippet.Name)
@@ -69,6 +85,26 @@ func (fs FSModel) SetFile(bucket Bucket, snippet Snippet) (err error) {
 	}
 	err = ioutil.WriteFile(filepath.Join(d, filepath.Base(cleanName)), []byte(snippet.Content), 0666)
 	return err
+}
+
+// Note: accepts FULL path (includes FSStoreDir)
+func (fs FSModel) SnippetizeFile(path string) (snippet Snippet, err error) {
+	contents, ioerr := ioutil.ReadFile(path) // func ReadFile(filename string) ([]byte, error)
+	if ioerr != nil {
+		return nil, err
+	}
+
+	bucketName := getBucketNameByFSPath(path)
+	bucket := findBucketByName(bucketName) // Bucket{}
+
+	db.Update(func(tx *bolt.TX) error {
+		b := tx.Bucket([]byte(bucket.Id))
+
+	})
+}
+
+func (fs FSModel) SnippetizeDir(path string) (snippets Snippets) {
+
 }
 
 // func (fs FSModel) SetDir() error {

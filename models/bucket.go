@@ -29,6 +29,29 @@ func getMeta(b *bolt.Bucket) (meta MetaBucket) {
 	return meta
 }
 
+func findBucketByName(name string) (bucket Bucket, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		// FIXME?: this return the _last_ bucket with a given name. There are
+		// currently no validations that buckets won't have duplicate names.
+		tx.ForEach(func(bucketId []byte, b *bolt.Bucket) error {
+			var meta MetaBucket
+			m := getMeta(b)
+			if m.Name == name {
+				bucket.Id = string(bucketId)
+				bucket.Meta = m
+			}
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+	if bucket.Id == nil {
+		return nil, err
+	} else {
+		return bucket, err
+	}
+}
+
 func (m BucketModel) One(bucketId []byte) (bucket Bucket) {
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketId)

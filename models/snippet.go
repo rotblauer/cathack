@@ -24,7 +24,7 @@ func snipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {
 	return snippet
 }
 
-func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snippet) {
+func getSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snippet) {
 	b := tx.Bucket([]byte(bucketname))
 	c := b.Cursor()
 
