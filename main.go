@@ -71,6 +71,8 @@ func main() {
 	r.GET("/hack/s", snippet.UberAll)
 	r.DELETE("/hack/s/:snippetId", snippet.Delete) // Delete snippet @ /hack/s/:snippetId?bucket=snippets
 
+	r.GET("/hack/fs", fs.Walk)
+
 	r.PUT("/hack/fs/b/:bucketId", fs.SetBucket)
 
 	// Websockets.

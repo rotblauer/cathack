@@ -45,6 +45,16 @@ func (ctrl FSController) SetBucket(c *gin.Context) {
 	}
 }
 
+// Gets array of filepaths (and info!) within HacksRootsDir.
+func (ctrl FSController) Walk(c *gin.Context) {
+	filepaths, err := fsModel.WalkDir()
+	if err != nil {
+		c.JSON(500, "error walking fspath")
+	} else {
+		c.JSON(200, filepaths)
+	}
+}
+
 // func (ctrl FSController) SetSnippet(c *gin.Context) {
 
 // }

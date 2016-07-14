@@ -4,16 +4,62 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"../config"
 )
 
-type FS struct {
-	Path string `json:"filepath"`
+// TODO: is this being used anywhere?
+// I don't think soo...
+// type FS struct {
+// 	Path string `json:"filepath"`
+// }
+
+type Filepath struct {
+	Path     string   `json:"path"`
+	FileInfo FileInfo `json:"fileInfo"` // ~~ os.FileInfo interface
+}
+type Filepaths []Filepath
+
+type FileInfo struct {
+	Name    string      `json:"name"`
+	Size    int64       `json:"size"`
+	Mode    os.FileMode `json:"mode"`
+	ModTime time.Time   `json:"modTime"`
+	IsDir   bool        `json:"isDir"`
 }
 
 type FSModel struct{}
 
+// I want to use FS to walk the HacksRootDir and collect all the
+// files (and empty directories).
+
+func (fs FSModel) WalkDir() (filepaths Filepaths, err error) {
+	err = filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, werr error) error {
+		if werr != nil {
+			return werr
+		}
+
+		f := FileInfo{
+			Name:    info.Name(),
+			Size:    info.Size(),
+			Mode:    info.Mode(),
+			ModTime: info.ModTime(),
+			IsDir:   info.IsDir(),
+		}
+
+		i := Filepath{
+			Path:     path,
+			FileInfo: f,
+		}
+
+		filepaths = append(filepaths, i)
+		return nil
+	})
+	return filepaths, err
+}
+
+// TODO: route this.?
 func (fs FSModel) SetFile(bucket Bucket, snippet Snippet) (err error) {
 	cleanName := filepath.Clean(snippet.Name)
 	d := filepath.Join(config.FSStorePath, bucket.Meta.Name, filepath.Dir(cleanName))
