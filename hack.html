@@ -83,7 +83,14 @@
                   </button>
                   <ul class="dropdown-menu" aria-labelledby="fileDropdown">
                     
-                    <li ng-class="{'active': bucket.id === data.cb.id}" ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)"><a href=""><span><span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}</span></a></li>
+                    <!-- // existing buckets -->
+                    <li ng-class="{'active': bucket.id === data.cb.id}" ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)">
+                      <a href="">
+                        <span>
+                          <span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}
+                        </span>
+                      </a>
+                    </li>
                   
                     <!-- <li role="separator" class="divider"></li> -->
                     <li>
@@ -94,6 +101,24 @@
                         </span>
                         </a>
                     </li>
+                    <li role="separator" class="divider"></li>
+                    <li>
+                      <a id="importBucket" href="" ng-click="importBucket()">
+                        <span class="">
+                          <span class="octicon octicon-cloud-upload"></span>&nbsp;
+                          import
+                        </span>
+                        </a>
+                    </li>
+                    <li>
+                      <a id="importBucket" href="" ng-click="importBucket()">
+                        <span class="">
+                          <span class="octicon octicon-cloud-download"></span>&nbsp;
+                          write
+                        </span>
+                        </a>
+                    </li>
+
                   </ul>
                 </div>
                   <!-- <li role="separator" class="divider"></li> -->
@@ -195,7 +220,7 @@
                     select-non-editable="true" 
                     ng-model="data.cs.name"></code>
              
-             <small id="snippetLang" class="text-warning">{{data.cs.language}}</small>
+             <small id="snippetLang" class="text-warning">{{data.cs.language.name}}</small>
        
              &nbsp;<small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted" style="font-weight: bold;">{{data.cs.timestamp | date: 'H:mm:ss on EEE, MMM d'}}</small>
              
@@ -216,7 +241,7 @@
                     select-non-editable="true" 
                     ng-model="data.cs.description">{{data.cs.description}}</div>
             </div>
-           <div class="col-xs-12">
+           <div class="col-xs-12" >
              <div id="editor" ui-codemirror ui-codemirror-opts="editorOptions" ng-model="data.cs.content">asf</div>
            </div>
 

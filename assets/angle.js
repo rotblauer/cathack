@@ -23,7 +23,14 @@ app.constant('Config', {
 		styleSelectedText: true,
 		matchBrackets: true,
 		autoCloseBrackets: true,
-		showHint: true
+		showHint: true,
+		allowDropFileTypes: [
+			'text/plain',
+			'text/html',
+			'text/javascript',
+			'application/javascript',
+			'text/css'
+		]
 	},
 	"DEFAULTSNIPPET": {
 		id: Math.random().toString(36).substring(7),
@@ -249,6 +256,7 @@ app.factory("Utils", ["Config", function (Config) {
 	      case 'js':
 	        o = javascriptMode;
 	        break;
+	      case 'erb': 
 	      case 'html':
 	        o = htmlmixedMode;
 	        break;
@@ -395,8 +403,17 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	$scope.$watchCollection('data.cs', function (old, neww) {
 		if (old !== neww) {
 			Snippets.setOneToSnippetsLib($scope.data.cs);
+			//check to set language
+			$scope.data.cs.language = Utils.getLanguageModeByExtension($scope.data.cs.name);
+
+			$scope.editorOptions = Utils.setEditorOptions({
+				mode: Utils.getLanguageModeByExtension(neww.name)
+			});
 		}
+		
 	}, true);
+
+
 	function sendUpdate() {
 		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
 			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
@@ -435,9 +452,23 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	document.getElementById("editor").addEventListener('keyup', function (e) {
 	  // http://stackoverflow.com/questions/2257070/detect-numbers-or-letters-with-jquery-javascript
 	  var inp = String.fromCharCode(e.keyCode);
-	  if ((/\S/.test(inp) || e.which === 13 || e.keyCode === 8 || e.keyCode ===  9) && (!e.metaKey || e.ctrlKey || e.altKey)) { // 224
-	    sendUpdate(); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
+
+	  if (e.metaKey || e.ctrlKey || e.altKey) { //  || /[\[cC]{1}/.test(inp) // preventing copy to clipboard?
+	  	return false;
 	  }
+
+	  // if (/[VCA]/.test(inp)) {
+	  // 	return false;
+	  // }
+
+  	var inp = String.fromCharCode(e.keyCode);
+
+  	$log.log(inp);
+  	
+  	if (/\S/.test(inp) || e.which === 13 || e.keyCode === 8 || e.keyCode ===  9) { // 224
+  	  sendUpdate(); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
+  	}	
+	  
 	});
 	document.getElementById("snippetName").addEventListener('keyup', function (e) {
 		
