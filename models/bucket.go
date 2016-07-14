@@ -2,6 +2,9 @@ package models
 
 import (
 	"encoding/json"
+	"time"
+
+	"../lib"
 
 	"github.com/boltdb/bolt"
 )
@@ -9,7 +12,6 @@ import (
 type MetaBucket struct {
 	Name      string `json:"name"`
 	TimeStamp int    `json:"timestamp"`
-
 	// TODO: more metadata
 }
 
@@ -47,4 +49,29 @@ func (m BucketModel) All() (buckets Buckets, err error) {
 		return nil
 	})
 	return buckets, err
+}
+
+func (m BucketModel) Create(bucketName string) (Bucket, error) {
+
+	meta := MetaBucket{Name: bucketName, TimeStamp: int(time.Now().UTC().UnixNano() / 1000000)}
+	bucket := Bucket{Id: lib.RandSeq(8), Meta: meta}
+
+	err := db.Update(func(tx *bolt.Tx) error {
+		b, cerr := tx.CreateBucket([]byte(bucket.Id))
+		if cerr != nil {
+			return cerr
+		}
+
+		j, jerr := json.Marshal(bucket.Meta)
+		if jerr != nil {
+			return jerr
+		}
+
+		perr := b.Put([]byte("meta"), j)
+		if perr != nil {
+			return perr
+		}
+		return nil
+	})
+	return bucket, err
 }

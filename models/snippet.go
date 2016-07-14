@@ -3,7 +3,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/boltdb/bolt"
 )
@@ -136,15 +135,16 @@ func (m SnippetModel) Delete(bucketId string, snippetId string) error {
 		if derr != nil {
 			fmt.Printf("Error deleting from bucket: %v", derr)
 			return derr
-		} else {
-			// Remove from FS if was successfully deleted from bucket.
-			path := "./hacks/snippets/" + snip.Name
-			fmt.Printf("Removing file at path: %v", path)
-			oserr := os.Remove(path)
-			if oserr != nil {
-				fmt.Printf("Error removing file: %v", oserr)
-			}
 		}
+		// } else {
+		// 	// Remove from FS if was successfully deleted from bucket.
+		// 	path := "./hacks/snippets/" + snip.Name
+		// 	fmt.Printf("Removing file at path: %v", path)
+		// 	oserr := os.Remove(path)
+		// 	if oserr != nil {
+		// 		fmt.Printf("Error removing file: %v", oserr)
+		// 	}
+		// }
 		return derr
 	})
 	return err

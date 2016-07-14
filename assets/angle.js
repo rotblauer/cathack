@@ -50,7 +50,7 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 	function getBuckets() {
 		return buckets;
 	}
-	function storeBucket(bucket) {
+	function storeOneBucket(bucket) {
 		console.log('storing one bucket: ' + JSON.stringify(bucket))
 		buckets[bucket.id] = bucket;
 	}
@@ -62,7 +62,7 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 			console.log('bucket is not object');
 			for (var i = 0; i < buckets.length; i++) {
 				console.log('bucket i ' + buckets[i]);
-				storeBucket(buckets[i]);
+				storeOneBucket(buckets[i]);
 			}	
 		}
 		console.log('BUCKETS: ' + JSON.stringify(buckets));
@@ -73,17 +73,24 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS
 		});
 	}
-	function fetchSnippetsFor(id) {
+	// function fetchSnippetsFor(id) {
+	// 	return $http({
+	// 		method: "GET",
+	// 		url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + id
+	// 	});	
+	// }
+	function createBucket(bucketName) {
 		return $http({
-			method: "GET",
-			url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + id
-		});	
+			method: "POST",
+			url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + bucketName
+		});
 	}
 	return {
-		storeBucket: storeBucket,
+		storeOneBucket: storeOneBucket,
 		storeManyBuckets: storeManyBuckets,
 		fetchAll: fetchAll,
-		getBuckets: getBuckets
+		getBuckets: getBuckets,
+		createBucket: createBucket
 	};
 }]);
 
@@ -320,8 +327,8 @@ app.factory("Utils", ["Config", function (Config) {
 
 // }]);
 
-app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout', 'Errors', 'Config',
-	function ($scope, WS, Buckets, Snippets, Utils, $timeout, Errors, Config) {
+app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout', 'Errors', 'Config', '$log',
+	function ($scope, WS, Buckets, Snippets, Utils, $timeout, Errors, Config, $log) {
 
 	$scope.testes = "this is only a test"
 
@@ -465,8 +472,20 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	};
 
 	$scope.createNewBucket = function() {
-		$scope.data.cb = Config.DEFAULTBUCKET;
+		Buckets.createBucket("newbucket")
+		.then(function (res) {
+			// TODO: websocketize. 
+			Buckets.storeOneBucket(res.data);
+			$scope.data.buckets = Buckets.getBuckets();
+			$scope.data.cb = res.data;
+		})
+		.catch(function (err) {
+			$log.error(err);
+		})
+	};
 
+	$scope.selectBucketAsCurrent = function (bucket) {
+		$scope.data.cb = bucket;
 	}
 
 }]);

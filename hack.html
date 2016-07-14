@@ -80,11 +80,11 @@
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="fileDropdown">
                   
-                  <li ng-repeat="bucket in data.buckets"><a href=""><span><span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}</span></a></li>
+                  <li ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)"><a href=""><span><span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}</span></a></li>
 
                   <!-- <li role="separator" class="divider"></li> -->
                   <li>
-                    <a id="createBucket" href="">
+                    <a id="createBucket" href="" ng-click="createNewBucket()">
                       <span class="text-success">
                         + 
                         new bucket

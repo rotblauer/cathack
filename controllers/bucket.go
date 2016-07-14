@@ -1,8 +1,6 @@
 package controllers
 
-import (
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
 type BucketController struct{}
 
@@ -12,5 +10,19 @@ func (m BucketController) All(c *gin.Context) {
 		c.JSON(500, err)
 	} else {
 		c.JSON(200, buckets)
+	}
+}
+
+func (m BucketController) Create(c *gin.Context) {
+	bName := c.Param("bucketName")
+	if len(bName) == 0 {
+		c.JSON(400, "Must include a bucket name as parameter.")
+	}
+
+	bucket, err := bucketModel.Create(bName)
+	if err != nil {
+		c.JSON(500, err)
+	} else {
+		c.JSON(200, bucket)
 	}
 }
