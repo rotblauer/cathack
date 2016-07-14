@@ -73,13 +73,13 @@
 
             <!-- toolbar -->
             <div class="btn-toolbar" role="toolbar">
-              <div class="btn-group btn-group-sm">
+              <div class="btn-group ">
 
-                <div class="btn-group btn-group-sm">
+                <div class="btn-group">
                   <button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                     <span class="octicon octicon-file-directory"></span>
                     <span class="caret"></span>
-                    <span>{{data.cb.meta.name}}</span>
+                    <strong>{{data.cb.meta.name}}</strong>
                   </button>
                   <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="fileDropdown">
                     
@@ -173,7 +173,7 @@
            <!-- currentSnippet metadata -->
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
              <!-- <span id="snippetId" class="text-primary">{{data.cs.id}}</span> -->
-             <span id="snippetBucketName" style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}} /</span>
+             <span id="snippetBucketName" ng-click="data.cb = data.buckets[data.cs.bucketId]"style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}} /</span>
              <code id="snippetName"  
                     contenteditable="true"
                     strip-br="true"
