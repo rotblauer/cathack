@@ -123,12 +123,12 @@ func (m SnippetModel) Set(snippet Snippet) error {
 	})
 }
 
-func (m SnippetModel) Delete(bucketid string, snippetid string) error {
+func (m SnippetModel) Delete(bucketId string, snippetId string) error {
 	err := db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketid))
+		b := tx.Bucket([]byte(bucketId))
 		// Get snippet so can access Name (to remove from FS).
 		var snip Snippet
-		v := b.Get([]byte(snippetid))
+		v := b.Get([]byte(snippetId))
 		json.Unmarshal(v, &snip)
 
 		// First, remove from bucket.
@@ -140,9 +140,9 @@ func (m SnippetModel) Delete(bucketid string, snippetid string) error {
 			// Remove from FS if was successfully deleted from bucket.
 			path := "./hacks/snippets/" + snip.Name
 			fmt.Printf("Removing file at path: %v", path)
-			derr = os.Remove(path)
-			if derr != nil {
-				fmt.Printf("Error removing file: %v", derr)
+			oserr := os.Remove(path)
+			if oserr != nil {
+				fmt.Printf("Error removing file: %v", oserr)
 			}
 		}
 		return derr

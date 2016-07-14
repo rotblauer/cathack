@@ -9,8 +9,8 @@ import (
 type SnippetController struct{}
 
 func (ctrl SnippetController) Delete(c *gin.Context) {
-	snippetId := c.Param("snippetid") // func (c *Context) Param(key string) string
-	bucketId := c.Query("bucketid")
+	snippetId := c.Param("snippetId") // func (c *Context) Param(key string) string
+	bucketId := c.Query("bucketId")
 	if len(bucketId) == 0 {
 		c.JSON(400, "BucketId not present.")
 	}

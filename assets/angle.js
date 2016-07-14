@@ -2,7 +2,8 @@
 
 var app = angular.module("cathack", [
 	'ngWebSocket',
-	'ui.codemirror'
+	'ui.codemirror',
+	'contenteditable'
 	]);
 
 // CONFIG. 
@@ -29,58 +30,17 @@ app.constant('Config', {
 		// bucketId: "c25pcHBldHM=", // This will be set by the controller pending either the currentBucket (or later any given bucket).
 		name: "boots.go",
 		language: "go",
-		content: "well hello",
+		content: "",
 		timestamp: Date.now(),
 		description: "is a cat",
 	}, 
 	"DEFAULTBUCKET": {
+		id: Math.random().toString(36).substring(7),
 		meta: {
 			name: "snippets"
 		}
 	}
 });
-
-// app.config(function ($stateProvider, $urlRouterProvider) {
-
-//   // ROUTING with ui.router
-//   $urlRouterProvider.otherwise('/');
-//   $stateProvider
-//     // this state is placed in the <ion-nav-view> in the index.html
-//     .state('buckets', {
-//       url: '/',
-//       abstract: true,
-//       templateUrl: 'main/templates/menu.html',
-//       controller: 'MenuCtrl as menu'
-//     })
-//       .state('main.home', {
-//         url: '/home',
-//         views: {
-//           'main-home': {
-//             templateUrl: 'main/templates/home.html',
-//             controller: 'HomeCtrl'
-//           }
-//         }
-//       })
-//       .state('main.listDetail', {
-//         url: '/list/:poopId',
-//         views: {
-//           'main-list': {
-//             templateUrl: 'main/templates/list-detail.html',
-//             controller: 'ListDetailCtrl',
-//             resolve: {
-//               poop: function ($stateParams, Tallyrally) {
-//                 return Tallyrally.get({id: $stateParams.poopId}, function (res) {
-//                   return res;
-//                 });
-//               }
-//               // poopId: function ($stateParams) {
-//               //   return $stateParams.poopId;
-//               // }
-//             }
-//           }
-//         }
-//       });
-// });
 
 // BUCKETS FACTORY.
 app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', function ($http, Config, Errors, Snippets, Utils) {
@@ -107,44 +67,22 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 		}
 		console.log('BUCKETS: ' + JSON.stringify(buckets));
 	}
-	// function getCurrentBucket() {
-	// 	return currentBucket;
-	// }
 	function fetchAll() {
 		return $http({
 			method: "GET",
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS
-			// error: Errors.setError
-			// success: function (res) {
-			// 	var o = JSON.parse(res.data); // []
-			// 	for (i = 0; i < o.length; i++) {
-			// 		storeBucket(o[i]);
-			// 	}
-			// }
 		});
 	}
 	function fetchSnippetsFor(id) {
 		return $http({
 			method: "GET",
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + id
-			// error: Errors.setError,
-			// success: function (res) {
-				
-			// }
 		});	
 	}
-	// function setCurrentBucketAs(bucket) {
-	// 	currentBucket = bucket;
-	// 	return currentBucket;
-	// }
 	return {
 		storeBucket: storeBucket,
 		storeManyBuckets: storeManyBuckets,
-		// currentBucket: currentBucket,
-		// setCurrentBucketAs: setCurrentBucketAs,
-		// getCurrentBucket: getCurrentBucket,
 		fetchAll: fetchAll,
-		// buckets: buckets
 		getBuckets: getBuckets
 	};
 }]);
@@ -159,7 +97,6 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 			if (snippet.id !== "") {
 				snippetsLib[snippet.id] = snippet;
 			}
-			// console.log('SNIPPETSLIB: ' + JSON.stringify(snippetsLib))
 		}
 		function setManyToSnippetsLib(snippets) {
 			console.log("Got many snippets: " + JSON.stringify(snippets));
@@ -183,33 +120,37 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 		function getSnippetsLib() {
 			return snippetsLib;
 		}
-		// function getDefaultSnippet(bucketId) {
-		// 	return angular.extend({}, Config.DEFAULTSNIPPET, {bucketId: bucketId});
-		// }
-		// function getCurrentSnippet() {
-		// 	return currentSnippet;
-		// }
-		// function setCurrentSnippetAs(snippet) {
-		// 	console.log('setting currentSnippetAs: ' + JSON.stringify(snippet));
-		// 	currentSnippet = snippet;
-		// 	return currentSnippet;
-		// }
 		function getUberAll() {
 			return $http({
 				method: "GET",
 				url: Config.API_URL + Config.ENDPOINTS.SNIPPETS
 			});
 		}
+		function buildNewSnippet() {
+			return {
+				id: Math.random().toString(36).substring(7),
+				// bucketId: "c25pcHBldHM=", // This will be set by the controller pending either the currentBucket (or later any given bucket).
+				name: "boots.go",
+				language: "go",
+				content: "",
+				timestamp: Date.now(),
+				description: "is a cat",
+			};
+		}
+		function deleteSnippet(snippet) {
+			return $http({
+				method: "DELETE",
+				url: Config.API_URL + Config.ENDPOINTS.SNIPPETS + "/" + snippet.id + "?bucketId=" + snippet.bucketId
+			});
+		}
 		return {
 			setOneToSnippetsLib: setOneToSnippetsLib,
 			setManyToSnippetsLib: setManyToSnippetsLib,
 			getMostRecent: getMostRecent,
-			// currentSnippet: currentSnippet,
-			// setCurrentSnippetAs: setCurrentSnippetAs,
-			// getCurrentSnippet: getCurrentSnippet,
 			getSnippetsLib: getSnippetsLib,
-			// snippetsLib: snippetsLib,
-			getUberAll: getUberAll
+			getUberAll: getUberAll,
+			buildNewSnippet: buildNewSnippet,
+			deleteSnippet: deleteSnippet
 		};
 }]);
 
@@ -478,39 +419,76 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	    sendUpdate(); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
 	  }
 	});
-	document.getElementById("snippetName").addEventListener('keyup', function (e) {sendUpdate();});
+	document.getElementById("snippetName").addEventListener('keyup', function (e) {
+		
+		if ($scope.data.cs.name == "") {
+			$scope.data.cs.name = "_";
+		}
+		sendUpdate();
+	});
+	document.getElementById("snippetDescription").addEventListener('keyup', function (e) {
+		$scope.data.cs = $scope.data.cs;
+		sendUpdate();
+	});
 
 
 	// Create new snippet. 
 	$scope.createNewSnippet = function () {
-		// if 
+		$scope.data.cs = Snippets.buildNewSnippet();
+		$scope.data.cs.bucketId = $scope.data.cb.id;
+		document.getElementById("snippetName").focus();
 	};	
 
-
-	$scope.selectSnippetAsCurrent = function () {
-
+	$scope.deleteSnippet = function (snippet) {
+		return Snippets.deleteSnippet(snippet)
+			// c.JSON(200, gin.H{
+			// 	"snippetId": snippetId,
+			// 	"bucketId":  bucketId,
+			// 	"snippets":  snippets,
+			// })
+			.then(function (res) {
+				// Snippets.setManyToSnippetsLib(res.data.snippets)
+				delete $scope.data.snippets[res.data.snippetId];
+				$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
+			})
+			.then(function (res) {
+				console.log('deleted snippet');
+			})
+			.catch(function (err) {
+				console.log("failed to delete snippet." + JSON.stringify(err.data));
+			});
 	};
+
+
+	$scope.selectSnippetAsCurrent = function (snippet) {
+		$scope.data.cs = snippet;
+	};
+
+	$scope.createNewBucket = function() {
+		$scope.data.cb = Config.DEFAULTBUCKET;
+
+	}
 
 }]);
 
 // http://fdietz.github.io/recipes-with-angular-js/common-user-interface-patterns/editing-text-in-place-using-html5-content-editable.html
-app.directive("contenteditable", function() {
-  return {
-    restrict: "A",
-    require: "ngModel",
-    link: function(scope, element, attrs, ngModel) {
+// app.directive("contenteditable", function() {
+//   return {
+//     restrict: "A",
+//     require: "ngModel",
+//     link: function(scope, element, attrs, ngModel) {
 
-      function read() {
-        ngModel.$setViewValue(element.html());
-      }
+//       function read() {
+//         ngModel.$setViewValue(element.html());
+//       }
 
-      ngModel.$render = function() {
-        element.html(ngModel.$viewValue || "");
-      };
+//       ngModel.$render = function() {
+//         element.html(ngModel.$viewValue || "");
+//       };
 
-      element.bind("blur keyup change", function() {
-        scope.$apply(read);
-      });
-    }
-  };
-});
+//       element.bind("blur keyup change", function() {
+//         scope.$apply(read);
+//       });
+//     }
+//   };
+// });

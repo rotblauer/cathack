@@ -25,7 +25,7 @@
 
     <div class="container-fluid" ng-controller="HackCtrl">
 
-      <div id="testes" class="testes">
+      <!-- <div id="testes" class="testes">
 
         <p>
           2: {{ 1 + 1 }}
@@ -62,7 +62,7 @@
         <p>
           editoropts: {{ editorOptions | json }}
         </p>
-      </div>
+      </div> -->
        
        <div class="row" style="min-height: 60vh;">
          
@@ -74,22 +74,57 @@
             <!-- toolbar -->
             <div class="btn-toolbar" role="toolbar">
               <div class="btn-group btn-group-sm"><button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                  File
+                  <span class="octicon octicon-file-directory"></span>
+                  <span class="caret"></span>
+                  <span>{{data.cb.meta.name}}</span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="fileDropdown">
+                  
+                  <li ng-repeat="bucket in data.buckets"><a href=""><span><span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}</span></a></li>
+
+                  <!-- <li role="separator" class="divider"></li> -->
+                  <li>
+                    <a id="createBucket" href="">
+                      <span class="text-success">
+                        + 
+                        new bucket
+                      </span>
+                      </a>
+                  </li>
+                  <!-- <li role="separator" class="divider"></li> -->
+                  
+                  <!-- <li><a href="#"><span class="octicon octicon-cloud-download"></span>&nbsp;Download</a></li> -->
+
+                </ul>
+        
+
+              </div>
+
+
+              <!-- // -->
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span>&nbsp;<span class="octicon octicon-file-text"></span></button>
+              </div>
+              <!-- // -->
+
+           <!--    <div class="btn-group btn-group-sm"><button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  <span class="octicon octicon-file-text"></span>
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="fileDropdown">
                   
-                  <li><a id="createSnippet" href=""><span class="text-success"><span class="octicon octicon-file-code"></span> New Snippet</span></a></li>
+                  <li><a id="createSnippet" ng-click="createNewSnippet()"><span class=""><span class=" text-success octicon octicon-file-text"></span> Snippet</span></a></li>
 
-                  <li><a id="createSnippet" href=""><span class="text-success"><span class="octicon octicon-repo"></span> New Bucket</span></a></li>
+                  
 
                   <li role="separator" class="divider"></li>
                   
                   <li><a href="#">Download</a></li>
 
                 </ul>
-                </div>
-              <div class="btn-group btn-group-sm">
+              </div> -->
+
+              <!-- <div class="btn-group btn-group-sm">
                 <button class="btn btn-default dropdown-toggle" type="button" id="bucketDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                   <span class="octicon octicon-sync"></span>
                   <span class="caret"></span>
@@ -107,22 +142,29 @@
                   <li role="separator" class="divider"></li>
                   <li><a href="#">Download</a></li>
                 </ul>
-              </div>
+              </div> -->
             </div>
         
            </div>
 
-          <div id="bucketsLib" class="row padding">
+        <!--   <div id="bucketsLib" class="row padding">
             <div class="col-xs-12" ng-repeat="bucket in data.buckets">
               <strong class="buck">
-                <span class="octicon octicon-repo"></span>{{bucket.meta.name}}
+                <span class="octicon octicon-file-directory"></span>&nbsp;
+                {{bucket.meta.name}}
               </strong>
             </div>
-          </div>
+          </div> -->
 
            <div id="snippetsLib" class="row padding">
-            <div class="col-xs-12 snip text-primary" ng-repeat="snip in data.snippets">
-              <span class="name">{{snip.name}}</span>
+            <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active-snippet' : ''}}" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
+              <span class="name" ng-if="snip.bucketId == data.cb.id">
+                <span class="octicon octicon-file-text"></span>&nbsp;
+                {{snip.name}}
+                <small class="text-muted" style="font-weight: lighter;">
+                  {{snip.timestamp | date: 'H:mm:ss on EEE, MMM d'}}
+                </small>
+              </span>
             </div>
            </div>
          </div>
@@ -131,25 +173,35 @@
 
            <!-- currentSnippet metadata -->
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
-             <span id="snippetId" class="text-primary">{{data.cs.id}}</span>
-             <span id="snippetBucketName" style="font-weight: bold;"></span>
-             <code id="snippetName"  contenteditable ng-model="data.cs.name"></code>
+             <!-- <span id="snippetId" class="text-primary">{{data.cs.id}}</span> -->
+             <span id="snippetBucketName" style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}} /</span>
+             <code id="snippetName"  
+                    contenteditable="true"
+                    strip-br="true"
+                    strip-tags="true"
+                    select-non-editable="true" 
+                    ng-model="data.cs.name"></code>
              
              <small id="snippetLang" class="text-warning">{{data.cs.language}}</small>
        
-             <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted">{{data.cs.timestamp}}</small>
+             &nbsp;<small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted" style="font-weight: bold;">{{data.cs.timestamp | date: 'H:mm:ss on EEE, MMM d'}}</small>
              
-             <small id="destroySnippet" class="text-danger">
+             &nbsp;<small id="destroySnippet" ng-click="deleteSnippet(data.cs)" class="text-danger">
                Delete <i class="octicon octicon-trashcan"></i>
              </small>
 
-              <small id="catchattoggler" class="catchat pull-right" style="position: relative; top: 0; right: 0;">CatChat&nbsp;<i class="octicon octicon-keyboard"></i></small>
+              <small id="catchattoggler" class="catchat pull-right" style="position: relative; top: 0; right: 0;">cat chat&nbsp;<i class="octicon octicon-keyboard"></i></small>
 
            </div>
 
            <!-- currentSnippet editor -->
            <div class="col-xs-12" style="margin-bottom: 1rem;">
-              <div id="snippetMeta" ng-model="data.cs.description" contenteditable>{{data.cs.description}}</div>
+              <div id="snippetDescription" 
+                    contenteditable="true"
+                    strip-br="true"
+                    strip-tags="true"
+                    select-non-editable="true" 
+                    ng-model="data.cs.description">{{data.cs.description}}</div>
             </div>
            <div class="col-xs-12">
              <div id="editor" ui-codemirror ui-codemirror-opts="editorOptions" ng-model="data.cs.content">asf</div>
@@ -189,9 +241,21 @@
     <script src="/assets/angular/angular-ui-router.min.js"></script>
     <!-- angular codemirror -->
     <script src="/assets/angular/ui-codemirror.js"></script>
-
+    <!-- ng-contenteditable -->
+    <script src="/assets/angular/angular-contenteditable.js"></script>
 
     <!-- app -->
     <script src="/assets/angle.js"></script>
+    <script>
+      function toggleCatChat() {
+        $("#sidebar").toggle();
+        $("#editing").toggleClass("col-sm-9 col-sm-6");
+        $("#lib").toggleClass("col-sm-3 col-sm-2");
+      }
+
+      $('#catchattoggler').on("click", function () {
+        toggleCatChat();
+      });
+    </script>
   </body>
 </html>

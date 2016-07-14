@@ -28,12 +28,19 @@
 .snip .name {
   font-weight: bold;
 }
-#snippetMeta {
-  background: #eee;
+#snippetDescription {
+  /*background: #eee;*/
+  border-left: 2px solid #BEE0FC;
+  padding-left: 1rem;
+  color: #666;
 }
 .testes {
   border: 3px solid pink;
 }
 .activeBucket {
   background-color: #BEE0FC;
+}
+
+.active-snippet {
+  background-color: #BEE0FC; 
 }
