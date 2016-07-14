@@ -71,7 +71,7 @@
            <div class="row padding">
 
 
-          
+            <!-- toolbar -->
             <div class="btn-toolbar" role="toolbar">
               <div class="btn-group btn-group-sm"><button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                   File
@@ -109,13 +109,7 @@
                 </ul>
               </div>
             </div>
-            
-
-           
-             <!-- <button id="createSnippet" class="btn btn-success btn-sm">+ New Snippet</button>
-             <button id="saveBucket" class="btn btn-primary btn-sm"><i class="octicon octicon-repo-push"></i> Write</button>
-             <button id="boltifyBuckets" class="btn btn-warning btn-sm"><i class="octicon octicon-repo-clone"></i> Read</button> -->
-
+        
            </div>
 
           <div id="bucketsLib" class="row padding">
@@ -128,7 +122,7 @@
 
            <div id="snippetsLib" class="row padding">
             <div class="col-xs-12 snip text-primary" ng-repeat="snip in data.snippets">
-              <span class="name">{{snippet.name}}</span>
+              <span class="name">{{snip.name}}</span>
             </div>
            </div>
          </div>
@@ -137,13 +131,13 @@
 
            <!-- currentSnippet metadata -->
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
-             <span id="snippetId" class="text-primary"></span>
+             <span id="snippetId" class="text-primary">{{data.cs.id}}</span>
              <span id="snippetBucketName" style="font-weight: bold;"></span>
              <code id="snippetName"  contenteditable ng-model="data.cs.name"></code>
              
              <small id="snippetLang" class="text-warning">{{data.cs.language}}</small>
        
-             <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
+             <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted">{{data.cs.timestamp}}</small>
              
              <small id="destroySnippet" class="text-danger">
                Delete <i class="octicon octicon-trashcan"></i>
@@ -158,7 +152,7 @@
               <div id="snippetMeta" ng-model="data.cs.description" contenteditable>{{data.cs.description}}</div>
             </div>
            <div class="col-xs-12">
-             <div ui-codemirror ui-codemirror-opts="editorOptions" ng-model="data.cs.content">asf</div>
+             <div id="editor" ui-codemirror ui-codemirror-opts="editorOptions" ng-model="data.cs.content">asf</div>
            </div>
 
          </div>

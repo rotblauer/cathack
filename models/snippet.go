@@ -50,7 +50,11 @@ func (m SnippetModel) UberAll() (snippets Snippets, err error) {
 			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
 				snip := Snippet{}
 				json.Unmarshal(snipval, &snip)
-				snippets = append(snippets, snip)
+
+				if len(snip.Id) > 0 {
+					snippets = append(snippets, snip)
+				}
+
 			}
 			return nil
 		})
@@ -93,11 +97,15 @@ func (m SnippetModel) Set(snippet Snippet) error {
 	fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
 
 	return db.Update(func(tx *bolt.Tx) error {
-		b, berr := tx.CreateBucketIfNotExists([]byte(snippet.BucketId))
-		if berr != nil {
-			fmt.Printf("Could not create bucket if not exists for bucketId: %v\n", snippet.BucketId)
-			fmt.Printf("The error was: %v\n", berr)
-			return berr
+		b := tx.Bucket([]byte(snippet.BucketId))
+		// if berr != nil {
+		// 	fmt.Printf("Could not create bucket if not exists for bucketId: %v\n", snippet.BucketId)
+		// 	fmt.Printf("The error was: %v\n", berr)
+		// 	return berr
+		// }
+		if b == nil {
+			fmt.Printf("Could not find bucket with snippet.BucketId: %v\n", snippet.BucketId)
+			return nil
 		}
 		j, err := json.Marshal(snippet)
 		if err != nil {

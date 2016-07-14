@@ -26,12 +26,17 @@ app.constant('Config', {
 	},
 	"DEFAULTSNIPPET": {
 		id: Math.random().toString(36).substring(7),
-		bucketId: "c25pcHBldHM=", // This will be set by the controller pending either the currentBucket (or later any given bucket).
+		// bucketId: "c25pcHBldHM=", // This will be set by the controller pending either the currentBucket (or later any given bucket).
 		name: "boots.go",
 		language: "go",
 		content: "well hello",
 		timestamp: Date.now(),
 		description: "is a cat",
+	}, 
+	"DEFAULTBUCKET": {
+		meta: {
+			name: "snippets"
+		}
 	}
 });
 
@@ -80,7 +85,7 @@ app.constant('Config', {
 // BUCKETS FACTORY.
 app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', function ($http, Config, Errors, Snippets, Utils) {
 	var buckets = {}; // {bucketId: {id: "234234932-=", meta: {name: "snippets", timestamp: 1232354234}, }
-	var currentBucket = {};
+	// var currentBucket = {};
 
 	function getBuckets() {
 		return buckets;
@@ -102,9 +107,9 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 		}
 		console.log('BUCKETS: ' + JSON.stringify(buckets));
 	}
-	function getCurrentBucket() {
-		return currentBucket;
-	}
+	// function getCurrentBucket() {
+	// 	return currentBucket;
+	// }
 	function fetchAll() {
 		return $http({
 			method: "GET",
@@ -128,18 +133,18 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 			// }
 		});	
 	}
-	function setCurrentBucketAs(bucket) {
-		currentBucket = bucket;
-		return currentBucket;
-	}
+	// function setCurrentBucketAs(bucket) {
+	// 	currentBucket = bucket;
+	// 	return currentBucket;
+	// }
 	return {
 		storeBucket: storeBucket,
 		storeManyBuckets: storeManyBuckets,
-		buckets: buckets,
 		// currentBucket: currentBucket,
-		setCurrentBucketAs: setCurrentBucketAs,
-		getCurrentBucket: getCurrentBucket,
+		// setCurrentBucketAs: setCurrentBucketAs,
+		// getCurrentBucket: getCurrentBucket,
 		fetchAll: fetchAll,
+		// buckets: buckets
 		getBuckets: getBuckets
 	};
 }]);
@@ -147,14 +152,14 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 // SNIPPETS FACTORY.
 app.factory("Snippets", ['$http', "Config", "Errors",
 	function ($http, Config, Errors) {
-		var currentSnippet = {};
+		// var currentSnippet = {};
 		var snippetsLib = {}; // {snippetId: [{snippet}, {snippet}], snippetId: [{snippet}, {snippet}, ... ]}
 
 		function setOneToSnippetsLib(snippet) {
 			if (snippet.id !== "") {
 				snippetsLib[snippet.id] = snippet;
 			}
-			console.log('SNIPPETSLIB: ' + JSON.stringify(snippetsLib))
+			// console.log('SNIPPETSLIB: ' + JSON.stringify(snippetsLib))
 		}
 		function setManyToSnippetsLib(snippets) {
 			console.log("Got many snippets: " + JSON.stringify(snippets));
@@ -164,19 +169,31 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 			}	
 			console.log(JSON.stringify(snippetsLib));
 		}
+		function getMostRecent(libObj) {
+			var timestamps = []; // [timestamps]
+			var timesIdLookup = {}; // {timestamp: {snippet}}
+			angular.forEach(libObj, function (val, key) {
+				// console.log('key: ' + key + ", val: " + val);
+				timestamps.push(val.timestamp);
+				timesIdLookup[val.timestamp] = val;
+			});
+			var max = Math.max(...timestamps);
+			return timesIdLookup[max];
+		}
 		function getSnippetsLib() {
 			return snippetsLib;
 		}
-		function getDefaultSnippet(bucketId) {
-			return angular.extend({}, Config.DEFAULTSNIPPET, {bucketId: bucketId});
-		}
-		function getCurrentSnippet() {
-			return currentSnippet;
-		}
-		function setCurrentSnippetAs(snippet) {
-			currentSnippet = snippet;
-			return currentSnippet;
-		}
+		// function getDefaultSnippet(bucketId) {
+		// 	return angular.extend({}, Config.DEFAULTSNIPPET, {bucketId: bucketId});
+		// }
+		// function getCurrentSnippet() {
+		// 	return currentSnippet;
+		// }
+		// function setCurrentSnippetAs(snippet) {
+		// 	console.log('setting currentSnippetAs: ' + JSON.stringify(snippet));
+		// 	currentSnippet = snippet;
+		// 	return currentSnippet;
+		// }
 		function getUberAll() {
 			return $http({
 				method: "GET",
@@ -186,10 +203,12 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 		return {
 			setOneToSnippetsLib: setOneToSnippetsLib,
 			setManyToSnippetsLib: setManyToSnippetsLib,
+			getMostRecent: getMostRecent,
 			// currentSnippet: currentSnippet,
-			setCurrentSnippetAs: setCurrentSnippetAs,
-			getCurrentSnippet: getCurrentSnippet,
+			// setCurrentSnippetAs: setCurrentSnippetAs,
+			// getCurrentSnippet: getCurrentSnippet,
 			getSnippetsLib: getSnippetsLib,
+			// snippetsLib: snippetsLib,
 			getUberAll: getUberAll
 		};
 }]);
@@ -211,7 +230,7 @@ app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets', 'Utils',
 			return status;
 		}
 		function send(snippet) {
-			console.log('sending ws message');
+			console.log('sending ws message:\n ' + JSON.stringify(snippet));
 			return ws.send(JSON.stringify(snippet));
 		}
 
@@ -225,36 +244,10 @@ app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets', 'Utils',
 			setStatus({error: err});
 		});
 
-		ws.onMessage(function(message) {
-
-			console.log("received ws message:\n " + message.data);
-			var o = JSON.parse(message.data);
-
-			if (Utils.typeOf(o) === 'object') {
-				console.log("received msg was obj");
-				if (o.bucketId !== 'undefined') { // check if is snippet
-					console.log("received msg was snippet");
-					if (Snippets.getCurrentSnippet().id === o.id) {
-						console.log("is current snippet!");
-						Snippets.setCurrentSnippetAs(o);
-					} else {
-						console.log("not current snippet. setting to lib.");
-						Snippets.setOneToSnippetsLib(o); // so we have a fresh version in store
-					}
-
-				} else if (o.meta !== 'undefined') { // check if is a bucket
-					console.log("shit. msg was undefined.");
-				}
-			} else if (Utils.typeOf(o) === 'array') {
-				console.log('what the ws received an array');
-			} else {
-				console.log('what the fuck the ws received some shit:\n' + JSON.stringify(o));
-			}
-		});
-
 		var methods = {
 		  status: status,
-		  send: send
+		  send: send,
+		  ws: ws
 		};
 		return methods;
 }]);
@@ -362,6 +355,30 @@ app.factory("Utils", ["Config", function (Config) {
 	};
 }]);
 
+// app.controller("BucketsController", ["$scope", "WS", "Buckets", function ($scope, WS, Buckets) {
+
+// 	$scope.bs = "bssss";
+// 	$scope.data = {};
+// 	$scope.data.cb = Buckets.getCurrentBucket();
+// 	$scope.data.buckets = Buckets.getBuckets();
+
+// 	// Init. 
+// 	// 
+// 	// Fetch all buckets [{id: "23423=", meta: {name: "snippets", timestamp: 234234234234}}, {...}]
+// 	Buckets.fetchAll().then(function (res) {
+// 		console.log(res.data);
+// 		Buckets.storeManyBuckets(res.data);
+// 		Buckets.setCurrentBucketAs(res.data[0]);
+// 		// $scope.data.buckets = Buckets.getBuckets();
+// 	});
+
+
+// 	$scope.selectBucketAsCurrent = function (bucket) {
+// 		return Buckets.setCurrentBucketAs(bucket);
+// 	};
+
+// }]);
+
 app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout', 'Errors', 'Config',
 	function ($scope, WS, Buckets, Snippets, Utils, $timeout, Errors, Config) {
 
@@ -371,124 +388,108 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 	$scope.data.ws = WS.status;
 
 	$scope.data.cs = Config.DEFAULTSNIPPET; // inits as {}
-	$scope.data.cb = Buckets.getCurrentBucket();
+	$scope.data.cb = Config.DEFAULTBUCKET; // empty
 
 	$scope.data.buckets = Buckets.getBuckets();
 	$scope.data.snippets = Snippets.getSnippetsLib();
+	
 	$scope.data.error = Errors.getError();
 
 	$scope.editorOptions = Utils.setEditorOptions({
 		mode: Utils.getLanguageModeByExtension($scope.data.cs.language)
 	});
 
+
+	// Init.
+	// 
+	// Fetch all snippets [{id: "12341=", name: "boots.go" ... }]
 	Snippets.getUberAll().then(function (res) {
-		console.log(res);
-		Snippets.setManyToSnippetsLib(res.data);
-	}).then(function (res) {
-		if (Snippets.getSnippetsLib.length > 0) {
-			$scope.data.cs = Snippets.getCurrentSnippet[0];
-		}
-	}).catch(function (err) {
-		console.log('errr!');
-		Errors.setError(err);
-	});
-
-	Buckets.fetchAll().then(function (res) {
-		console.log(res.data);
+		console.log("got snippets ->" + JSON.stringify(res.data));
+		// if there are any snippets at all
+		if (Utils.typeOf(res.data) !== 'null') {
+			Snippets.setManyToSnippetsLib(res.data);
+			$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib()); 
+		} 
+		// return res;
+	})
+	.then(function () {
+		return Buckets.fetchAll();
+	})
+	.then(function (res) {
+		console.log('got buckets -> ' + JSON.stringify(res.data));
 		Buckets.storeManyBuckets(res.data);
-		// $scope.data.buckets = Buckets.getBuckets();
+
+		// if lib === {}
+		if (Object.keys(Snippets.getSnippetsLib()).length === 0 && Snippets.getSnippetsLib().constructor === Object) {
+			$scope.data.cb = res.data[0]; // presuming bucket is snippets?
+			$scope.data.cs.bucketId = $scope.data.cb.id; // set default snippet to have default bucket id
+		} else {
+			$scope.data.cb = Buckets.getBuckets()[$scope.data.cs.bucketId]; // set current bucket to be current snippet's bucket
+		}
+	})	
+	.catch(Errors.setError);
+
+
+	// Watch for changes to current snippet and keep the library updated. 
+	$scope.$watchCollection('data.cs', function (old, neww) {
+		if (old !== neww) {
+			Snippets.setOneToSnippetsLib($scope.data.cs);
+		}
+	}, true);
+	function sendUpdate() {
+		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
+			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
+		}
+		WS.send($scope.data.cs);
+		$scope.data.cs.timestamp = Date.now();
+	}
+
+	WS.ws.onMessage(function(message) {
+
+		console.log("received ws message:\n " + message.data);
+		var o = JSON.parse(message.data);
+
+		if (Utils.typeOf(o) === 'object') {
+			console.log("received msg was obj");
+			if (o.bucketId !== 'undefined') { // check if is snippet
+				console.log("received msg was snippet");
+				if ($scope.data.cs.id === o.id) {
+					console.log("is current snippet!");
+					$scope.data.cs = o; // set current snippet to equal incoming
+				} else {
+					console.log("not current snippet. setting to lib.");
+					Snippets.setOneToSnippetsLib(o); // so we have a fresh version in store
+				}
+			} else if (o.meta !== 'undefined') { // check if is a bucket
+				console.log("shit. msg was undefined.");
+			}
+		} else if (Utils.typeOf(o) === 'array') {
+			console.log('what the ws received an array');
+		} else {
+			console.log('what the fuck the ws received some shit:\n' + JSON.stringify(o));
+		}
 	});
 
-	$scope.$watchCollection('data.cs', function (old, neww) {
-		console.log("data.cs changed:\n old: " + JSON.stringify(old) + "\n new: " + JSON.stringify(neww));
-		WS.send(neww);
-	}, true);
+	// Manual listeners. Avoid infdiggers. 
+	document.getElementById("editor").addEventListener('keyup', function (e) {
+	  // http://stackoverflow.com/questions/2257070/detect-numbers-or-letters-with-jquery-javascript
+	  var inp = String.fromCharCode(e.keyCode);
+	  if ((/\S/.test(inp) || e.which === 13 || e.keyCode === 8 || e.keyCode ===  9) && (!e.metaKey || e.ctrlKey || e.altKey)) { // 224
+	    sendUpdate(); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
+	  }
+	});
+	document.getElementById("snippetName").addEventListener('keyup', function (e) {sendUpdate();});
 
-	// Snippets.getUberAll().then(function (res) {
-	// 	console.log("Got snippets uberall ctrl: " + JSON.stringify(res.data));
-	// 	$scope.data.snippets = Snippets.getSnippetsLib;
-	// 	// $scope.data.snippets = Snippets.getSnippetsLib;
-	// 	// Snippets.setManyToSnippetsLib(res.data);
-	// 	// $scope.data.snippets = Snippets.getSnippetsLib;
-	// });
 
-	// Buckets.fetchAll().then(function (res) {
-	// 	// guaranteed at least one bucket
-	// 	// get snippets for arbitrarily first bucket
-	// 	Snip.fetchSnippetsFor(res.data[0].id);
-	// });
+	// Create new snippet. 
+	$scope.createNewSnippet = function () {
+		// if 
+	};	
 
-	// Buckets.fetchAll().then(function (res) {
-	// 	$scope.data.buckets = res.data;	
-	// 	$scope.data.currentBucket = $scope.data.buckets[0]; // Set current as first for now.
-	// 	Buckets.getOne($scope.data.currentBucket.id).then(function (res) {
-			
-	// 		if (res.data !== null) {
-	// 			console.log(JSON.stringify(res));
-	// 			// $scope.data.currentBucketSnippets = Buckets.setCurrentBucketAs(res.data);	
 
-	// 			// Snippets.setCurrentSnippetAs(res); // Set current as first for now.
-	// 			// $scope.data.cs = Snippets.getCurrentSnippet();	
-	// 		} else {
-	// 			// nil in bucket
-	// 			console.log("nil in bucket")
-	// 		}
-			
-	// 	});
-	// });
+	$scope.selectSnippetAsCurrent = function () {
 
-	// function setEditorOpts(snip) {
-
-	// }
-	// setEditorOptions($scope.data.cs);
-	
-
-	// Utils.getLanguageModeByExtension(snip.name || 'boots.go'),
-
-	// function setEditorOpts(snip) {
-	// 	$scope.editorOptions = {
-	// 		mode:  
-	// 		lineNumbers: true,
-	// 		tabSize: 2,
-	// 		inputStyle: "contenteditable",
-	// 		styleSelectedText: true,
-	// 		matchBrackets: true,
-	// 		autoCloseBrackets: true,
-	// 		showHint: true
-	// 	};	
-	// }
-	// setEditorOpts($scope.data.cs);
-	
-	// $scope.chooseSnippet = function(snippet) {
-	// 	$scope.data.cs = Snippets.setCurrentSnippetAs(snippet);
-	// };
-
-	// Now we can just watch the whole current snippet in one listener! 
-	// Pretty nifty!
-	
-		// $scope.$watch('data.cs', function (old, neww, scope) {
-		// 	console.log("o: " +JSON.stringify(old) + "\n" + "n: " + JSON.stringify(neww));
-			
-		// 	if (neww !== old) {
-		// 		console.log('stuff changed!');
-		// 		var sendMe = {};
-		// 		sendMe.id = neww.id;
-		// 		// Update timestamp.
-		// 		sendMe.timestamp = Date.now();
-		// 		$scope.data.cs.timestamp = sendMe.timestamp
-		// 		sendMe.name = neww.name;
-		// 		sendMe.meta = neww.meta;
-		// 		sendMe.content = neww.content;
-		// 		// Check for language change.
-		// 		if (old.language !== neww.language) {
-		// 			sendMe.language = Utils.getLanguageModeByExtension(sendMe.name || 'boots.go');
-		// 			setEditorOpts(sendMe.language);	
-		// 		}	
-		// 		WS.send(JSON.stringify(sendMe));
-		// 	}
-		// }, true);	
-	
-	
+	};
 
 }]);
 

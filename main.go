@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"./catchat"
 	"./controllers"
@@ -91,11 +92,13 @@ func main() {
 		fmt.Printf("Handling hack message: %v\n", string(msg))
 		snip := models.Snippet{}
 		json.Unmarshal(msg, &snip)
+		snip.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
 		err := snippetModel.Set(snip)
 		if err != nil {
 			h.Broadcast([]byte("'ERROR':" + err.Error()))
 		}
 		h.BroadcastOthers(msg, s)
+		// h.Broadcast(j) // send with timestamp update
 	})
 	h.HandleError(func(s *melody.Session, err error) {
 		fmt.Printf("Melody error: %v", err)
