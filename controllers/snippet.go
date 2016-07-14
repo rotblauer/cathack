@@ -44,3 +44,12 @@ func (ctrl SnippetController) All(c *gin.Context) {
 		c.JSON(200, snippets)
 	}
 }
+
+func (ctrl SnippetController) UberAll(c *gin.Context) {
+	snippets, err := snippetModel.UberAll()
+	if err != nil {
+		c.JSON(500, err.Error())
+	} else {
+		c.JSON(200, snippets)
+	}
+}

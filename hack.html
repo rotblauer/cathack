@@ -22,15 +22,47 @@
 
     <div id="show-error" class="error" style="display: none; position: fixed; top:0 ; height: 30vh; width: 100%; background: red; color: white; z-index: 10;"></div>
     
-    <div id="testes" class="testes">
-      
-      <p>
-        testes: {{ testes | json }}
-
-      </p>
-    </div>
 
     <div class="container-fluid" ng-controller="HackCtrl">
+
+      <div id="testes" class="testes">
+
+        <p>
+          2: {{ 1 + 1 }}
+        </p>
+
+        <p>
+          ws status: {{ data.ws | json }}
+        </p>
+        
+        <p>
+          testes: {{ testes }}
+        </p>
+
+        <p>
+          data.cs: {{ data.cs | json }}
+        </p>
+
+        <p>
+          data.cb: {{ data.cb | json }}
+        </p>
+
+        <p>
+          data.snippets: {{ data.snippets | json }}
+        </p>
+
+        <p>
+          data.buckets: {{ data.buckets | json  }}
+        </p>
+
+        <p>
+          errors: {{ data.error | json }}
+        </p>
+
+        <p>
+          editoropts: {{ editorOptions | json }}
+        </p>
+      </div>
        
        <div class="row" style="min-height: 60vh;">
          
@@ -87,11 +119,17 @@
            </div>
 
           <div id="bucketsLib" class="row padding">
-            buckets go here
+            <div class="col-xs-12" ng-repeat="bucket in data.buckets">
+              <strong class="buck">
+                <span class="octicon octicon-repo"></span>{{bucket.meta.name}}
+              </strong>
+            </div>
           </div>
 
            <div id="snippetsLib" class="row padding">
-             snips go here
+            <div class="col-xs-12 snip text-primary" ng-repeat="snip in data.snippets">
+              <span class="name">{{snippet.name}}</span>
+            </div>
            </div>
          </div>
          
@@ -101,9 +139,9 @@
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
              <span id="snippetId" class="text-primary"></span>
              <span id="snippetBucketName" style="font-weight: bold;"></span>
-             <code id="snippetName"  ng-model="data.cs.name"></code>
+             <code id="snippetName"  contenteditable ng-model="data.cs.name"></code>
              
-             <small id="snippetLang" class="text-warning"></small>
+             <small id="snippetLang" class="text-warning">{{data.cs.language}}</small>
        
              <small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted"></small>
              
@@ -116,7 +154,9 @@
            </div>
 
            <!-- currentSnippet editor -->
-           <div class="col-xs-12" style="margin-bottom: 1rem;"><div id="snippetMeta">is a cat</div></div>
+           <div class="col-xs-12" style="margin-bottom: 1rem;">
+              <div id="snippetMeta" ng-model="data.cs.description" contenteditable>{{data.cs.description}}</div>
+            </div>
            <div class="col-xs-12">
              <div ui-codemirror ui-codemirror-opts="editorOptions" ng-model="data.cs.content">asf</div>
            </div>

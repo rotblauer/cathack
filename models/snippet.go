@@ -9,13 +9,13 @@ import (
 )
 
 type Snippet struct {
-	Id        string `json:"id"`
-	BucketId  string `json:"bucketId"`
-	Name      string `json:"name"`
-	Language  string `json:"language"`
-	Content   string `json:"content"`
-	TimeStamp int    `json:"timestamp"`
-	Meta      string `json:"meta"`
+	Id          string `json:"id"`
+	BucketId    string `json:"bucketId"`
+	Name        string `json:"name"`
+	Language    string `json:"language"`
+	Content     string `json:"content"`
+	TimeStamp   int    `json:"timestamp"`
+	Description string `json:"description"`
 }
 type Snippets []Snippet
 type SnippetModel struct{}
@@ -41,6 +41,21 @@ func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snip
 	} else {
 		return snippet
 	}
+}
+
+func (m SnippetModel) UberAll() (snippets Snippets, err error) {
+	err = db.View(func(tx *bolt.Tx) error {
+		return tx.ForEach(func(buckedId []byte, b *bolt.Bucket) error {
+			c := b.Cursor()
+			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+				var snip Snippet
+				json.Unmarshal(snipval, snip)
+				snippets = append(snippets, snip)
+			}
+			return nil
+		})
+	})
+	return snippets, err
 }
 
 func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
@@ -69,9 +84,24 @@ func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 
 func (m SnippetModel) Set(snippet Snippet) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		b, _ := tx.CreateBucketIfNotExists([]byte(snippet.BucketId))
-		j, _ := json.Marshal(snippet)
-		return b.Put([]byte(snippet.Id), j)
+		b, berr := tx.CreateBucketIfNotExists([]byte(snippet.BucketId))
+		if berr != nil {
+			fmt.Printf("Could not create bucket if not exists for bucketId: %v\n", snippet.BucketId)
+			fmt.Printf("The error was: %v\n", berr)
+			return berr
+		}
+		j, err := json.Marshal(snippet)
+		if err != nil {
+			fmt.Printf("Could not marshal json: ")
+			fmt.Printf("Error was : %v\n", err)
+			return err
+		}
+		perr := b.Put([]byte(snippet.Id), j)
+		if perr != nil {
+			fmt.Printf("Error putting snippet to bucket: %v\n", perr)
+			return perr
+		}
+		return nil
 	})
 }
 

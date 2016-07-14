@@ -13,7 +13,26 @@ app.constant('Config', {
   "ENDPOINTS": {
   	"BUCKETS": "/b",
   	"SNIPPETS": "/s"
-  }
+  },
+  "EDITOROPTIONS": {
+		mode: {name: 'markdown'},
+		lineNumbers: true,
+		tabSize: 2,
+		inputStyle: "contenteditable",
+		styleSelectedText: true,
+		matchBrackets: true,
+		autoCloseBrackets: true,
+		showHint: true
+	},
+	"DEFAULTSNIPPET": {
+		id: Math.random().toString(36).substring(7),
+		bucketId: "c25pcHBldHM=", // This will be set by the controller pending either the currentBucket (or later any given bucket).
+		name: "boots.go",
+		language: "go",
+		content: "well hello",
+		timestamp: Date.now(),
+		description: "is a cat",
+	}
 });
 
 // app.config(function ($stateProvider, $urlRouterProvider) {
@@ -59,110 +78,212 @@ app.constant('Config', {
 // });
 
 // BUCKETS FACTORY.
-app.factory("Buckets", ['$http', 'Config', function ($http, Config) {
-	var buckets = [];
+app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', function ($http, Config, Errors, Snippets, Utils) {
+	var buckets = {}; // {bucketId: {id: "234234932-=", meta: {name: "snippets", timestamp: 1232354234}, }
 	var currentBucket = {};
 
-	function getAll() {
+	function getBuckets() {
+		return buckets;
+	}
+	function storeBucket(bucket) {
+		console.log('storing one bucket: ' + JSON.stringify(bucket))
+		buckets[bucket.id] = bucket;
+	}
+	function storeManyBuckets(buckets) {
+		console.log('storeing bucktses')
+		if (Utils.typeOf(buckets) === 'object') {
+			console.log('bucket is object');
+		} else {
+			console.log('bucket is not object');
+			for (var i = 0; i < buckets.length; i++) {
+				console.log('bucket i ' + buckets[i]);
+				storeBucket(buckets[i]);
+			}	
+		}
+		console.log('BUCKETS: ' + JSON.stringify(buckets));
+	}
+	function getCurrentBucket() {
+		return currentBucket;
+	}
+	function fetchAll() {
 		return $http({
 			method: "GET",
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS
+			// error: Errors.setError
+			// success: function (res) {
+			// 	var o = JSON.parse(res.data); // []
+			// 	for (i = 0; i < o.length; i++) {
+			// 		storeBucket(o[i]);
+			// 	}
+			// }
 		});
 	}
-
-	function getOne(id) {
+	function fetchSnippetsFor(id) {
 		return $http({
 			method: "GET",
 			url: Config.API_URL + Config.ENDPOINTS.BUCKETS + "/" + id
-		});
+			// error: Errors.setError,
+			// success: function (res) {
+				
+			// }
+		});	
 	}
-
-	function setBucketAsCurrent(bucket) {
+	function setCurrentBucketAs(bucket) {
 		currentBucket = bucket;
 		return currentBucket;
 	}
-
 	return {
+		storeBucket: storeBucket,
+		storeManyBuckets: storeManyBuckets,
 		buckets: buckets,
-		currentBucket: currentBucket,
-		setBucketAsCurrent: setBucketAsCurrent,
-		getAll: getAll,
-		getOne: getOne
+		// currentBucket: currentBucket,
+		setCurrentBucketAs: setCurrentBucketAs,
+		getCurrentBucket: getCurrentBucket,
+		fetchAll: fetchAll,
+		getBuckets: getBuckets
 	};
 }]);
 
 // SNIPPETS FACTORY.
-app.factory("Snippets", ['$http', function ($http) {
-	var currentSnippet = {};
+app.factory("Snippets", ['$http', "Config", "Errors",
+	function ($http, Config, Errors) {
+		var currentSnippet = {};
+		var snippetsLib = {}; // {snippetId: [{snippet}, {snippet}], snippetId: [{snippet}, {snippet}, ... ]}
 
-	function getCurrentSnippet() {
-		return currentSnippet;
-	}
-
-	function setCurrentSnippetAs(snippet) {
-		currentSnippet = snippet;
-		return currentSnippet;
-	}
-
-	return {
-		currentSnippet: currentSnippet,
-		setCurrentSnippetAs: setCurrentSnippetAs,
-		getCurrentSnippet: getCurrentSnippet
-	};
+		function setOneToSnippetsLib(snippet) {
+			if (snippet.id !== "") {
+				snippetsLib[snippet.id] = snippet;
+			}
+			console.log('SNIPPETSLIB: ' + JSON.stringify(snippetsLib))
+		}
+		function setManyToSnippetsLib(snippets) {
+			console.log("Got many snippets: " + JSON.stringify(snippets));
+			
+			for (var i = 0; i < snippets.length; i++) {
+				setOneToSnippetsLib(snippets[i]);
+			}	
+			console.log(JSON.stringify(snippetsLib));
+		}
+		function getSnippetsLib() {
+			return snippetsLib;
+		}
+		function getDefaultSnippet(bucketId) {
+			return angular.extend({}, Config.DEFAULTSNIPPET, {bucketId: bucketId});
+		}
+		function getCurrentSnippet() {
+			return currentSnippet;
+		}
+		function setCurrentSnippetAs(snippet) {
+			currentSnippet = snippet;
+			return currentSnippet;
+		}
+		function getUberAll() {
+			return $http({
+				method: "GET",
+				url: Config.API_URL + Config.ENDPOINTS.SNIPPETS
+			});
+		}
+		return {
+			setOneToSnippetsLib: setOneToSnippetsLib,
+			setManyToSnippetsLib: setManyToSnippetsLib,
+			// currentSnippet: currentSnippet,
+			setCurrentSnippetAs: setCurrentSnippetAs,
+			getCurrentSnippet: getCurrentSnippet,
+			getSnippetsLib: getSnippetsLib,
+			getUberAll: getUberAll
+		};
 }]);
 
 // WEBSOCKET FACTORY.
 // https://github.com/AngularClass/angular-websocket
-app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets',
-	function ($log, Config, $websocket, Snippets) {
+app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets', 'Utils',
+	function ($log, Config, $websocket, Snippets, Utils) {
 	
-	var ws = $websocket(Config.WS_URL);
-	var status = {
-		available: false,
-		error: ""
-	}
-	function setStatus (opts) {
-		angular.extend(status, status, opts);
-	}
-	function getStatus() {
-		return status;
-	}
-	function send(snippet) {
-		console.log('sending ws message');
-		return ws.send(snippet);
-	}
-
-	ws.onOpen(function() {
-		setStatus({available: true});
-	});
-	ws.onClose(function() {
-		setStatus({available: false});
-	});
-	ws.onError(function(err) {
-		setStatus({error: err});
-	});
-
-	ws.onMessage(function(message) {
-
-		console.log("received ws message: " + message.data);
-		if (message.data !== "Connected.") {
-			var snippet = JSON.parse(message.data);
-			if (Snippets.currentSnippet.id === snippet.id) {
-				Snippets.setCurrentSnippetAs(snippet);
-			}
-		} else {
-			console.log(message.data);
+		var ws = $websocket(Config.WS_URL);
+		var status = {
+			available: false,
+			error: ""
 		}
-	});
+		function setStatus (opts) {
+			angular.extend(status, status, opts);
+		}
+		function getStatus() {
+			return status;
+		}
+		function send(snippet) {
+			console.log('sending ws message');
+			return ws.send(JSON.stringify(snippet));
+		}
 
-	var methods = {
-	  status: status,
-	  send: send
-	};
-	return methods;
+		ws.onOpen(function() {
+			setStatus({available: true});
+		});
+		ws.onClose(function() {
+			setStatus({available: false});
+		});
+		ws.onError(function(err) {
+			setStatus({error: err});
+		});
+
+		ws.onMessage(function(message) {
+
+			console.log("received ws message:\n " + message.data);
+			var o = JSON.parse(message.data);
+
+			if (Utils.typeOf(o) === 'object') {
+				console.log("received msg was obj");
+				if (o.bucketId !== 'undefined') { // check if is snippet
+					console.log("received msg was snippet");
+					if (Snippets.getCurrentSnippet().id === o.id) {
+						console.log("is current snippet!");
+						Snippets.setCurrentSnippetAs(o);
+					} else {
+						console.log("not current snippet. setting to lib.");
+						Snippets.setOneToSnippetsLib(o); // so we have a fresh version in store
+					}
+
+				} else if (o.meta !== 'undefined') { // check if is a bucket
+					console.log("shit. msg was undefined.");
+				}
+			} else if (Utils.typeOf(o) === 'array') {
+				console.log('what the ws received an array');
+			} else {
+				console.log('what the fuck the ws received some shit:\n' + JSON.stringify(o));
+			}
+		});
+
+		var methods = {
+		  status: status,
+		  send: send
+		};
+		return methods;
 }]);
 
-app.factory("Utils", function () {
+app.factory("Errors", [function () {
+	var error = {};
+	function getError() {
+		return error;
+	}
+	function setError(err) {
+		error = err;
+		return err;
+	}
+	return {
+		getError: getError,
+		setError: setError
+	};
+}]);
+
+app.factory("Utils", ["Config", function (Config) {
+
+	function typeOf (obj) {
+	  return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
+	}
+
+	function setEditorOptions(obj) {
+		return angular.extend({}, Config.EDITOROPTIONS, obj);
+	}
+	
 	function getLanguageModeByExtension(name) {
 	  var o = "";
 	  var exs = name.split(".");
@@ -225,6 +346,8 @@ app.factory("Utils", function () {
 	var htmlembeddedMode = {name: 'htmlembedded'};
 
 	return {
+		typeOf: typeOf,
+		setEditorOptions: setEditorOptions,
 		getLanguageModeByExtension: getLanguageModeByExtension,
 		goMode: goMode,
 		javascriptMode: javascriptMode,
@@ -237,50 +360,104 @@ app.factory("Utils", function () {
 		htmlmixedMode: htmlmixedMode,
 		htmlembeddedMode: htmlembeddedMode
 	};
-});
+}]);
 
-app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout',
-	function ($scope, WS, Buckets, Snippets, Utils, $timeout) {
+app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout', 'Errors', 'Config',
+	function ($scope, WS, Buckets, Snippets, Utils, $timeout, Errors, Config) {
 
 	$scope.testes = "this is only a test"
 
 	$scope.data = {};
-	$scope.data.msgs = WS.collection;
 	$scope.data.ws = WS.status;
-	$scope.data.cs = Snippets.getCurrentSnippet();
 
-	Buckets.getAll().then(function (res) {
-		$scope.data.buckets = res.data;	
-		$scope.data.currentBucket = $scope.data.buckets[0]; // Set current as first for now.
-		Buckets.getOne($scope.data.currentBucket.id).then(function (res) {
-			
-			if (res.data !== null) {
-				console.log(JSON.stringify(res));
-				// $scope.data.currentBucketSnippets = Buckets.setBucketAsCurrent(res.data);	
+	$scope.data.cs = Config.DEFAULTSNIPPET; // inits as {}
+	$scope.data.cb = Buckets.getCurrentBucket();
 
-				// Snippets.setCurrentSnippetAs(res); // Set current as first for now.
-				// $scope.data.cs = Snippets.getCurrentSnippet();	
-			} else {
-				// nil in bucket
-				console.log("nil in bucket")
-			}
-			
-		});
+	$scope.data.buckets = Buckets.getBuckets();
+	$scope.data.snippets = Snippets.getSnippetsLib();
+	$scope.data.error = Errors.getError();
+
+	$scope.editorOptions = Utils.setEditorOptions({
+		mode: Utils.getLanguageModeByExtension($scope.data.cs.language)
 	});
 
-	function setEditorOpts(snip) {
-		$scope.editorOptions = {
-			mode:  Utils.getLanguageModeByExtension(snip.name || 'boots.go'),
-			lineNumbers: true,
-			tabSize: 2,
-			inputStyle: "contenteditable",
-			styleSelectedText: true,
-			matchBrackets: true,
-			autoCloseBrackets: true,
-			showHint: true
-		};	
-	}
-	setEditorOpts($scope.data.cs);
+	Snippets.getUberAll().then(function (res) {
+		console.log(res);
+		Snippets.setManyToSnippetsLib(res.data);
+	}).then(function (res) {
+		if (Snippets.getSnippetsLib.length > 0) {
+			$scope.data.cs = Snippets.getCurrentSnippet[0];
+		}
+	}).catch(function (err) {
+		console.log('errr!');
+		Errors.setError(err);
+	});
+
+	Buckets.fetchAll().then(function (res) {
+		console.log(res.data);
+		Buckets.storeManyBuckets(res.data);
+		// $scope.data.buckets = Buckets.getBuckets();
+	});
+
+	$scope.$watchCollection('data.cs', function (old, neww) {
+		console.log("data.cs changed:\n old: " + JSON.stringify(old) + "\n new: " + JSON.stringify(neww));
+		WS.send(neww);
+	}, true);
+
+	// Snippets.getUberAll().then(function (res) {
+	// 	console.log("Got snippets uberall ctrl: " + JSON.stringify(res.data));
+	// 	$scope.data.snippets = Snippets.getSnippetsLib;
+	// 	// $scope.data.snippets = Snippets.getSnippetsLib;
+	// 	// Snippets.setManyToSnippetsLib(res.data);
+	// 	// $scope.data.snippets = Snippets.getSnippetsLib;
+	// });
+
+	// Buckets.fetchAll().then(function (res) {
+	// 	// guaranteed at least one bucket
+	// 	// get snippets for arbitrarily first bucket
+	// 	Snip.fetchSnippetsFor(res.data[0].id);
+	// });
+
+	// Buckets.fetchAll().then(function (res) {
+	// 	$scope.data.buckets = res.data;	
+	// 	$scope.data.currentBucket = $scope.data.buckets[0]; // Set current as first for now.
+	// 	Buckets.getOne($scope.data.currentBucket.id).then(function (res) {
+			
+	// 		if (res.data !== null) {
+	// 			console.log(JSON.stringify(res));
+	// 			// $scope.data.currentBucketSnippets = Buckets.setCurrentBucketAs(res.data);	
+
+	// 			// Snippets.setCurrentSnippetAs(res); // Set current as first for now.
+	// 			// $scope.data.cs = Snippets.getCurrentSnippet();	
+	// 		} else {
+	// 			// nil in bucket
+	// 			console.log("nil in bucket")
+	// 		}
+			
+	// 	});
+	// });
+
+	// function setEditorOpts(snip) {
+
+	// }
+	// setEditorOptions($scope.data.cs);
+	
+
+	// Utils.getLanguageModeByExtension(snip.name || 'boots.go'),
+
+	// function setEditorOpts(snip) {
+	// 	$scope.editorOptions = {
+	// 		mode:  
+	// 		lineNumbers: true,
+	// 		tabSize: 2,
+	// 		inputStyle: "contenteditable",
+	// 		styleSelectedText: true,
+	// 		matchBrackets: true,
+	// 		autoCloseBrackets: true,
+	// 		showHint: true
+	// 	};	
+	// }
+	// setEditorOpts($scope.data.cs);
 	
 	// $scope.chooseSnippet = function(snippet) {
 	// 	$scope.data.cs = Snippets.setCurrentSnippetAs(snippet);

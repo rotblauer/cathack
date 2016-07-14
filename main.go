@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"./catchat"
-	"./config"
 	"./controllers"
 	"./models"
 	"github.com/gin-gonic/gin"
@@ -67,7 +66,8 @@ func main() {
 	// r.DELETE("/hack/b/:bucketId", bucket.Delete) // TODO
 	// r.PUT("/hack/b/:bucketId", bucket.Set)       // TODO
 
-	r.GET("/hack/b/:bucketId", snippet.All)        // Get all snippets for a given bucket
+	r.GET("/hack/b/:bucketId", snippet.All) // Get all snippets for a given bucket
+	r.GET("/hack/s", snippet.UberAll)
 	r.DELETE("/hack/s/:snippetId", snippet.Delete) // Delete snippet @ /hack/s/:snippetId?bucket=snippets
 
 	r.PUT("/hack/fs/b/:bucketId", fs.SetBucket)
@@ -77,18 +77,25 @@ func main() {
 
 	// Hack.
 	h.HandleConnect(func(s *melody.Session) {
-		snippets, err := snippetModel.All(config.DefaultBucketName)
-		if err != nil {
-			s.Write([]byte(err.Error()))
-		}
-		j, _ := json.Marshal(snippets)
-		s.Write(j)
+		// snippets, err := snippetModel.All(config.DefaultBucketName)
+		// if err != nil {
+		// 	s.Write([]byte(err.Error()))
+		// }
+		// j, _ := json.Marshal(snippets)
+		// s.Write(j)
+		s.Write([]byte("Connected."))
 	})
+
+	// IS NOT SAVING TO BOLT.
 	h.HandleMessage(func(s *melody.Session, msg []byte) {
-		h.BroadcastOthers(msg, s)
-		var snip models.Snippet
+		fmt.Printf("Handling hack message: %v\n", string(msg))
+		snip := models.Snippet{}
 		json.Unmarshal(msg, &snip)
-		snippetModel.Set(snip)
+		err := snippetModel.Set(snip)
+		if err != nil {
+			h.Broadcast([]byte("'ERROR':" + err.Error()))
+		}
+		h.BroadcastOthers(msg, s)
 	})
 	h.HandleError(func(s *melody.Session, err error) {
 		fmt.Printf("Melody error: %v", err)
