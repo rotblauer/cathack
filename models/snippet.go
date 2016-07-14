@@ -45,11 +45,11 @@ func GetSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snip
 
 func (m SnippetModel) UberAll() (snippets Snippets, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
-		return tx.ForEach(func(buckedId []byte, b *bolt.Bucket) error {
+		return tx.ForEach(func(bucketId []byte, b *bolt.Bucket) error {
 			c := b.Cursor()
 			for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-				var snip Snippet
-				json.Unmarshal(snipval, snip)
+				snip := Snippet{}
+				json.Unmarshal(snipval, &snip)
 				snippets = append(snippets, snip)
 			}
 			return nil
@@ -83,6 +83,15 @@ func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 }
 
 func (m SnippetModel) Set(snippet Snippet) error {
+
+	fmt.Printf("Will try to set snip.\n")
+	fmt.Printf("snip.Id: %v\n", snippet.Id)
+	fmt.Printf("snippet.BucketId: %v\n", snippet.BucketId)
+	fmt.Printf("snippet.Name: %v\n", snippet.Name)
+	fmt.Printf("snippet.Language: %v\n", snippet.Language)
+	fmt.Printf("snippet.Content: %v\n", snippet.Content)
+	fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
+
 	return db.Update(func(tx *bolt.Tx) error {
 		b, berr := tx.CreateBucketIfNotExists([]byte(snippet.BucketId))
 		if berr != nil {
@@ -101,6 +110,7 @@ func (m SnippetModel) Set(snippet Snippet) error {
 			fmt.Printf("Error putting snippet to bucket: %v\n", perr)
 			return perr
 		}
+		fmt.Printf("It would appear I successfully put hte snippet.")
 		return nil
 	})
 }
