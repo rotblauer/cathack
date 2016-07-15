@@ -91,6 +91,15 @@
                         </span>
                       </a>
                       <ul class="dropdown-menu">
+                        <li>
+                          <a id="importBucket" href="" ng-click="importBucket()">
+                            <span class="">
+                              <span class="octicon octicon-cloud-download"></span>&nbsp;
+                              Write to FS
+                            </span>
+                            </a>
+                        </li>
+
                         <li><a href="" data-toggle="modal" data-target="#myModal"><span class="text-primary"><span class="octicon octicon-pencil"></span>&nbsp;Rename</span></a></li>
                         <li><a href="" ng-click="deleteBucket(bucket)"><span class="text-danger">
                           <span class="octicon octicon-x"></span>&nbsp;Destroy</span></a></li>
@@ -107,21 +116,21 @@
                         </a>
                     </li>
                     <li role="separator" class="divider"></li>
-                    <li>
-                      <a id="importBucket" href="" ng-click="importBucket()">
+
+                    <li class="dropdown-submenu">
+                      <a id="importBucket" tabindex="-1" href="" ng-click="importBucket()">
                         <span class="">
                           <span class="octicon octicon-cloud-upload"></span>&nbsp;
                           import
                         </span>
                         </a>
-                    </li>
-                    <li>
-                      <a id="importBucket" href="" ng-click="importBucket()">
-                        <span class="">
-                          <span class="octicon octicon-cloud-download"></span>&nbsp;
-                          write
-                        </span>
-                        </a>
+                        <ul class="dropdown-menu">
+                          <li ng-repeat="path in data.cfs" ng-click="import(path.path, path.fileInfo.isDir)">
+                            <a href="">
+                              <span class="octicon {{path.fileInfo.isDir ? 'octicon-file-directory' : 'octicon-file-text text-primary'}}">&nbsp;{{path.path}}&nbsp;<small class="text-muted">Last modified: {{path.fileInfo.modTime | date: 'H:mm:ss on EEE, MMM d'}}</small></span>
+                            </a>
+                          </li>
+                        </ul>
                     </li>
 
                   </ul>

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 
@@ -54,24 +55,33 @@ func (ctrl FSController) Walk(c *gin.Context) {
 }
 
 func (ctrl FSController) SnippetizeOne(c *gin.Context) {
-	var json string
-	c.Bind(&json)
-	b, s, e := fsModel.SnippetizeFile(json)
+
+	path := c.Query("path")
+	fmt.Printf("got FS query path: %v\n", path)
+
+	var p string
+	json.Unmarshal([]byte(path), &p)
+
+	b, s, e := fsModel.SnippetizeFile(p)
 	if e != nil {
 		c.JSON(500, e)
 	} else {
-		c.JSON(200, gin.H{"bucket": b, "snippet": s})
+		c.JSON(200, gin.H{"b": b, "s": s})
 	}
 }
 
 func (ctrl FSController) SnippetizeMany(c *gin.Context) {
-	var json string
-	c.Bind(&json)
-	bs, ss, e := fsModel.SnippetizeDir(json)
+	path := c.Query("path")
+	fmt.Printf("got FS query path: %v\n", path)
+
+	var p string
+	json.Unmarshal([]byte(path), &p)
+
+	bs, ss, e := fsModel.SnippetizeDir(path)
 	if e != nil {
 		c.JSON(500, e)
 	} else {
-		c.JSON(200, gin.H{"buckets": bs, "snippets": ss})
+		c.JSON(200, gin.H{"b": bs, "s": ss})
 	}
 }
 

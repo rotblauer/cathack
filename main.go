@@ -76,8 +76,8 @@ func main() {
 	r.PUT("/hack/fs/b/:bucketId", fs.WriteBucketToDir) // Write bucket to directory.
 
 	// Should write contents of file at filePath to associated bucket (by file's /basepath).
-	r.POST("/hack/fs/s/:path", fs.SnippetizeOne)  // Accepts json-ified string as param. Writes one file to bolt snippet.
-	r.POST("/hack/fs/b/:path", fs.SnippetizeMany) // Write each file in path to bolt by n-1 dir name as bucket.
+	r.GET("/hack/fs/s", fs.SnippetizeOne)  // Accepts json-ified string as param. Writes one file to bolt snippet.
+	r.GET("/hack/fs/b", fs.SnippetizeMany) // Write each file in path to bolt by n-1 dir name as bucket.
 
 	// Websockets.
 	//

@@ -29,7 +29,7 @@ func getMeta(b *bolt.Bucket) (meta MetaBucket) {
 	return meta
 }
 
-func findBucketByName(name string) (bucket Bucket, err error) {
+func GetBucketByName(name string) (bucket Bucket, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		// FIXME?: this return the _last_ bucket with a given name. There are
 		// currently no validations that buckets won't have duplicate names.

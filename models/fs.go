@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,6 +33,9 @@ type FileInfo struct {
 }
 
 type FSModel struct{}
+
+var snippetModel = new(SnippetModel)
+var bucketModel = new(BucketModel)
 
 // I want to use FS to walk the HacksRootDir and collect all the
 // files (and empty directories).
@@ -66,7 +70,9 @@ func getBucketNameByFSPath(path string) (bucketName string) {
 	d := filepath.Dir(c)
 	withinHacksRootDir := strings.Replace(d, config.FSStorePath+"/", "", 1)
 	folders := strings.Split(withinHacksRootDir, "/")
-	return folders[0]
+	bucketName = folders[0]
+	fmt.Printf("Got bucketName: %v\n:", bucketName)
+	return bucketName
 }
 
 func getSnippetNamebyFSPath(path string) (snippetName string) {
@@ -74,6 +80,7 @@ func getSnippetNamebyFSPath(path string) (snippetName string) {
 	d := strings.Replace(c, config.FSStorePath+"/", "", 1) // remove hacks/
 	b := getBucketNameByFSPath(path)                       //
 	snippetName = strings.Replace(d, b, "", 1)             // remove bucket/
+	fmt.Printf("Got snippetName: %v\n:", snippetName)
 	return snippetName
 }
 
@@ -93,15 +100,18 @@ func bucketizeDir(path string) (bucket Bucket, err error) {
 	// Extract bucket name from path.
 	bucketName := getBucketNameByFSPath(path)
 	// Check if bucket exists by name.
-	bucket, err = findBucketByName(bucketName) // Bucket{}
+	bucket, err = GetBucketByName(bucketName) // Bucket{}
 	if err != nil {
 		return bucket, err
 	}
+	fmt.Println("Got bucket: %v\n", bucket)
+
 	// If bucket doesn't exist by name (from hacks/@bucket/path/to/file)
 	if bucket == (Bucket{}) {
 		// Initialize a new bucket.
-		bucketModel := new(BucketModel)
+		fmt.Println("Creating new bucket...")
 		bucket, err = bucketModel.Create(bucketName)
+		fmt.Println("New bucket: %v\n", bucket)
 		if err != nil {
 			return bucket, err
 		}
@@ -110,21 +120,30 @@ func bucketizeDir(path string) (bucket Bucket, err error) {
 }
 
 func snippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
+
+	fmt.Printf("Snippetizering path: %v\n", path)
+
 	// Read contents of file.
 	contents, ioerr := ioutil.ReadFile(path) // func ReadFile(filename string) ([]byte, error)
 	if ioerr != nil {
+		fmt.Println("IO err: %v\n", ioerr)
 		return bucket, snippet, err
 	}
+	fmt.Println("File contents: %v\n", contents)
 
 	bucket, err = bucketizeDir(path)
 	if err != nil {
 		return bucket, snippet, err
 	}
+	fmt.Println("Bucket id: %v\n", bucket.Id)
 
 	// Extract snippet name from path.
 	snippetName := getSnippetNamebyFSPath(path)
+	fmt.Println("Snippet name: %v\n", snippet.Name)
+
 	// Check if snippet exists by name.
-	snippet = getSnippetByName(bucket.Id, snippetName)
+	snippet = GetSnippetByName(bucket.Id, snippetName)
+
 	// If snippet doesn't exists by name (from (hacks/@bucketName/<this/is/a/filename.txt>)
 	if snippet == (Snippet{}) {
 		snippet.Name = snippetName
@@ -136,18 +155,33 @@ func snippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
 	snippet.Language = lib.GetLanguageModeByExtension(snippetName)
 	snippet.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
 
-	snippetModel := new(SnippetModel)
+	fmt.Println("Snippet: %v\n", snippet)
+
+	fmt.Println("Setting snippet...")
 	err = snippetModel.Set(snippet)
+
 	return bucket, snippet, err
 }
 
 // Note: accepts FULL path (includes FSStoreDir)
 func (fs FSModel) SnippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
 	return snippetizeFile(path)
+
+	// // Now save the snippet (per bucket) to Bolt.
+	// err = db.Update(func(tx *bolt.Tx) error {
+	// 	b := tx.Bucket([]byte(bucket.Id)) // could also use snippet.BucketId
+	// 	j, _ := json.Marshal(snippet)
+	// 	e := b.Put([]byte(snippet.Id), j)
+	// 	if e != nil {
+	// 		return e
+	// 	}
+	// 	return nil
+	// 	})
+	// return bucket, snippet, err
 }
 
 func (fs FSModel) SnippetizeDir(path string) (buckets Buckets, snippets Snippets, err error) {
-	werr := filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -161,7 +195,16 @@ func (fs FSModel) SnippetizeDir(path string) (buckets Buckets, snippets Snippets
 		}
 		return nil
 	})
-	return buckets, snippets, werr
+
+	// // Save the snippets.
+	// // NOTE again, we're treating empty dirs in the FS as non-entities.
+	// for _, snip := range snippets {
+	// 	db.Update(func(tx *bolt.Tx) error {
+
+	// 		})
+	// }
+
+	return buckets, snippets, err
 }
 
 // func (fs FSModel) SetDir() error {

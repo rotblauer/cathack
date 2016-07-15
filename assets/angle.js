@@ -13,7 +13,8 @@ app.constant('Config', {
   "API_URL": "http://" + window.location.host + "/hack",
   "ENDPOINTS": {
   	"BUCKETS": "/b",
-  	"SNIPPETS": "/s"
+  	"SNIPPETS": "/s",
+  	"FS": "/fs"
   },
   "EDITOROPTIONS": {
 		mode: {name: 'markdown'},
@@ -48,6 +49,96 @@ app.constant('Config', {
 		}
 	}
 });
+
+app.factory("Utils", ["Config", function (Config) {
+
+	function typeOf (obj) {
+	  return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
+	}
+
+	function setEditorOptions(obj) {
+		return angular.extend({}, Config.EDITOROPTIONS, obj);
+	}
+	
+	function getLanguageModeByExtension(name) {
+	  var o = "";
+	  var exs = name.split(".");
+	  console.log('exs -> ' + JSON.stringify(exs));
+	  for (var i = 0; i < exs.length ; i++) {
+	    var ex = exs[i];
+	    console.log("checking case: " + ex);
+	    switch (ex) {
+	      case 'js':
+	        o = javascriptMode;
+	        break;
+	      case 'erb': 
+	      case 'html':
+	        o = htmlmixedMode;
+	        break;
+	      case 'go':
+	        o = goMode;
+	        break;
+	      case 'md':
+	      case 'mdown':
+	      case 'markdown':
+	        o = markdownMode;
+	        break;
+	      case 'py':
+	        o = pythonMode;
+	        break;
+	      case 'rb':
+	        o = rubyMode;
+	        break;
+	      case 'r':
+	        o = rMode;
+	        break;
+	      case 'sh':
+	      case 'zsh':
+	        o = shellMode;
+	        break;
+	      case 'swift':
+	        o = swiftMode;
+	        break;
+	      default: 
+	        o = markdownMode;
+	        break;
+	    }  
+	  }
+	  console.log("language by extension -> " + o);
+	  return o;
+	}
+
+	var goMode = {name: 'go'};
+	var javascriptMode = {name: 'javascript'};
+	var markdownMode = {name: 'markdown'};
+	var pythonMode = {name: 'python'};
+	var rubyMode = {name: 'ruby'};
+	var rMode = {name: 'r'};
+	var shellMode = {name: 'shell'};
+	var swiftMode = {name: 'swift'};
+	var htmlmixedMode = {name: 'htmlmixed', scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
+	                 mode: null},
+	                {matches: /(text|application)\/(x-)?vb(a|script)/i,
+	                 mode: "vbscript"}]};
+	var htmlembeddedMode = {name: 'htmlembedded'};
+
+	return {
+		typeOf: typeOf,
+		setEditorOptions: setEditorOptions,
+		getLanguageModeByExtension: getLanguageModeByExtension,
+		goMode: goMode,
+		javascriptMode: javascriptMode,
+		markdownMode: markdownMode,
+		pythonMode: pythonMode,
+		rubyMode: rubyMode,
+		rMode: rMode,
+		shellMode: shellMode,
+		swiftMode: swiftMode,
+		htmlmixedMode: htmlmixedMode,
+		htmlembeddedMode: htmlembeddedMode
+	};
+}]);
+
 
 // BUCKETS FACTORY.
 app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', function ($http, Config, Errors, Snippets, Utils) {
@@ -194,6 +285,44 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 		};
 }]);
 
+app.factory("FS", ['$log', '$http', 'Config', function ($log, $http, Config) {
+
+	function fetchFS() {
+		var url = Config.API_URL + Config.ENDPOINTS.FS
+		return $http.get(url);
+	}
+
+	function importDir(path) {
+		var url = Config.API_URL + 
+						  Config.ENDPOINTS.FS + 
+						  Config.ENDPOINTS.BUCKETS
+		var config = {
+			params: {
+				path: JSON.stringify(path)
+			}
+		}
+		return $http.get(url, config); // c.JSON(200, gin.H{"b": bs, "s": ss})
+	}
+
+	function importFile(path) {
+		var url = Config.API_URL + 
+								  Config.ENDPOINTS.FS + 
+								  Config.ENDPOINTS.SNIPPETS
+		var config = {
+			params: {
+				path: JSON.stringify(path)
+			}
+		}
+		return $http.get(url, config); // c.JSON(200, gin.H{"b": b, "s": s})
+	}
+
+	return {
+		fetchFS: fetchFS,
+		importFile: importFile,
+		importDir: importDir
+	};
+}]);
+
 // WEBSOCKET FACTORY.
 // https://github.com/AngularClass/angular-websocket
 app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets', 'Utils',
@@ -248,121 +377,8 @@ app.factory("Errors", [function () {
 	};
 }]);
 
-app.factory("Utils", ["Config", function (Config) {
-
-	function typeOf (obj) {
-	  return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
-	}
-
-	function setEditorOptions(obj) {
-		return angular.extend({}, Config.EDITOROPTIONS, obj);
-	}
-	
-	function getLanguageModeByExtension(name) {
-	  var o = "";
-	  var exs = name.split(".");
-	  console.log('exs -> ' + JSON.stringify(exs));
-	  for (var i = 0; i < exs.length ; i++) {
-	    var ex = exs[i];
-	    console.log("checking case: " + ex);
-	    switch (ex) {
-	      case 'js':
-	        o = javascriptMode;
-	        break;
-	      case 'erb': 
-	      case 'html':
-	        o = htmlmixedMode;
-	        break;
-	      case 'go':
-	        o = goMode;
-	        break;
-	      case 'md':
-	      case 'mdown':
-	      case 'markdown':
-	        o = markdownMode;
-	        break;
-	      case 'py':
-	        o = pythonMode;
-	        break;
-	      case 'rb':
-	        o = rubyMode;
-	        break;
-	      case 'r':
-	        o = rMode;
-	        break;
-	      case 'sh':
-	      case 'zsh':
-	        o = shellMode;
-	        break;
-	      case 'swift':
-	        o = swiftMode;
-	        break;
-	      default: 
-	        o = markdownMode;
-	        break;
-	    }  
-	  }
-	  console.log("language by extension -> " + o);
-	  return o;
-	}
-
-	var goMode = {name: 'go'};
-	var javascriptMode = {name: 'javascript'};
-	var markdownMode = {name: 'markdown'};
-	var pythonMode = {name: 'python'};
-	var rubyMode = {name: 'ruby'};
-	var rMode = {name: 'r'};
-	var shellMode = {name: 'shell'};
-	var swiftMode = {name: 'swift'};
-	var htmlmixedMode = {name: 'htmlmixed', scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
-	                 mode: null},
-	                {matches: /(text|application)\/(x-)?vb(a|script)/i,
-	                 mode: "vbscript"}]};
-	var htmlembeddedMode = {name: 'htmlembedded'};
-
-	return {
-		typeOf: typeOf,
-		setEditorOptions: setEditorOptions,
-		getLanguageModeByExtension: getLanguageModeByExtension,
-		goMode: goMode,
-		javascriptMode: javascriptMode,
-		markdownMode: markdownMode,
-		pythonMode: pythonMode,
-		rubyMode: rubyMode,
-		rMode: rMode,
-		shellMode: shellMode,
-		swiftMode: swiftMode,
-		htmlmixedMode: htmlmixedMode,
-		htmlembeddedMode: htmlembeddedMode
-	};
-}]);
-
-// app.controller("BucketsController", ["$scope", "WS", "Buckets", function ($scope, WS, Buckets) {
-
-// 	$scope.bs = "bssss";
-// 	$scope.data = {};
-// 	$scope.data.cb = Buckets.getCurrentBucket();
-// 	$scope.data.buckets = Buckets.getBuckets();
-
-// 	// Init. 
-// 	// 
-// 	// Fetch all buckets [{id: "23423=", meta: {name: "snippets", timestamp: 234234234234}}, {...}]
-// 	Buckets.fetchAll().then(function (res) {
-// 		console.log(res.data);
-// 		Buckets.storeManyBuckets(res.data);
-// 		Buckets.setCurrentBucketAs(res.data[0]);
-// 		// $scope.data.buckets = Buckets.getBuckets();
-// 	});
-
-
-// 	$scope.selectBucketAsCurrent = function (bucket) {
-// 		return Buckets.setCurrentBucketAs(bucket);
-// 	};
-
-// }]);
-
-app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$timeout', 'Errors', 'Config', '$log',
-	function ($scope, WS, Buckets, Snippets, Utils, $timeout, Errors, Config, $log) {
+app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log',
+	function ($scope, WS, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log) {
 
 	$scope.testes = "this is only a test"
 
@@ -408,7 +424,14 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 		} else {
 			$scope.data.cb = Buckets.getBuckets()[$scope.data.cs.bucketId]; // set current bucket to be current snippet's bucket
 		}
-	})	
+	})
+	.then(function () {
+		return FS.fetchFS();
+	})
+	.then(function (res) {
+		$log.log('Got FS', res.data);
+		$scope.data.cfs = res.data;
+	})
 	.catch(Errors.setError);
 
 
@@ -581,6 +604,34 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'Utils', '$ti
 			.error(function (err) {
 				$log.log(err);
 			});
+	};
+
+	$scope.import = function (path, isDir) {
+		if (isDir) {
+			FS.importDir(path)
+				.success(function (res) {
+					$log.log('got res:', res);
+					Buckets.storeManyBuckets(res.b);
+					Snippets.setManyToSnippetsLib(res.s);
+					$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
+					$scope.data.cb = Buckets.getBuckets()[$scope.data.cs.bucketId];
+				})
+				.error(function (err) {
+					$log.log('importDir failed', err);
+				});
+		} else {
+			FS.importFile(path)
+				.success(function (res) {
+					$log.log('got res:', res);
+					Buckets.storeOneBucket(res.b);
+					$scope.data.cb = Buckets.getBuckets()[res.b.id];
+					Snippets.setOneToSnippetsLib(res.s);
+					$scope.data.cs = Snippets.getSnippetsLib()[res.s.id];
+				})
+				.error(function (err) {
+					$log.log("importFile failed", err);
+				});
+		}
 	};
 
 }]);
