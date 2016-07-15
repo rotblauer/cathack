@@ -527,23 +527,26 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	};	
 
 	$scope.deleteSnippet = function (snippet) {
-		return Snippets.deleteSnippet(snippet)
-			// c.JSON(200, gin.H{
-			// 	"snippetId": snippetId,
-			// 	"bucketId":  bucketId,
-			// 	"snippets":  snippets,
-			// })
-			.then(function (res) {
-				// Snippets.setManyToSnippetsLib(res.data.snippets)
-				delete $scope.data.snippets[res.data.snippetId];
-				$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
-			})
-			.then(function (res) {
-				console.log('deleted snippet');
-			})
-			.catch(function (err) {
-				console.log("failed to delete snippet." + JSON.stringify(err.data));
-			});
+		var ok = window.confirm("OK to delete this snippet?")
+		if (ok) {
+			return Snippets.deleteSnippet(snippet)
+				// c.JSON(200, gin.H{
+				// 	"snippetId": snippetId,
+				// 	"bucketId":  bucketId,
+				// 	"snippets":  snippets,
+				// })
+				.then(function (res) {
+					// Snippets.setManyToSnippetsLib(res.data.snippets)
+					delete $scope.data.snippets[res.data.snippetId];
+					$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
+				})
+				.then(function (res) {
+					console.log('deleted snippet');
+				})
+				.catch(function (err) {
+					console.log("failed to delete snippet." + JSON.stringify(err.data));
+				});	
+		}			
 	};
 
 
@@ -613,6 +616,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 					$log.log('got res:', res);
 					Buckets.storeManyBuckets(res.b);
 					Snippets.setManyToSnippetsLib(res.s);
+					$scope.data.snippets = Snippets.getSnippetsLib();
 					$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
 					$scope.data.cb = Buckets.getBuckets()[$scope.data.cs.bucketId];
 				})
@@ -626,6 +630,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 					Buckets.storeOneBucket(res.b);
 					$scope.data.cb = Buckets.getBuckets()[res.b.id];
 					Snippets.setOneToSnippetsLib(res.s);
+					$scope.data.snippets = Snippets.getSnippetsLib();
 					$scope.data.cs = Snippets.getSnippetsLib()[res.s.id];
 				})
 				.error(function (err) {

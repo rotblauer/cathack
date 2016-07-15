@@ -164,9 +164,11 @@
              </div><!-- /.modal-dialog -->
            </div><!-- /.modal -->
 
+
+          <!-- SNIPPETS LIB -->
            <div id="snippetsLib" class="row padding">
-            <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active' : ''}}" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
-              <span class="name" ng-if="snip.bucketId == data.cb.id">
+            <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active' : ''}}" ng-if="snip.bucketId == data.cb.id" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
+              <span class="name" >
                 <span class="octicon octicon-file-text"></span>&nbsp;
                 {{snip.name}}
                 <small class="text-muted" style="font-weight: lighter;">
