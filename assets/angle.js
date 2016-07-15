@@ -402,9 +402,23 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	
 	$scope.data.error = Errors.getError();
 
+	$scope.alert = {};
+	$scope.getAlert = function () {
+		return $scope.alert;
+	};
+
 	$scope.editorOptions = Utils.setEditorOptions({
 		mode: Utils.getLanguageModeByExtension($scope.data.cs.language)
 	});
+
+	function flashAlert(classs, text) {
+		$log.log("Showing alert.");
+		$scope.alert.class = classs;
+		$scope.alert.text = text;
+		$timeout(function() {
+			$scope.alert = {};
+		}, 3000);
+	}
 
 
 	// Init.
@@ -551,6 +565,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 				})
 				.then(function (res) {
 					console.log('deleted snippet');
+					flashAlert('success', "Successfully deleted snippet.");
 				})
 				.catch(function (err) {
 					console.log("failed to delete snippet." + JSON.stringify(err.data));
@@ -657,6 +672,8 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 				$log.log('error!', err);
 			});
 	};
+
+
 
 }]);
 
