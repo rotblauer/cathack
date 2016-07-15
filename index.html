@@ -160,6 +160,7 @@
         var text = $("#text");
         var isTypingDisplay = $("#other-is-typing");
         var data = [];
+        var myIp;
         
         function formatDate(goTimeString, form) {
           
@@ -263,6 +264,31 @@
             }
           });
         }
+        function strip(html)
+        {
+           var tmp = document.createElement("DIV");
+           tmp.innerHTML = html;
+           return tmp.textContent || tmp.innerText || "";
+        }
+
+        // Get ip to compare so don't notify on own messages. 
+        $.getJSON('//freegeoip.net/json/?callback=?', function(data) {
+          console.log(JSON.stringify(data, null, 2));
+          myIp = data.ip;
+        });
+        // {
+        //   "ip": "116.12.250.1",
+        //   "country_code": "SG",
+        //   "country_name": "Singapore",
+        //   "region_code": "01",
+        //   "region_name": "Central Singapore Community Development Council",
+        //   "city": "Singapore",
+        //   "zip_code": "",
+        //   "time_zone": "Asia/Singapore",
+        //   "latitude": 1.2931,
+        //   "longitude": 103.8558,
+        //   "metro_code": 0
+        // }
         
         ws.onmessage = function (msg) {
 
@@ -277,11 +303,15 @@
             renderData(data);
 
             // Push local notification. 
-            notify({
-              text: line['City'], 
-              body: line['Message'], 
-              tag: Math.random().toString(36).substring(10)
-            });
+            var note = JSON.parse(line);
+            if (myIp !== note.Ip) {
+              notify({
+                text: strip(note['Message']), 
+                body: note['City'], 
+                tag: Math.random().toString(36).substring(10)
+              });
+            }
+            
             
             scrollChat(); // set to bottom nicelike
 
