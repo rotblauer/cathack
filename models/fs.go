@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"../config"
+	"../lib"
 )
 
 // TODO: is this being used anywhere?
@@ -63,7 +64,7 @@ func (fs FSModel) CollectDirPaths() (filepaths Filepaths, err error) {
 func getBucketNameByFSPath(path string) (bucketName string) {
 	c := filepath.Clean(path)
 	d := filepath.Dir(c)
-	withinHacksRootDir := strings.Replace(dir, config.FSStorePath+"/", "", 1)
+	withinHacksRootDir := strings.Replace(d, config.FSStorePath+"/", "", 1)
 	folders := strings.Split(withinHacksRootDir, "/")
 	return folders[0]
 }
@@ -73,10 +74,11 @@ func getSnippetNamebyFSPath(path string) (snippetName string) {
 	d := strings.Replace(c, config.FSStorePath+"/", "", 1) // remove hacks/
 	b := getBucketNameByFSPath(path)                       //
 	snippetName = strings.Replace(d, b, "", 1)             // remove bucket/
+	return snippetName
 }
 
 // TODO: route this.?
-func (fs FSModel) SetFile(bucket Bucket, snippet Snippet) (err error) {
+func (fs FSModel) WriteFile(bucket Bucket, snippet Snippet) (err error) {
 	cleanName := filepath.Clean(snippet.Name)
 	d := filepath.Join(config.FSStorePath, bucket.Meta.Name, filepath.Dir(cleanName))
 	err = os.MkdirAll(d, 0777)
@@ -87,24 +89,79 @@ func (fs FSModel) SetFile(bucket Bucket, snippet Snippet) (err error) {
 	return err
 }
 
-// Note: accepts FULL path (includes FSStoreDir)
-func (fs FSModel) SnippetizeFile(path string) (snippet Snippet, err error) {
-	contents, ioerr := ioutil.ReadFile(path) // func ReadFile(filename string) ([]byte, error)
-	if ioerr != nil {
-		return nil, err
-	}
-
+func bucketizeDir(path string) (bucket Bucket, err error) {
+	// Extract bucket name from path.
 	bucketName := getBucketNameByFSPath(path)
-	bucket := findBucketByName(bucketName) // Bucket{}
-
-	db.Update(func(tx *bolt.TX) error {
-		b := tx.Bucket([]byte(bucket.Id))
-
-	})
+	// Check if bucket exists by name.
+	bucket, err = findBucketByName(bucketName) // Bucket{}
+	if err != nil {
+		return bucket, err
+	}
+	// If bucket doesn't exist by name (from hacks/@bucket/path/to/file)
+	if bucket == (Bucket{}) {
+		// Initialize a new bucket.
+		bucketModel := new(BucketModel)
+		bucket, err = bucketModel.Create(bucketName)
+		if err != nil {
+			return bucket, err
+		}
+	}
+	return bucket, err
 }
 
-func (fs FSModel) SnippetizeDir(path string) (snippets Snippets) {
+func snippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
+	// Read contents of file.
+	contents, ioerr := ioutil.ReadFile(path) // func ReadFile(filename string) ([]byte, error)
+	if ioerr != nil {
+		return bucket, snippet, err
+	}
 
+	bucket, err = bucketizeDir(path)
+	if err != nil {
+		return bucket, snippet, err
+	}
+
+	// Extract snippet name from path.
+	snippetName := getSnippetNamebyFSPath(path)
+	// Check if snippet exists by name.
+	snippet = getSnippetByName(bucket.Id, snippetName)
+	// If snippet doesn't exists by name (from (hacks/@bucketName/<this/is/a/filename.txt>)
+	if snippet == (Snippet{}) {
+		snippet.Name = snippetName
+		snippet.BucketId = bucket.Id
+		snippet.Id = lib.RandSeq(6)
+	}
+	// Set attributes for previously existing or fresh-off-the-press snippet.
+	snippet.Content = string(contents)
+	snippet.Language = lib.GetLanguageModeByExtension(snippetName)
+	snippet.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
+
+	snippetModel := new(SnippetModel)
+	err = snippetModel.Set(snippet)
+	return bucket, snippet, err
+}
+
+// Note: accepts FULL path (includes FSStoreDir)
+func (fs FSModel) SnippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
+	return snippetizeFile(path)
+}
+
+func (fs FSModel) SnippetizeDir(path string) (buckets Buckets, snippets Snippets, err error) {
+	werr := filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			bucket, snippet, snipErr := snippetizeFile(path)
+			if snipErr != nil {
+				// TODO: Handle errors better. Like in their own model.
+			}
+			buckets = append(buckets, bucket)
+			snippets = append(snippets, snippet)
+		}
+		return nil
+	})
+	return buckets, snippets, werr
 }
 
 // func (fs FSModel) SetDir() error {

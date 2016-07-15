@@ -24,17 +24,20 @@ func snipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {
 	return snippet
 }
 
-func getSnippetByName(bucketname string, name string, tx *bolt.Tx) (snippet Snippet) {
-	b := tx.Bucket([]byte(bucketname))
-	c := b.Cursor()
-
-	for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
-		snip := snipFromJSON(snipval)
-		if snip.Name == name {
-			snippet = snip
-			break
+func getSnippetByName(bucketId string, name string) (snippet Snippet) {
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketId))
+		c := b.Cursor()
+		for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
+			snip := snipFromJSON(snipval)
+			if snip.Name == name {
+				snippet = snip
+				break
+			}
 		}
-	}
+		return nil
+	})
+
 	if snippet == (Snippet{}) {
 		return Snippet{}
 	} else {
@@ -87,13 +90,13 @@ func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 
 func (m SnippetModel) Set(snippet Snippet) error {
 
-	fmt.Printf("Will try to set snip.\n")
-	fmt.Printf("snip.Id: %v\n", snippet.Id)
-	fmt.Printf("snippet.BucketId: %v\n", snippet.BucketId)
-	fmt.Printf("snippet.Name: %v\n", snippet.Name)
-	fmt.Printf("snippet.Language: %v\n", snippet.Language)
-	fmt.Printf("snippet.Content: %v\n", snippet.Content)
-	fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
+	// fmt.Printf("Will try to set snip.\n")
+	// fmt.Printf("snip.Id: %v\n", snippet.Id)
+	// fmt.Printf("snippet.BucketId: %v\n", snippet.BucketId)
+	// fmt.Printf("snippet.Name: %v\n", snippet.Name)
+	// fmt.Printf("snippet.Language: %v\n", snippet.Language)
+	// fmt.Printf("snippet.Content: %v\n", snippet.Content)
+	// fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
 
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(snippet.BucketId))

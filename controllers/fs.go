@@ -14,6 +14,7 @@ type FSController struct{}
 
 var fsModel = new(models.FSModel)
 
+// TODO: Move to model.
 func (ctrl FSController) WriteBucketToDir(c *gin.Context) {
 	bucketId := c.Param("bucketId")
 	bucket := bucketModel.One([]byte(bucketId))
@@ -29,7 +30,7 @@ func (ctrl FSController) WriteBucketToDir(c *gin.Context) {
 	snippets, _ := snippetModel.All(bucketId)
 
 	for _, snippet := range snippets {
-		err = fsModel.SetFile(bucket, snippet) // per bucketName, snippetName, content
+		err = fsModel.WriteFile(bucket, snippet) // per bucketName, snippetName, content
 		if err != nil {
 			break
 		}
@@ -49,6 +50,28 @@ func (ctrl FSController) Walk(c *gin.Context) {
 		c.JSON(500, "error walking fspath")
 	} else {
 		c.JSON(200, filepaths)
+	}
+}
+
+func (ctrl FSController) SnippetizeOne(c *gin.Context) {
+	var json string
+	c.Bind(&json)
+	b, s, e := fsModel.SnippetizeFile(json)
+	if e != nil {
+		c.JSON(500, e)
+	} else {
+		c.JSON(200, gin.H{"bucket": b, "snippet": s})
+	}
+}
+
+func (ctrl FSController) SnippetizeMany(c *gin.Context) {
+	var json string
+	c.Bind(&json)
+	bs, ss, e := fsModel.SnippetizeDir(json)
+	if e != nil {
+		c.JSON(500, e)
+	} else {
+		c.JSON(200, gin.H{"buckets": bs, "snippets": ss})
 	}
 }
 

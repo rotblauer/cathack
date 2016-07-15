@@ -33,23 +33,35 @@ func findBucketByName(name string) (bucket Bucket, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		// FIXME?: this return the _last_ bucket with a given name. There are
 		// currently no validations that buckets won't have duplicate names.
-		tx.ForEach(func(bucketId []byte, b *bolt.Bucket) error {
-			var meta MetaBucket
+		e := tx.ForEach(func(bucketId []byte, b *bolt.Bucket) error {
 			m := getMeta(b)
 			if m.Name == name {
 				bucket.Id = string(bucketId)
 				bucket.Meta = m
 			}
+			return nil
 		})
+		return e
 	})
 	if err != nil {
-		return nil, err
+		return bucket, err
 	}
-	if bucket.Id == nil {
-		return nil, err
+	if bucket == (Bucket{}) {
+		return Bucket{}, err
 	} else {
 		return bucket, err
 	}
+}
+
+// Pointer receiver!
+func (b *Bucket) New(name string) {
+	b.Id = lib.RandSeq(8)
+	// var met = Meta{
+	// 	Name:      name,
+	// 	TimeStamp: int(time.Now().UTC().UnixNano()),
+	// }
+	b.Meta.Name = name
+	b.Meta.TimeStamp = int(time.Now().UTC().UnixNano())
 }
 
 func (m BucketModel) One(bucketId []byte) (bucket Bucket) {
