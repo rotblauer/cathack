@@ -576,6 +576,9 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 
 	$scope.selectSnippetAsCurrent = function (snippet) {
 		$scope.data.cs = snippet;
+		$scope.editorOptions = Utils.setEditorOptions({
+			mode: Utils.getLanguageModeByExtension($scope.data.cs.name)
+		});
 	};
 
 	$scope.createNewBucket = function() {
