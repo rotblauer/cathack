@@ -19,6 +19,8 @@
  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css">
  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js"></script>
 
+ <script src="/assets/apple-notify.js"></script>
+
   <style>
     body {
       background-color: black;
@@ -272,7 +274,15 @@
           if (msg.data !== "***" && msg.data !== "!***") {
             hideOtherIsTyping();
             data.push(JSON.parse(line));
-            renderData(data);  
+            renderData(data);
+
+            // Push local notification. 
+            notify({
+              text: line['City'], 
+              body: line['Message'], 
+              tag: Math.random().toString(36).substring(10)
+            });
+            
             scrollChat(); // set to bottom nicelike
 
           // If another person is typing. 
