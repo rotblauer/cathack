@@ -3,9 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 
-	"../config"
 	"../models"
 
 	"github.com/gin-gonic/gin"
@@ -16,31 +14,46 @@ type FSController struct{}
 var fsModel = new(models.FSModel)
 
 // TODO: Move to model.
-func (ctrl FSController) WriteBucketToDir(c *gin.Context) {
-	bucketId := c.Param("bucketId")
-	bucket := bucketModel.One([]byte(bucketId))
+// func (ctrl FSController) WriteBucketToDir(c *gin.Context) {
+// 	bucketId := c.Param("bucketId")
+// 	bucket := bucketModel.One([]byte(bucketId))
 
-	var err error
+// 	var err error
 
-	// DANGERZONE. Delete dir we're about to write.
-	err = fsModel.DeleteDir(filepath.Join(config.FSStorePath, bucket.Meta.Name))
-	if err != nil {
-		fmt.Printf("Error cleaning bucket path: %v", err)
+// 	// DANGERZONE. Delete dir we're about to write.
+// 	err = fsModel.DeleteDir(filepath.Join(config.FSStorePath, bucket.Meta.Name))
+// 	if err != nil {
+// 		fmt.Printf("Error cleaning bucket path: %v", err)
+// 	}
+
+// 	snippets, _ := snippetModel.All(bucketId)
+
+// 	for _, snippet := range snippets {
+// 		err = fsModel.WriteFile(bucket, snippet) // per bucketName, snippetName, content
+// 		if err != nil {
+// 			break
+// 		}
+// 	}
+
+// 	if err != nil {
+// 		c.JSON(500, "Internal server error: "+err.Error())
+// 	} else {
+// 		c.JSON(200, bucket)
+// 	}
+// }
+
+func (ctrl FSController) WriteFile(c *gin.Context) {
+	snippetId := c.Param("snippetId")
+	bucketId := c.Query("bucketId")
+	if len(snippetId) == 0 || len(bucketId) == 0 {
+		c.JSON(400, "Your query must be of the format: /hack/fs/s/<snippetId>?bucketId=<bucketId>")
 	}
 
-	snippets, _ := snippetModel.All(bucketId)
-
-	for _, snippet := range snippets {
-		err = fsModel.WriteFile(bucket, snippet) // per bucketName, snippetName, content
-		if err != nil {
-			break
-		}
-	}
-
+	err := fsModel.WriteFile(bucketId, snippetId)
 	if err != nil {
-		c.JSON(500, "Internal server error: "+err.Error())
+		c.JSON(500, gin.H{"status": "error", "data": "error writing file"})
 	} else {
-		c.JSON(200, bucket)
+		c.JSON(200, gin.H{"status": "success"})
 	}
 }
 

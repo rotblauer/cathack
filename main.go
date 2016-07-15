@@ -60,24 +60,24 @@ func main() {
 		h.HandleRequest(c.Writer, c.Request)
 	})
 
-	r.GET("/r/chat", controllers.GetChatData) // Get chat.txt
+	r.GET("/r/chat", controllers.GetChatData) // Get chat.txt database.
 	r.GET("/hack/b", bucket.All)              // Get all buckets
 
-	r.POST("/hack/b/:bucketName", bucket.Create)  // TODO
-	r.DELETE("/hack/b/:bucketId", bucket.Destroy) // TODO
-	r.PUT("/hack/b/:bucketId", bucket.Set)        // TODO
+	r.POST("/hack/b/:bucketName", bucket.Create)  // Create bucket.
+	r.DELETE("/hack/b/:bucketId", bucket.Destroy) // Delete bucket.
+	r.PUT("/hack/b/:bucketId", bucket.Set)        // Update bucket (rename).
 
-	r.GET("/hack/b/:bucketId", snippet.All) // Get all snippets for a given bucket
-	r.GET("/hack/s", snippet.UberAll)
+	r.GET("/hack/b/:bucketId", snippet.All)        // Get all snippets for a given bucket
+	r.GET("/hack/s", snippet.UberAll)              // Get all snippets ever.
 	r.DELETE("/hack/s/:snippetId", snippet.Delete) // Delete snippet @ /hack/s/:snippetId?bucket=snippets
 
-	// TODO: bring into view.
-	r.GET("/hack/fs", fs.Walk)                         // Get all available filepaths.
-	r.PUT("/hack/fs/b/:bucketId", fs.WriteBucketToDir) // Write bucket to directory.
+	r.GET("/hack/fs", fs.Walk) // Get all available filepaths.
+	// r.PUT("/hack/fs/b/:bucketId", fs.WriteBucketToDir) // Write bucket to directory.
 
-	// Should write contents of file at filePath to associated bucket (by file's /basepath).
-	r.GET("/hack/fs/s", fs.SnippetizeOne)  // Accepts json-ified string as param. Writes one file to bolt snippet.
-	r.GET("/hack/fs/b", fs.SnippetizeMany) // Write each file in path to bolt by n-1 dir name as bucket.
+	// Should write contents of file at filePath to associated bucket-snippets (by file's /basepath).
+	r.GET("/hack/fs/s", fs.SnippetizeOne)         // Accepts json-ified string as param. Writes one file to bolt snippet.
+	r.GET("/hack/fs/b", fs.SnippetizeMany)        // Write each file in path to bolt by n-1 dir name as bucket.
+	r.POST("/hack/fs/s/:snippetId", fs.WriteFile) // Write snippet to file by name. @ /hack/s/:snippetId?bucket=snippets
 
 	// Websockets.
 	//

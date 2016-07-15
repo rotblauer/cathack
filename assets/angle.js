@@ -288,38 +288,47 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 app.factory("FS", ['$log', '$http', 'Config', function ($log, $http, Config) {
 
 	function fetchFS() {
-		var url = Config.API_URL + Config.ENDPOINTS.FS
+		var url = Config.API_URL + Config.ENDPOINTS.FS;
 		return $http.get(url);
 	}
 
 	function importDir(path) {
 		var url = Config.API_URL + 
 						  Config.ENDPOINTS.FS + 
-						  Config.ENDPOINTS.BUCKETS
+						  Config.ENDPOINTS.BUCKETS;
 		var config = {
 			params: {
 				path: JSON.stringify(path)
 			}
-		}
+		};
 		return $http.get(url, config); // c.JSON(200, gin.H{"b": bs, "s": ss})
 	}
 
 	function importFile(path) {
 		var url = Config.API_URL + 
 								  Config.ENDPOINTS.FS + 
-								  Config.ENDPOINTS.SNIPPETS
+								  Config.ENDPOINTS.SNIPPETS;
 		var config = {
 			params: {
 				path: JSON.stringify(path)
 			}
-		}
+		};
 		return $http.get(url, config); // c.JSON(200, gin.H{"b": b, "s": s})
+	}
+
+	function writeSnippetToFile(snippet) {
+		var url = Config.API_URL + 
+							Config.ENDPOINTS.FS + 
+							Config.ENDPOINTS.SNIPPETS + "/" + snippet.id + 
+							"?bucketId=" + snippet.bucketId;
+		return $http.post(url);
 	}
 
 	return {
 		fetchFS: fetchFS,
 		importFile: importFile,
-		importDir: importDir
+		importDir: importDir,
+		writeSnippetToFile: writeSnippetToFile
 	};
 }]);
 
@@ -637,6 +646,16 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 					$log.log("importFile failed", err);
 				});
 		}
+	};
+
+	$scope.writeSnippetToFile = function (snippet) {
+		FS.writeSnippetToFile(snippet)
+			.success(function (res) {
+				$log.log('success!', res);
+			})
+			.error(function (err) {
+				$log.log('error!', err);
+			});
 	};
 
 }]);

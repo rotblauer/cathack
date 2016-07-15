@@ -194,8 +194,12 @@
              
              <small id="snippetLang" class="text-warning">{{data.cs.language.name}}</small>
        
-             &nbsp;<small class='text-muted'>Updated: </small><small id="snippetTime" class="text-muted" style="font-weight: bold;">{{data.cs.timestamp | date: 'H:mm:ss on EEE, MMM d'}}</small>
+             &nbsp;<small class='text-muted'>Updated: </small><small id="snippetTime" class="text-success" style="font-weight: bold;">{{data.cs.timestamp | date: 'H:mm:ss on EEE, MMM d'}}</small>
              
+            &nbsp;<span class="label label-success" ng-click="writeSnippetToFile(data.cs)">
+              Save to FS <span class="octicon octicon-git-commit"></span>
+            </span>
+
              &nbsp;<small id="destroySnippet" ng-click="deleteSnippet(data.cs)" class="text-danger">
                Delete <i class="octicon octicon-trashcan"></i>
              </small>

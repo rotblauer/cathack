@@ -1,12 +1,15 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/boltdb/bolt"
 
 	"../config"
 	"../lib"
@@ -84,14 +87,36 @@ func getSnippetNamebyFSPath(path string) (snippetName string) {
 	return snippetName
 }
 
-// TODO: route this.?
-func (fs FSModel) WriteFile(bucket Bucket, snippet Snippet) (err error) {
+func (fs FSModel) WriteFile(bucketId string, snippetId string) (err error) {
+
+	// Get bucket and snippet.
+	var bucket Bucket
+	var snippet Snippet
+
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketId))
+		m := getMeta(b) // accessible because same package??
+		bucket.Id = bucketId
+		bucket.Meta = m
+
+		s := b.Get([]byte(snippetId))
+		json.Unmarshal(s, &snippet)
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Write file with all necessary dir paths to it.
 	cleanName := filepath.Clean(snippet.Name)
 	d := filepath.Join(config.FSStorePath, bucket.Meta.Name, filepath.Dir(cleanName))
 	err = os.MkdirAll(d, 0777)
 	if err != nil {
 		return err
 	}
+
+	// Write contents of file (truncates).
 	err = ioutil.WriteFile(filepath.Join(d, filepath.Base(cleanName)), []byte(snippet.Content), 0666)
 	return err
 }
