@@ -407,7 +407,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 		return $scope.alert;
 	};
 
-	$scope.editorOptions = Utils.setEditorOptions({
+	$scope.data.editorOptions = Utils.setEditorOptions({
 		mode: Utils.getLanguageModeByExtension($scope.data.cs.language)
 	});
 
@@ -421,7 +421,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	}
 
 	function setEditOpts(snippet) {
-		$scope.editorOptions = Utils.setEditorOptions({
+		$scope.data.editorOptions = Utils.setEditorOptions({
 			mode: Utils.getLanguageModeByExtension(snippet.name)
 		});
 	}
@@ -583,7 +583,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 
 	$scope.selectSnippetAsCurrent = function (snippet) {
 		$scope.data.cs = snippet;
-		setEditOpts($scope.data.cs);
+		setEditOpts(snippet);
 	};
 
 	$scope.createNewBucket = function() {
