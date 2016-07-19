@@ -591,10 +591,11 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 				})
 				.then(function (res) {
 					console.log('deleted snippet');
-					flashAlert('success', "Successfully deleted snippet.");
+					flashAlert("Successfully deleted snippet.", 'info');
 				})
 				.catch(function (err) {
 					console.log("failed to delete snippet." + JSON.stringify(err.data));
+					flashAlert("Failed to delete snippet.", 'danger');
 				});	
 		}			
 	};
@@ -615,9 +616,11 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 			Buckets.storeOneBucket(res.data);
 			$scope.data.buckets = Buckets.getBuckets();
 			$scope.data.cb = res.data;
+			flashAlert('Created ' + res.data.meta.name + '.', 'success');
 		})
 		.catch(function (err) {
 			$log.error(err);
+			flashAlert('Failed to create bucket. Error: ' + err + '.', 'danger');
 		})
 	};
 
@@ -639,9 +642,11 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 						// then set to most recent existing snippet
 						$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
 					}
+					flashAlert('Successfully destroyed ' + bucket.meta.name + '.', 'info');
 				})
 				.catch(function (err) {
 					$log.log(err);
+					flashAlert('Failed to destroy ' + bucket.meta.name + '. Error: ' + err + '.', 'danger');
 				});	
 		} else {
 			// nada.
@@ -667,15 +672,18 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 		if (isDir) {
 			FS.importDir(path)
 				.success(function (res) {
+					// TODO set current bucket to the imported one
 					$log.log('got res:', res);
 					Buckets.storeManyBuckets(res.b);
 					Snippets.setManyToSnippetsLib(res.s);
 					$scope.data.snippets = Snippets.getSnippetsLib();
 					$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
 					$scope.data.cb = Buckets.getBuckets()[$scope.data.cs.bucketId];
+					flashAlert('Successfully imported ' + path.path + '.', 'success');
 				})
 				.error(function (err) {
 					$log.log('importDir failed', err);
+					flashAlert('Import failed for ' + path.path + '.', 'danger');
 				});
 		} else {
 			FS.importFile(path)
@@ -686,9 +694,11 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 					Snippets.setOneToSnippetsLib(res.s);
 					$scope.data.snippets = Snippets.getSnippetsLib();
 					$scope.data.cs = Snippets.getSnippetsLib()[res.s.id];
+					flashAlert('Successfully imported ' + path.path + '.', 'success');
 				})
 				.error(function (err) {
 					$log.log("importFile failed", err);
+					flashAlert('Import failed for ' + path.path  + '.', 'danger');
 				});
 		}
 	};
