@@ -272,11 +272,11 @@
         }
 
         // Get ip to compare so don't notify on own messages. 
-        // $.getJSON('//freegeoip.net/json/?callback=?', function(data) {
-        //   console.log(JSON.stringify(data, null, 2));
-        //   myIp = data.ip;
-        // });
-        myIp = "209.6.198.20";
+        $.getJSON('//freegeoip.net/json/?callback=?', function(data) {
+          console.log(JSON.stringify(data, null, 2));
+          myIp = data.ip;
+        });
+        // myIp = "209.6.198.20";
 
         
         // {
