@@ -3,14 +3,14 @@
     <title>cat hack</title>
 
     <!-- bootstrap -->
-    <link rel="stylesheet" href="/assets/bootstrap-3.3.6-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap-3.3.6-dist/css/bootstrap.min.css">
     <!-- octicons? -->
     <!-- <link rel="stylesheet" href="/assets/octicons-4.3.0/build/octicons.min.css"> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css">
 
     <!-- codemirror -->
-    <link rel="stylesheet" href="/assets/codemirror-5.16.0/lib/codemirror.css">
-      <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/hint/show-hint.css">
+    <link rel="stylesheet" href="/assets/vendor/codemirror-5.16.0/lib/codemirror.css">
+      <link rel="stylesheet" href="/assets/vendor/codemirror-5.16.0/addon/hint/show-hint.css">
       <!-- <link rel="stylesheet" href="/assets/codemirror-5.16.0/addon/lint/lint.css"> -->
     
     <!-- custom style -->
@@ -249,24 +249,36 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 
     <!-- bootstrap -->
-    <script src="/assets/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+    <script src="/assets/vendor/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
 
     <!-- codemirror -->
-    <script src="/assets/codemirror-compressed-2.js"></script>
+    <script src="/assets/vendor/codemirror-compressed-2.js"></script>
 
     <!-- angular -->
-    <script src="/assets/angular/angular.min.js"></script>
+    <script src="/assets/vendor/angular/angular.min.js"></script>
     <!-- angular websocket -->
-    <script src="/assets/angular/angular-websocket.min.js"></script>
+    <script src="/assets/vendor/angular/angular-websocket.min.js"></script>
     <!-- angular uirouter -->
-    <script src="/assets/angular/angular-ui-router.min.js"></script>
+    <script src="/assets/vendor/angular/angular-ui-router.min.js"></script>
     <!-- angular codemirror -->
-    <script src="/assets/angular/ui-codemirror.js"></script>
+    <script src="/assets/vendor/angular/ui-codemirror.js"></script>
     <!-- ng-contenteditable -->
-    <script src="/assets/angular/angular-contenteditable.js"></script>
+    <script src="/assets/vendor/angular/angular-contenteditable.js"></script>
 
     <!-- app -->
-    <script src="/assets/angle.js"></script>
+    <script src="/assets/angular-app/main.js"></script>
+    <script src="/assets/angular-app/config.js"></script>
+      <!-- factories -->
+      <script src="/assets/angular-app/utils.factory.js"></script>
+      <script src="/assets/angular-app/buckets.factory.js"></script>
+      <script src="/assets/angular-app/snippets.factory.js"></script>
+      <script src="/assets/angular-app/WS.factory.js"></script>
+      <script src="/assets/angular-app/FS.factory.js"></script>
+      <script src="/assets/angular-app/errors.factory.js"></script>
+      <script src="/assets/angular-app/flash.factory.js"></script>
+      <!-- controllers -->
+      <script src="/assets/angular-app/hack.controller.js"></script>
+    
     <script>
       function toggleCatChat() {
         $("#sidebar").toggle();
