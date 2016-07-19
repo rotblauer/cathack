@@ -87,22 +87,15 @@ func getSnippetNamebyFSPath(path string) (snippetName string) {
 	return snippetName
 }
 
-func (fs FSModel) WriteFile(bucketId string, snippetId string) (err error) {
+func filefySnippet(bucket Bucket, snippetId string) (err error) {
 
-	// Get bucket and snippet.
-	var bucket Bucket
 	var snippet Snippet
 
 	err = db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucketId))
-		m := getMeta(b) // accessible because same package??
-		bucket.Id = bucketId
-		bucket.Meta = m
-
+		b := tx.Bucket([]byte(bucket.Id))
 		s := b.Get([]byte(snippetId))
-		json.Unmarshal(s, &snippet)
-
-		return nil
+		e := json.Unmarshal(s, &snippet)
+		return e
 	})
 	if err != nil {
 		return err
@@ -119,6 +112,52 @@ func (fs FSModel) WriteFile(bucketId string, snippetId string) (err error) {
 	// Write contents of file (truncates).
 	err = ioutil.WriteFile(filepath.Join(d, filepath.Base(cleanName)), []byte(snippet.Content), 0666)
 	return err
+}
+
+func (fs FSModel) WriteFile(bucketId string, snippetId string) (err error) {
+
+	// Get bucket and snippet.
+	var bucket Bucket
+
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketId))
+		bucket.Id = bucketId
+		bucket.Meta = getMeta(b)
+
+		return nil
+	})
+
+	return filefySnippet(bucket, snippetId)
+}
+
+func (fs FSModel) WriteDirHard(bucketId string) (err error) {
+
+	var bucket Bucket
+
+	err = db.View(func(tx *bolt.Tx) error {
+
+		// Setup bucket we're working on.
+		b := tx.Bucket([]byte(bucketId))
+		bucket.Id = bucketId
+		bucket.Meta = getMeta(b)
+
+		// Remove all --> hard.
+		rmdirerr := os.RemoveAll(filepath.Join(config.FSStorePath, bucket.Meta.Name))
+		if rmdirerr != nil {
+			return rmdirerr
+		}
+
+		// Iterate through snippets, writing a file for each.
+		berr := b.ForEach(func(k, v []byte) error {
+			if string(k) != "meta" {
+				return filefySnippet(bucket, string(k))
+			} else {
+				return nil
+			}
+		})
+		return berr // should be nil
+	})
+	return err // should be nil
 }
 
 func bucketizeDir(path string) (bucket Bucket, err error) {

@@ -89,15 +89,14 @@
               <div class="btn-group ">
 
                 <div class="btn-group">
-                  <button class="btn btn-default dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    <span class="octicon octicon-file-directory"></span>
+                  <button class="btn btn-default btn-info btn-xs dropdown-toggle" type="button" id="fileDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    <strong>Maneuvers</strong>
                     <span class="caret"></span>
-                    <strong>{{data.cb.meta.name}}</strong>
                   </button>
                   <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="fileDropdown">
                     
                     <!-- // existing buckets -->
-                    <li class="dropdown-submenu {{bucket.id === data.cb.id ? 'active' : ''}}" ng-repeat="bucket in data.buckets" ng-click="selectBucketAsCurrent(bucket)">
+                    <li class="dropdown-submenu {{bucket.id === data.cb.id ? 'active' : ''}}" ng-repeat="bucket in data.buckets" >
                       <a tabindex="-1" href="">
                         <span>
                           <span class="octicon octicon-file-directory"></span>&nbsp;{{ bucket.meta.name }}
@@ -105,7 +104,7 @@
                       </a>
                       <ul class="dropdown-menu">
                         <li>
-                          <a id="importBucket" href="" ng-click="importBucket()">
+                          <a id="importBucket" href="" ng-click="writeBucketToFS(bucket)">
                             <span class="">
                               <span class="octicon octicon-cloud-download"></span>&nbsp;
                               Write to FS
@@ -124,7 +123,7 @@
                       <a id="createBucket" href="" data-toggle="modal" data-target="#myModal" ng-click="createNewBucket()">
                         <span class="text-success">
                           + 
-                          new bucket
+                          new folder
                         </span>
                         </a>
                     </li>
@@ -140,7 +139,7 @@
                         <ul class="dropdown-menu">
                           <li ng-repeat="path in data.cfs" ng-click="import(path.path, path.fileInfo.isDir)">
                             <a href="">
-                              <span class="octicon {{path.fileInfo.isDir ? 'octicon-file-directory' : 'octicon-file-text text-primary'}}">&nbsp;{{path.path}}&nbsp;<small class="text-muted">Last modified: {{path.fileInfo.modTime | date: 'H:mm:ss on EEE, MMM d'}}</small></span>
+                              <span class="octicon {{path.fileInfo.isDir ? 'octicon-file-directory' : 'octicon-file-text text-primary'}}">&nbsp;{{path.path}}&nbsp;<small class="text-muted">Last modified: {{path.fileInfo.modTime | timeAgo }}</small></span>
                             </a>
                           </li>
                         </ul>
@@ -149,7 +148,7 @@
                   </ul>
                 </div>
                 
-                <button type="button" class="btn btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span>&nbsp;<span class="octicon octicon-file-text"></span></button>
+                <!-- <button type="button" class="btn btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span>&nbsp;<span class="octicon octicon-file-text"></span></button> -->
               
               </div>
             </div>
@@ -179,16 +178,50 @@
 
 
           <!-- SNIPPETS LIB -->
-           <div id="snippetsLib" class="row padding">
-            <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active' : ''}}" ng-if="snip.bucketId == data.cb.id" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
-              <span class="name" >
-                <span class="octicon octicon-file-text"></span>&nbsp;
-                {{snip.name}}
-                <small class="text-muted" style="font-weight: lighter;">
-                  {{snip.timestamp | date: 'H:mm:ss on EEE, MMM d'}}
-                </small>
-              </span>
+           <div id="snippetsLib" class="row padding" style="max-height: 90vh; overflow: scroll; ">
+
+            <div class="row" style="padding-top: 10px;"  ng-repeat="bucket in data.buckets">
+              <div class="col-xs-12" style="padding-bottom: 5px;"  >
+                <span class="" data-toggle="collapse" href="#{{'bucketCollapse' + bucket.id}}">
+                <span class="octicon octicon-file-directory"></span> <strong>{{bucket.meta.name}}</strong></span>
+                <div class="pull-right">
+                  <button class="btn btn-xs btn-success" ng-click="createNewSnippet()"><span class="octicon octicon-plus"></span> <span class="octicon octicon-file-text"></span></button>
+                </div>
+                <!-- <div class="pull-right btn-toolbar btn-toolbar-sm">
+                  <div class="btn-group">
+                    <button class="btn btn-danger btn-xs"><span class="octicon octicon-x"></span></button>
+                    <button class="btn btn-primary btn-xs"><span class="octicon octicon-pencil"></span></button>
+                    <button class="btn btn-default btn-xs"><span class="octicon octicon-cloud-download"></span></button>
+                  </div>
+                </div> -->
+              </div>
+              <div id="bucketCollapse{{bucket.id}}" class="collapse in col-xs-12">
+              <div class="col-xs-12 snip text-primary {{ snip.id === data.cs.id ? 'active' : ''}}" ng-if="snip.bucketId === bucket.id" ng-repeat="snip in data.snippets" ng-click="selectSnippetAsCurrent(snip)">
+                <span class="name" >
+                  <span class="octicon octicon-file-text"></span>&nbsp;
+                  {{snip.name}}
+                  <small class="text-muted" style="font-weight: lighter;">
+                    {{snip.timestamp | timeAgo }}
+                  </small>
+                </span>
+                <div class="row" ng-if="getFSPathForSnippet(snip)">
+                  <div class="col-xs-12">
+                    <!-- check if lastMod time is later than snippet timestamp (demonstrates sync) -->
+                    <small style="font-size: 0.6rem;" ng-if="comparableTimeInt(getFSPathForSnippet(snip).fileInfo.modTime) > toInt(snip.timestamp)" class="text-success">
+                      <span style="font-size: 1rem;" class="octicon octicon-verified"></span>
+                    </small>
+
+                    <small style="font-size: 0.6rem;" ng-if="comparableTimeInt(getFSPathForSnippet(snip).fileInfo.modTime) < toInt(snip.timestamp)" class="text-danger">
+                      <span style="font-size: 1rem;" class="octicon octicon-issue-reopened"></span>
+                    </small>
+
+                    <small class="text-muted" style="font-size: 1rem;">{{getFSPathForSnippet(snip).path }} | {{getFSPathForSnippet(snip).fileInfo.modTime | timeAgo }}</small>
+                  </div>
+                </div>
+              </div>
+              </div>
             </div>
+              
            </div>
          </div>
          
@@ -197,7 +230,7 @@
            <!-- currentSnippet metadata -->
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
              <!-- <span id="snippetId" class="text-primary">{{data.cs.id}}</span> -->
-             <span id="snippetBucketName" ng-click="data.cb = data.buckets[data.cs.bucketId]"style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}} /</span>
+             <span id="snippetBucketName" ng-click="data.cb = data.buckets[data.cs.bucketId]" style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}} /</span>
              <code id="snippetName"  
                     contenteditable="true"
                     strip-br="true"
@@ -207,15 +240,15 @@
              
              <small id="snippetLang" class="text-warning">{{data.cs.language.name}}</small>
        
-             &nbsp;<small class='text-muted'>Updated: </small><small id="snippetTime" class="text-success" style="font-weight: bold;">{{data.cs.timestamp | date: 'H:mm:ss on EEE, MMM d'}}</small>
+             &nbsp;<small class='text-muted'>Saved </small><small id="snippetTime" class="text-success" style="font-weight: bold;">{{data.cs.timestamp | timeAgo }}</small>
              
-            &nbsp;<span class="label label-success" ng-click="writeSnippetToFile(data.cs)">
-              <span class="octicon octicon-cloud-download"></span> Write to FS
-            </span>
+            &nbsp;<button ng-class="{'btn btn-xs btn-success': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp)), 'btn btn-xs btn-warning': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) < toInt(data.cs.timestamp))}"  ng-click="writeSnippetToFile(data.cs)">
+              <span ng-class="{'octicon octicon-cloud-download': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp)), 'octicon octicon-issue-reopened': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) < toInt(data.cs.timestamp))}"></span> Write to FS
+            </button>
 
-             &nbsp;<small id="destroySnippet" ng-click="deleteSnippet(data.cs)" class="text-danger">
+             &nbsp;<button id="destroySnippet" ng-click="deleteSnippet(data.cs)" class="btn btn-xs btn-danger">
                Delete <i class="octicon octicon-trashcan"></i>
-             </small>
+             </button>
 
               <small id="catchattoggler" class="catchat pull-right" style="position: relative; top: 0; right: 0;">cat chat&nbsp;<i class="octicon octicon-keyboard"></i></small>
 
@@ -269,6 +302,8 @@
     <script src="/assets/vendor/angular/ui-codemirror.js"></script>
     <!-- ng-contenteditable -->
     <script src="/assets/vendor/angular/angular-contenteditable.js"></script>
+    <!-- ng-timeago -->
+    <script src="/assets/vendor/angular/angular-timeago.min.js"></script>
 
     <script src="/assets/vendor/pace/pace.js"></script>
 

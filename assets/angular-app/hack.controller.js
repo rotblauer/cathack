@@ -13,6 +13,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 
 
 	$scope.data.buckets = Buckets.getBuckets();
 	$scope.data.snippets = Snippets.getSnippetsLib();
+	$scope.data.cfs = FS.getFS();
 	
 	$scope.data.error = Errors.getError();
 
@@ -114,7 +115,8 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 
 	})
 	.then(function (res) {
 		$log.log('Got FS', res.data);
-		$scope.data.cfs = res.data;
+		FS.storeFS(res.data);
+		
 	})
 	.catch(Errors.setError);
 
@@ -233,6 +235,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 
 
 	$scope.selectSnippetAsCurrent = function (snippet) {
 		$scope.data.cs = snippet;
+		$scope.selectBucketAsCurrent(Buckets.getBuckets()[$scope.data.cs.bucketId]);
 		// setSnippetParam(snippet);
 		setEditOpts(snippet);
 	};
@@ -334,15 +337,61 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 
 
 	$scope.writeSnippetToFile = function (snippet) {
 		FS.writeSnippetToFile(snippet)
-			.success(function (res) {
+			.then(function (res) {
 				$log.log('success! wrote snippet to file', res);
 				flashAlert('Successfully saved ' + snippet.name + ' to the FS!', 'success');
+				
 			})
-			.error(function (err) {
+			.then(function () {
+				return FS.fetchFS();
+			})
+			.then(function (res) {
+				FS.storeFS(res.data);
+			})
+			.catch(function (err) {
 				$log.log('error!', err);
 				flashAlert('Failed to save ' + snippet.name + ' to the FS.', 'danger');
 			});
 	};
+
+	$scope.writeBucketToFS = function (bucket) {
+		FS.writeBucketToFS(bucket)
+			.then(function (res) {
+				flashAlert('Successfully wrote all snippets in ' + bucket.meta.name + ' to the FS.', 'success');
+				
+			})
+			.then(function () {
+				return FS.fetchFS();
+			})
+			.then(function (res) {
+				FS.storeFS(res.data);
+			})
+			.catch(function (err) {
+				flashAlert('Failed to write ' + bucket.meta.name + 'to the FS. Error: ' + err.data, 'danger');
+			});
+	};
+
+	// Get associated FS path (if exists).
+	$scope.getFSPathForSnippet = function (snippet) {
+		// Get path name. 
+		var snippetPath = snippet.name;
+		var paths = FS.getFS();
+		for (var i = 0; i < paths.length; i++) {
+			var path = paths[i];
+			if (!path.fileInfo.isDir && path.path.indexOf(Buckets.getBuckets()[snippet.bucketId].meta.name) > 0 && path.path.indexOf(snippetPath) > 0) {
+				return path;
+			}
+		}
+		return null;
+	};
+
+	$scope.comparableTimeInt = function (date) {
+		return Date.parse(date);
+	};
+
+	$scope.toInt = function(timeString) {
+		return parseInt(timeString, 10);
+	}
 
 
 

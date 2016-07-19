@@ -2,10 +2,13 @@
 
 app.factory("FS", ['$log', '$http', 'Config', function ($log, $http, Config) {
 
-	var fsLib;
+	var fsLib = [];
 
 	function storeFS(resdata) {
-		fsLib = resdata;
+		fsLib.length = 0;
+		for (var i = 0; i < resdata.length; i++) {
+			fsLib.push(resdata[i]);
+		}
 		$log.log('FS: ', fsLib);
 	}
 
@@ -50,12 +53,20 @@ app.factory("FS", ['$log', '$http', 'Config', function ($log, $http, Config) {
 		return $http.post(url);
 	}
 
+	function writeBucketToFS(bucket) {
+		var url = Config.API_URL + 
+							Config.ENDPOINTS.FS + 
+							Config.ENDPOINTS.BUCKETS + "/" + bucket.id;
+		return $http.post(url);
+	}
+
 	return {
 		fetchFS: fetchFS,
 		storeFS: storeFS,
 		getFS: getFS,
 		importFile: importFile,
 		importDir: importDir,
-		writeSnippetToFile: writeSnippetToFile
+		writeSnippetToFile: writeSnippetToFile,
+		writeBucketToFS: writeBucketToFS
 	};
 }]);
