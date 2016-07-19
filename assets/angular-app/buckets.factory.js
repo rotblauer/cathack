@@ -1,7 +1,7 @@
 'use strict';
 
 // BUCKETS FACTORY.
-app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', function ($http, Config, Errors, Snippets, Utils) {
+app.factory("Buckets", ['$http', '$log', 'Config', "Errors", "Snippets", 'Utils', function ($http, $log, Config, Errors, Snippets, Utils) {
 	var buckets = {}; // {bucketId: {id: "234234932-=", meta: {name: "snippets", timestamp: 1232354234}, }
 	// var currentBucket = {};
 
@@ -9,27 +9,21 @@ app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', functi
 		return buckets;
 	}
 	function storeOneBucket(bucket) {
-		console.log('storing one bucket: ' + JSON.stringify(bucket))
 		buckets[bucket.id] = bucket;
 	}
 	function storeManyBuckets(buckets) {
-		console.log('storeing bucktses')
 		if (Utils.typeOf(buckets) === 'object') {
-			console.log('bucket is object');
 		} else {
-			console.log('bucket is not object');
 			for (var i = 0; i < buckets.length; i++) {
-				console.log('bucket i ' + buckets[i]);
 				storeOneBucket(buckets[i]);
 			}	
 		}
-		console.log('BUCKETS: ' + JSON.stringify(buckets));
+		$log.log('BUCKETS: ', buckets);
 	}
 	function getMostRecent(libObj) {
 		var timestamps = []; // [timestamps]
 		var timesIdLookup = {}; // {timestamp: {snippet}}
 		angular.forEach(libObj, function (val, key) {
-			// console.log('key: ' + key + ", val: " + val);
 			timestamps.push(val.meta.timestamp);
 			timesIdLookup[val.meta.timestamp] = val;
 		});

@@ -30,7 +30,7 @@ app.constant('Config', {
 		readOnly: false
 	},
 	"DEFAULTSNIPPET": {
-		id: Math.random().toString(36).substring(7),
+		id: Math.random().toString(36).substring(9),
 		// bucketId: "c25pcHBldHM=", // This will be set by the controller pending either the currentBucket (or later any given bucket).
 		name: "boots.go",
 		language: "go",

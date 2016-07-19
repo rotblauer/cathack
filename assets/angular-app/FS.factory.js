@@ -2,6 +2,17 @@
 
 app.factory("FS", ['$log', '$http', 'Config', function ($log, $http, Config) {
 
+	var fsLib;
+
+	function storeFS(resdata) {
+		fsLib = resdata;
+		$log.log('FS: ', fsLib);
+	}
+
+	function getFS() {
+		return fsLib;
+	}
+
 	function fetchFS() {
 		var url = Config.API_URL + Config.ENDPOINTS.FS;
 		return $http.get(url);
@@ -41,6 +52,8 @@ app.factory("FS", ['$log', '$http', 'Config', function ($log, $http, Config) {
 
 	return {
 		fetchFS: fetchFS,
+		storeFS: storeFS,
+		getFS: getFS,
 		importFile: importFile,
 		importDir: importDir,
 		writeSnippetToFile: writeSnippetToFile

@@ -13,10 +13,10 @@ app.factory("Utils", ["Config", function (Config) {
 	function getLanguageModeByExtension(name) {
 	  var o = "";
 	  var exs = name.split(".");
-	  console.log('exs -> ' + JSON.stringify(exs));
+	  // console.log('exs -> ' + JSON.stringify(exs));
 	  for (var i = 0; i < exs.length ; i++) {
 	    var ex = exs[i];
-	    console.log("checking case: " + ex);
+	    // console.log("checking case: " + ex);
 	    switch (ex) {
 	      case 'js':
 	        o = javascriptMode;
@@ -54,7 +54,7 @@ app.factory("Utils", ["Config", function (Config) {
 	        break;
 	    }  
 	  }
-	  console.log("language by extension -> " + o);
+	  // console.log("language by extension -> " + o);
 	  return o;
 	}
 

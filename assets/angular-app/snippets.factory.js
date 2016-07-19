@@ -1,8 +1,8 @@
 'use strict';
 
 // SNIPPETS FACTORY.
-app.factory("Snippets", ['$http', "Config", "Errors",
-	function ($http, Config, Errors) {
+app.factory("Snippets", ['$http', '$log', "Config", "Errors",
+	function ($http, $log, Config, Errors) {
 		// var currentSnippet = {};
 		var snippetsLib = {}; // {snippetId: {snippet}, snippetId: {snippet}, snippetId: [{snippet}, {snippet}, ... ]}
 
@@ -12,12 +12,12 @@ app.factory("Snippets", ['$http', "Config", "Errors",
 			}
 		}
 		function setManyToSnippetsLib(snippets) {
-			console.log("Got many snippets: " + JSON.stringify(snippets));
+			// console.log("Got many snippets: " + JSON.stringify(snippets));
 			
 			for (var i = 0; i < snippets.length; i++) {
 				setOneToSnippetsLib(snippets[i]);
 			}	
-			console.log(JSON.stringify(snippetsLib));
+			$log.log('SNIPPETS: ', snippetsLib);
 		}
 		function getMostRecent(libObj) {
 			var timestamps = []; // [timestamps]

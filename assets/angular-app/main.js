@@ -3,5 +3,6 @@
 var app = angular.module("cathack", [
 	'ngWebSocket',
 	'ui.codemirror',
-	'contenteditable'
+	'contenteditable',
+	'ui.router'
 	]);

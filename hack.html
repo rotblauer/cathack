@@ -2,6 +2,8 @@
   <head>
     <title>cat hack</title>
 
+    <!-- <base href="/hack" /> -->
+
     <!-- bootstrap -->
     <link rel="stylesheet" href="/assets/vendor/bootstrap-3.3.6-dist/css/bootstrap.min.css">
     <!-- octicons? -->
@@ -205,7 +207,7 @@
              &nbsp;<small class='text-muted'>Updated: </small><small id="snippetTime" class="text-success" style="font-weight: bold;">{{data.cs.timestamp | date: 'H:mm:ss on EEE, MMM d'}}</small>
              
             &nbsp;<span class="label label-success" ng-click="writeSnippetToFile(data.cs)">
-              Save to FS <span class="octicon octicon-git-commit"></span>
+              <span class="octicon octicon-cloud-download"></span> Write to FS
             </span>
 
              &nbsp;<small id="destroySnippet" ng-click="deleteSnippet(data.cs)" class="text-danger">
@@ -268,6 +270,7 @@
     <!-- app -->
     <script src="/assets/angular-app/main.js"></script>
     <script src="/assets/angular-app/config.js"></script>
+    <!-- <script src="/assets/angular-app/router.js"></script> -->
       <!-- factories -->
       <script src="/assets/angular-app/utils.factory.js"></script>
       <script src="/assets/angular-app/buckets.factory.js"></script>

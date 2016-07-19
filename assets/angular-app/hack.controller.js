@@ -1,7 +1,7 @@
 'use strict';
 
-app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
-	function ($scope, WS, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
+app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
+	function ($scope, $location, WS, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
 
 	$scope.testes = "this is only a test"
 
@@ -23,9 +23,6 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	});
 
 	function flashAlert(text, classs) {
-		$log.log("Showing alert.");
-		// $scope.alert.class = classs;
-		// $scope.alert.text = text;
 		flash.setMessage(text, classs);
 		$timeout(function() {
 			flash.setMessage({});
@@ -38,24 +35,70 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 		});
 	}
 
+	function sendUpdate() {
+		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
+			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
+		}
+		WS.send($scope.data.cs);
+		$scope.data.cs.timestamp = Date.now();
+	}
+
+	// TODO uirouter
+	// $scope.data.cb = bucket;
+	// $log.log("$scope.data.cb: ", $scope.data.cb);
+	// $scope.data.cs = snippet;
+	// $log.log("$scope.data.cs: ", $scope.data.cs);
+	// if ($scope.data.cs.bucketId === null) {
+	// 	$scope.data.cs.bucketId = bucket.id;
+	// }
+	// $scope.data.cfs = FS.getFS();
+	// 
+	// var hashSnippetId = $location.hash();
+	// $log.log('hashSnippetId: ', hashSnippetId);
+	// var winpath = $location.path();
+	// $log.log('$locations.. ', $location.path(), $location.hash(), $location.url());
+	
+	function setSnippetParam(snippet) {
+		return $location.hash(snippet.id);
+	}
+	function getSnippetParam() {
+		return $location.hash().replace('/','');
+	}
 
 	// Init.
 	// 
 	// Fetch all snippets [{id: "12341=", name: "boots.go" ... }]
 	Snippets.getUberAll().then(function (res) {
-		console.log("got snippets ->" + JSON.stringify(res.data));
+		
 		// if there are any snippets at all
 		if (Utils.typeOf(res.data) !== 'null') {
 			Snippets.setManyToSnippetsLib(res.data);
-			$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib()); 
+			if (getSnippetParam().length > 0) {
+				
+				// Get snippet by hash param. 
+				var s = Snippets.getSnippetsLib()[getSnippetParam()];
+				// If snippet exists, great. Make it current. 
+				if (s) {
+					$scope.data.cs = s	
+				
+				// ... redirect in case snippet has been deleted. 
+				} else {
+					$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
+					// setSnippetParam($scope.data.cs);
+				}
+				
+			} else {
+				// There is no snippet Id in the params. Get most recent. 
+				$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib()); 	
+				// ... then set the hash param. 
+				// setSnippetParam($scope.data.cs);
+			}
 		} 
-		// return res;
 	})
 	.then(function () {
 		return Buckets.fetchAll();
 	})
 	.then(function (res) {
-		console.log('got buckets -> ' + JSON.stringify(res.data));
 		Buckets.storeManyBuckets(res.data);
 
 		// if lib === {}
@@ -84,18 +127,11 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 			$scope.data.cs.language = Utils.getLanguageModeByExtension($scope.data.cs.name);
 
 			setEditOpts(neww);
+			setSnippetParam(neww);
 		}
 		
 	}, true);
 
-
-	function sendUpdate() {
-		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
-			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
-		}
-		WS.send($scope.data.cs);
-		$scope.data.cs.timestamp = Date.now();
-	}
 
 	WS.ws.onMessage(function(message) {
 
@@ -166,6 +202,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	$scope.createNewSnippet = function () {
 		$scope.data.cs = Snippets.buildNewSnippet();
 		$scope.data.cs.bucketId = $scope.data.cb.id;
+		// setSnippetParam($scope.data.cs);
 		document.getElementById("snippetName").focus();
 	};	
 
@@ -194,12 +231,9 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 		}			
 	};
 
-
-
-
-
 	$scope.selectSnippetAsCurrent = function (snippet) {
 		$scope.data.cs = snippet;
+		// setSnippetParam(snippet);
 		setEditOpts(snippet);
 	};
 
@@ -252,6 +286,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 		$scope.data.cb = bucket;
 	};
 
+	// renaming bucket
 	$scope.saveBucket = function (bucket) {
 		Buckets.putBucket(bucket)
 			.success(function (res) {
