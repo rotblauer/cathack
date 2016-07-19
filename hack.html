@@ -116,7 +116,7 @@
                             </a>
                         </li>
 
-                        <li><a href="" data-toggle="modal" data-target="#myModal"><span class="text-primary"><span class="octicon octicon-pencil"></span>&nbsp;Rename</span></a></li>
+                        <li><a href="" data-toggle="modal" data-target="#myModal-{{bucket.id}}"><span class="text-primary"><span class="octicon octicon-pencil"></span>&nbsp;Rename</span></a></li>
                         <li><a href="" ng-click="deleteBucket(bucket)"><span class="text-danger">
                           <span class="octicon octicon-x"></span>&nbsp;Destroy</span></a></li>
                       </ul>
@@ -158,23 +158,23 @@
             </div>
            </div>
 
-           <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+           <div class="modal fade" ng-repeat="bucket in data.buckets" id="myModal-{{bucket.id}}" tabindex="-1" role="dialog">
              <div class="modal-dialog">
                <div class="modal-content">
                  <div class="modal-header">
                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                   <h4 class="modal-title">Rename '{{data.cb.meta.name}}'</h4>
+                   <h4 class="modal-title">Rename '{{bucket.meta.name}}'</h4>
                  </div>
                  <div class="modal-body">
                    <div class="input-group">
                     <span class="input-group-addon" id="basic-addon2">/hacks/</span>
-                     <input type="text" class="form-control" placeholder="Something rad..." aria-describedby="basic-addon2" ng-model="data.cb.meta.name">
+                     <input type="text" class="form-control" placeholder="Something rad..." aria-describedby="basic-addon2" ng-model="bucket.meta.name">
                      
                    </div>
                  </div>
                  <div class="modal-footer">
                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                   <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveBucket(data.cb)">Save changes</button>
+                   <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveBucket(bucket)">Save changes</button>
                  </div>
                </div><!-- /.modal-content -->
              </div><!-- /.modal-dialog -->
