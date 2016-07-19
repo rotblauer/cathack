@@ -27,7 +27,8 @@ app.constant('Config', {
 			'application/javascript',
 			'text/css'
 		],
-		readOnly: false
+		readOnly: false,
+		lineWrapping: true
 	},
 	"DEFAULTSNIPPET": {
 		id: Math.random().toString(36).substring(9),
