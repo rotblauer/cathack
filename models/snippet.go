@@ -15,6 +15,8 @@ type Snippet struct {
 	Content     string `json:"content"`
 	TimeStamp   int    `json:"timestamp"`
 	Description string `json:"description"`
+	IpCity      string `json:"ipCity"`
+	Ip          string `json:"ip"`
 }
 type Snippets []Snippet
 type SnippetModel struct{}
@@ -97,6 +99,7 @@ func (m SnippetModel) Set(snippet Snippet) error {
 	fmt.Printf("snippet.Language: %v\n", snippet.Language)
 	fmt.Printf("snippet.Content: %v\n", snippet.Content)
 	fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
+	fmt.Printf("snippet.IpCity: %v\n", snippet.IpCity)
 
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(snippet.BucketId))

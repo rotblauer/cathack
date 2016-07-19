@@ -75,6 +75,10 @@
         <p>
           flash: {{ flash.getMessage() | json }}
         </p>
+
+        <p>
+          ip: {{ data.ip | json }}
+        </p>
       </div> -->
        
        <div class="row" style="min-height: 60vh;">
@@ -200,8 +204,9 @@
                 <span class="name" >
                   <span class="octicon octicon-file-text"></span>&nbsp;
                   {{snip.name}}
-                  <small class="text-muted" style="font-weight: lighter;">
-                    {{snip.timestamp | timeAgo }}
+                  <small class="text-muted" style="font-size: 1.1rem; font-weight: lighter;">
+                    {{snip.timestamp | timeAgo }}, <strong ng-if="snip.ip !== data.ip.ip">{{snip.ipCity}}</strong><strong ng-if="snip.ip === data.ip.ip">you</strong>
+                    
                   </small>
                 </span>
                 <div class="row" ng-if="getFSPathForSnippet(snip)">
@@ -214,7 +219,7 @@
                     <small style="font-size: 0.6rem;" ng-if="comparableTimeInt(getFSPathForSnippet(snip).fileInfo.modTime) < toInt(snip.timestamp)" class="text-danger">
                       <span style="font-size: 1rem;" class="octicon octicon-issue-reopened"></span>
                     </small>
-
+                    
                     <small class="text-muted" style="font-size: 1rem;">{{getFSPathForSnippet(snip).path }} | {{getFSPathForSnippet(snip).fileInfo.modTime | timeAgo }}</small>
                   </div>
                 </div>
@@ -319,6 +324,7 @@
       <script src="/assets/angular-app/FS.factory.js"></script>
       <script src="/assets/angular-app/errors.factory.js"></script>
       <script src="/assets/angular-app/flash.factory.js"></script>
+      <script src="/assets/angular-app/ip.factory.js"></script>
       <!-- controllers -->
       <script src="/assets/angular-app/hack.controller.js"></script>
     

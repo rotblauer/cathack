@@ -1,7 +1,7 @@
 'use strict';
 
-app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
-	function ($scope, $location, WS, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
+app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
+	function ($scope, $location, WS, IP, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
 
 	$scope.testes = "this is only a test"
 
@@ -15,6 +15,8 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 
 	$scope.data.snippets = Snippets.getSnippetsLib();
 	$scope.data.cfs = FS.getFS();
 	
+	$scope.data.ip = IP.getIp();
+
 	$scope.data.error = Errors.getError();
 
 	$scope.flash = flash;
@@ -40,9 +42,21 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'Buckets', 'Snippets', 
 		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
 			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
 		}
+		$scope.data.cs.ipCity = $scope.data.ip['city'];
+		$scope.data.cs.ip = $scope.data.ip['ip'];
+		$log.log('sendup snip:', $scope.data.cs);
 		WS.send($scope.data.cs);
 		$scope.data.cs.timestamp = Date.now();
 	}
+
+	IP.fetchIp()
+		.then(function (res) {
+			$log.log('got ip', res);
+			IP.storeIp(res.data);
+		})
+		.catch(function (err) {
+			$log.log('fail getting ip', err);
+		});
 
 	// TODO uirouter
 	// $scope.data.cb = bucket;
