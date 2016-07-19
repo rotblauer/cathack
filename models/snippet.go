@@ -32,7 +32,7 @@ func GetSnippetByName(bucketId string, name string) (snippet Snippet) {
 		c := b.Cursor()
 		for snipkey, snipval := c.First(); snipkey != nil; snipkey, snipval = c.Next() {
 			snip := snipFromJSON(snipval)
-			if snip.Name == name {
+			if (snip.Name == name) || ("/"+snip.Name == name) || (snip.Name == "/"+name) {
 				snippet = snip
 				break
 			}
