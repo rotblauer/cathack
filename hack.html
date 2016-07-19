@@ -242,8 +242,8 @@
        
              &nbsp;<small class='text-muted'>Saved </small><small id="snippetTime" class="text-success" style="font-weight: bold;">{{data.cs.timestamp | timeAgo }}</small>
              
-            &nbsp;<button ng-class="{'btn btn-xs btn-success': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp)), 'btn btn-xs btn-warning': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) < toInt(data.cs.timestamp))}"  ng-click="writeSnippetToFile(data.cs)">
-              <span ng-class="{'octicon octicon-cloud-download': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp)), 'octicon octicon-issue-reopened': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) < toInt(data.cs.timestamp))}"></span> Write to FS
+            &nbsp;<button ng-class="{'btn btn-xs btn-success': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp)), 'btn btn-xs btn-warning': !(comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp))}"  ng-click="writeSnippetToFile(data.cs)">
+              <span ng-class="{'octicon octicon-cloud-download': (comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp)), 'octicon octicon-issue-reopened': !(comparableTimeInt(getFSPathForSnippet(data.cs).fileInfo.modTime) > toInt(data.cs.timestamp))}"></span> Write to FS
             </button>
 
              &nbsp;<button id="destroySnippet" ng-click="deleteSnippet(data.cs)" class="btn btn-xs btn-danger">
