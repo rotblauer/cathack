@@ -2,8 +2,8 @@
   /*height: auto;*/
   height: 90vh;
 }
-.CodeMirror-selected  { background: #cccccc !important;}
-.CodeMirror-selectedtext { color: blue; }
+/*span.CodeMirror-selected  { background: yellow !important;}*/
+span.CodeMirror-selectedtext { background-color: yellow; }
 
 .label-info {
   background-color: #BEE0FC;

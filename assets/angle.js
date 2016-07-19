@@ -31,7 +31,8 @@ app.constant('Config', {
 			'text/javascript',
 			'application/javascript',
 			'text/css'
-		]
+		],
+		readOnly: false
 	},
 	"DEFAULTSNIPPET": {
 		id: Math.random().toString(36).substring(7),
@@ -534,6 +535,9 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	});
 
 	// Manual listeners. Avoid infdiggers. 
+	// document.getElementById("editor").addEventListener('change', function (from, to, text, removed, origin) {
+	// 	sendUpdate();
+	// });
 	document.getElementById("editor").addEventListener('keyup', function (e) {
 	  // http://stackoverflow.com/questions/2257070/detect-numbers-or-letters-with-jquery-javascript
 	  var inp = String.fromCharCode(e.keyCode);
@@ -555,6 +559,7 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
   	}	
 	  
 	});
+
 	document.getElementById("snippetName").addEventListener('keyup', function (e) {
 		
 		if ($scope.data.cs.name == "") {
