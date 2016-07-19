@@ -139,6 +139,30 @@ app.factory("Utils", ["Config", function (Config) {
 	};
 }]);
 
+app.factory("flash", function($rootScope) {
+  // var queue = [];
+  var currentMessage = {
+  	message: "",
+  	klass: ""
+  };
+
+  // $rootScope.$on("$routeChangeSuccess", function() {
+  //   currentMessage = queue.shift() || "";
+  // });
+
+  return {
+    setMessage: function(message, klass) {
+     	currentMessage = {
+     		message: message,
+     		klass: klass
+     	};
+    },
+
+    getMessage: function() {
+      return currentMessage;
+    }
+  };
+});
 
 // BUCKETS FACTORY.
 app.factory("Buckets", ['$http', 'Config', "Errors", "Snippets", 'Utils', function ($http, Config, Errors, Snippets, Utils) {
@@ -386,8 +410,8 @@ app.factory("Errors", [function () {
 	};
 }]);
 
-app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log',
-	function ($scope, WS, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log) {
+app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
+	function ($scope, WS, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
 
 	$scope.testes = "this is only a test"
 
@@ -402,21 +426,19 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	
 	$scope.data.error = Errors.getError();
 
-	$scope.alert = {};
-	$scope.getAlert = function () {
-		return $scope.alert;
-	};
+	$scope.flash = flash;
 
 	$scope.data.editorOptions = Utils.setEditorOptions({
 		mode: Utils.getLanguageModeByExtension($scope.data.cs.language)
 	});
 
-	function flashAlert(classs, text) {
+	function flashAlert(text, classs) {
 		$log.log("Showing alert.");
-		$scope.alert.class = classs;
-		$scope.alert.text = text;
+		// $scope.alert.class = classs;
+		// $scope.alert.text = text;
+		flash.setMessage(text, classs);
 		$timeout(function() {
-			$scope.alert = {};
+			flash.setMessage({});
 		}, 3000);
 	}
 
@@ -674,10 +696,12 @@ app.controller("HackCtrl", ['$scope', 'WS', 'Buckets', 'Snippets', 'FS', 'Utils'
 	$scope.writeSnippetToFile = function (snippet) {
 		FS.writeSnippetToFile(snippet)
 			.success(function (res) {
-				$log.log('success!', res);
+				$log.log('success! wrote snippet to file', res);
+				flashAlert('Successfully saved ' + snippet.name + ' to the FS!', 'success');
 			})
 			.error(function (err) {
 				$log.log('error!', err);
+				flashAlert('Failed to save ' + snippet.name + ' to the FS.', 'danger');
 			});
 	};
 

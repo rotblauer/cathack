@@ -25,7 +25,10 @@
 
     <div class="container-fluid" ng-controller="HackCtrl">
 
-   <!--    <div id="testes" class="testes">
+      <!-- alerts -->
+      <div class="alert alert-{{flash.getMessage().klass}}" ng-show="flash.getMessage().message.length > 0" style="z-index: 100; position: fixed; top: 50; right: 20; width: 25%;">{{flash.getMessage().message}}</div>
+
+      <!-- <div id="testes" class="testes">
 
         <p>
           2: {{ 1 + 1 }}
@@ -64,10 +67,10 @@
         </p>
 
         <p>
-          alert: {{ alert | json }}
+          flash: {{ flash.getMessage() | json }}
         </p>
-      </div>
- -->       
+      </div> -->
+       
        <div class="row" style="min-height: 60vh;">
          
         <!-- library -->
@@ -235,9 +238,8 @@
      </div> <!-- end .container-fluid -->
 
 
-    <!-- alerts -->
-    <div class="alert alert-{{getAlert().class}}}" ng-if="getAlert.text" style="z-index: 100; position: fixed; bottom: 20; left: 20; width: 30%;">{{getAlert().text}}</div>
-    <div class="alert alert-{{getAlert().class}}}" ng-if="getAlert.text" style="z-index: 100; position: fixed; bottom: 20; left: 20; width: 30%;">{{getAlert().text}}</div>
+
+    <!-- <div class="alert alert-{{getAlert().class}}}" style="z-index: 100; position: fixed; bottom: 20; left: 20; width: 30%;">teste</div> -->
 
     
     <!-- JS -->
