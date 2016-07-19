@@ -2,8 +2,10 @@ package models
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"time"
 
+	"../config"
 	"../lib"
 
 	"github.com/boltdb/bolt"
@@ -113,6 +115,20 @@ func (m BucketModel) Create(bucketName string) (Bucket, error) {
 
 func (m BucketModel) Destroy(bucketId string) (err error) {
 	err = db.Update(func(tx *bolt.Tx) error {
+
+		// First we delete the dir from the FS.
+		// Get name of dir.
+		b := tx.Bucket([]byte(bucketId))
+		bm := getMeta(b)
+
+		// .. and then get the path.
+		path := filepath.Join(config.FSStorePath, bm.Name)
+		e := DeleteDir(path) // rm -rf that sucka
+		if e != nil {
+			return e
+		}
+
+		// Finally get rid of bucket.
 		derr := tx.DeleteBucket([]byte(bucketId))
 		return derr
 	})

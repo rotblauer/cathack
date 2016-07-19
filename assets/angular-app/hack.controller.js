@@ -315,6 +315,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	};
 
 	$scope.import = function (path, isDir) {
+		var path = path;
 		if (isDir) {
 			FS.importDir(path)
 				.success(function (res) {

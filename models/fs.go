@@ -230,26 +230,14 @@ func snippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
 // Note: accepts FULL path (includes FSStoreDir)
 func (fs FSModel) SnippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
 	return snippetizeFile(path)
-
-	// // Now save the snippet (per bucket) to Bolt.
-	// err = db.Update(func(tx *bolt.Tx) error {
-	// 	b := tx.Bucket([]byte(bucket.Id)) // could also use snippet.BucketId
-	// 	j, _ := json.Marshal(snippet)
-	// 	e := b.Put([]byte(snippet.Id), j)
-	// 	if e != nil {
-	// 		return e
-	// 	}
-	// 	return nil
-	// 	})
-	// return bucket, snippet, err
 }
 
 func (fs FSModel) SnippetizeDir(path string) (buckets Buckets, snippets Snippets, err error) {
-	err = filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(filepath.Clean(path), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() {
+		if !info.IsDir() && !(info.Name() == ".stfolder") {
 			bucket, snippet, snipErr := snippetizeFile(path)
 			if snipErr != nil {
 				// TODO: Handle errors better. Like in their own model.
@@ -260,54 +248,15 @@ func (fs FSModel) SnippetizeDir(path string) (buckets Buckets, snippets Snippets
 		return nil
 	})
 
-	// // Save the snippets.
-	// // NOTE again, we're treating empty dirs in the FS as non-entities.
-	// for _, snip := range snippets {
-	// 	db.Update(func(tx *bolt.Tx) error {
-
-	// 		})
-	// }
-
 	return buckets, snippets, err
 }
 
-// func (fs FSModel) SetDir() error {
-
-// }
-
-// func (fs FSModel) GetOne() error {
-
-// }
-
-// func (fs FSModel) GetAll() error {
-
-// }
-
-// func (fs FSModel) DeleteFile() error {
-
-// }
-
-func (fs FSModel) DeleteDir(path string) error {
-	return os.RemoveAll(path)
+func DeleteFile(path string) error {
+	p := filepath.Clean(path)
+	return os.Remove(p)
 }
 
-// func WriteBucketToFileSys(storageRootPath string, bucketname string, tx *bolt.Tx) (err error) {
-
-// 	bucketRootPath := storageRootPath + "/" + bucketname + "/"
-
-// 	var snippets []Snippet
-// 	snippets, err = IndexSnippets(bucketname, tx)
-// 	if err != nil {
-// 		fmt.Printf("Error indexing snippets: %v", err)
-// 	}
-// 	for _, snippet := range snippets {
-// 		cleanFullName := filepath.Clean(snippet.Name)
-// 		fullFilePath := filepath.Dir(cleanFullName)
-// 		if fullFilePath == "." {
-// 			fullFilePath = ""
-// 		}
-// 		err = os.MkdirAll(bucketRootPath+fullFilePath, 0777)                                                                //rw
-// 		err = ioutil.WriteFile(bucketRootPath+fullFilePath+"/"+filepath.Base(cleanFullName), []byte(snippet.Content), 0666) //rw, truncates before write
-// 	}
-// 	return err
-// }
+func DeleteDir(path string) error {
+	p := filepath.Clean(path)
+	return os.RemoveAll(p)
+}

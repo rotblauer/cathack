@@ -3,7 +3,9 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 
+	"../config"
 	"github.com/boltdb/bolt"
 )
 
@@ -131,6 +133,7 @@ func (m SnippetModel) Set(snippet Snippet) error {
 func (m SnippetModel) Delete(bucketId string, snippetId string) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucketId))
+		bm := getMeta(b)
 		// Get snippet so can access Name (to remove from FS).
 		var snip Snippet
 		v := b.Get([]byte(snippetId))
@@ -142,16 +145,14 @@ func (m SnippetModel) Delete(bucketId string, snippetId string) error {
 			fmt.Printf("Error deleting from bucket: %v", derr)
 			return derr
 		}
-		// } else {
-		// 	// Remove from FS if was successfully deleted from bucket.
-		// 	path := "./hacks/snippets/" + snip.Name
-		// 	fmt.Printf("Removing file at path: %v", path)
-		// 	oserr := os.Remove(path)
-		// 	if oserr != nil {
-		// 		fmt.Printf("Error removing file: %v", oserr)
-		// 	}
-		// }
-		return derr
+
+		// Remove file from FS.
+		path := filepath.Join(config.FSStorePath, bm.Name, snip.Name)
+		fderr := DeleteFile(path)
+		if fderr != nil {
+			return fderr
+		}
+		return nil
 	})
 	return err
 }

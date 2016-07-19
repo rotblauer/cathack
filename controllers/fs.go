@@ -13,35 +13,6 @@ type FSController struct{}
 
 var fsModel = new(models.FSModel)
 
-// TODO: Move to model.
-// func (ctrl FSController) WriteBucketToDir(c *gin.Context) {
-// 	bucketId := c.Param("bucketId")
-// 	bucket := bucketModel.One([]byte(bucketId))
-
-// 	var err error
-
-// 	// DANGERZONE. Delete dir we're about to write.
-// 	err = fsModel.DeleteDir(filepath.Join(config.FSStorePath, bucket.Meta.Name))
-// 	if err != nil {
-// 		fmt.Printf("Error cleaning bucket path: %v", err)
-// 	}
-
-// 	snippets, _ := snippetModel.All(bucketId)
-
-// 	for _, snippet := range snippets {
-// 		err = fsModel.WriteFile(bucket, snippet) // per bucketName, snippetName, content
-// 		if err != nil {
-// 			break
-// 		}
-// 	}
-
-// 	if err != nil {
-// 		c.JSON(500, "Internal server error: "+err.Error())
-// 	} else {
-// 		c.JSON(200, bucket)
-// 	}
-// }
-
 func (ctrl FSController) WriteFile(c *gin.Context) {
 	snippetId := c.Param("snippetId")
 	bucketId := c.Query("bucketId")
@@ -104,24 +75,10 @@ func (ctrl FSController) SnippetizeMany(c *gin.Context) {
 	var p string
 	json.Unmarshal([]byte(path), &p)
 
-	bs, ss, e := fsModel.SnippetizeDir(path)
+	bs, ss, e := fsModel.SnippetizeDir(p)
 	if e != nil {
 		c.JSON(500, e)
 	} else {
 		c.JSON(200, gin.H{"b": bs, "s": ss})
 	}
 }
-
-// func (ctrl FSController) SetSnippet(c *gin.Context) {
-
-// }
-
-// // Does not overwrite any existing buckets.
-// func (ctrl FSController) GetGently(c *gin.Context) {
-
-// }
-
-// // Overwrite all buckets. ie --force
-// func (ctrl) FSController) GetForce(c *gin.Context) {
-
-// }
