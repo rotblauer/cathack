@@ -17,7 +17,7 @@ app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets', 'Utils',
 			return status;
 		}
 		function send(snippet) {
-			console.log('sending ws message:\n ' + JSON.stringify(snippet));
+			// console.log('sending ws message:\n ' + JSON.stringify(snippet));
 			return ws.send(JSON.stringify(snippet));
 		}
 

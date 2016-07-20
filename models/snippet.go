@@ -105,11 +105,7 @@ func (m SnippetModel) Set(snippet Snippet) error {
 
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(snippet.BucketId))
-		// if berr != nil {
-		// 	fmt.Printf("Could not create bucket if not exists for bucketId: %v\n", snippet.BucketId)
-		// 	fmt.Printf("The error was: %v\n", berr)
-		// 	return berr
-		// }
+
 		if b == nil {
 			fmt.Printf("Could not find bucket with snippet.BucketId: %v\n", snippet.BucketId)
 			return nil
@@ -125,7 +121,7 @@ func (m SnippetModel) Set(snippet Snippet) error {
 			fmt.Printf("Error putting snippet to bucket: %v\n", perr)
 			return perr
 		}
-		fmt.Printf("It would appear I successfully put hte snippet.")
+
 		return nil
 	})
 }
@@ -150,7 +146,7 @@ func (m SnippetModel) Delete(bucketId string, snippetId string) error {
 		path := filepath.Join(config.FSStorePath, bm.Name, snip.Name)
 		fderr := DeleteFile(path)
 		if fderr != nil {
-			return fderr
+			fmt.Printf("Couldn't delete snippet's file: %v", fderr)
 		}
 		return nil
 	})

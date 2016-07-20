@@ -124,7 +124,7 @@
                   
                     <!-- <li role="separator" class="divider"></li> -->
                     <li>
-                      <a id="createBucket" href="" data-toggle="modal" data-target="#myModal" ng-click="createNewBucket()">
+                      <a id="createBucket" href="" data-toggle="modal" data-target="#myModal-{{}}" ng-click="createNewBucket()">
                         <span class="text-success">
                           + 
                           new folder
@@ -235,7 +235,7 @@
            <!-- currentSnippet metadata -->
            <div class="col-xs-12" style="padding-top: 3px; padding-bottom: 3px;">
              <!-- <span id="snippetId" class="text-primary">{{data.cs.id}}</span> -->
-             <span id="snippetBucketName" ng-click="data.cb = data.buckets[data.cs.bucketId]" style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}} /</span>
+             <span id="snippetBucketName" ng-click="data.cb = data.buckets[data.cs.bucketId]" style="font-weight: bold;">{{data.buckets[data.cs.bucketId].meta.name}}:</span>
              <code id="snippetName"  
                     contenteditable="true"
                     strip-br="true"

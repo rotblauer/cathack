@@ -44,7 +44,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		}
 		$scope.data.cs.ipCity = $scope.data.ip['city'];
 		$scope.data.cs.ip = $scope.data.ip['ip'];
-		$log.log('sendup snip:', $scope.data.cs);
+		// $log.log('sendup snip:', $scope.data.cs);
 		WS.send($scope.data.cs);
 		$scope.data.cs.timestamp = Date.now();
 	}
@@ -193,7 +193,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 
   	var inp = String.fromCharCode(e.keyCode);
 
-  	$log.log(inp);
+  	// $log.log(inp);
   	
   	if (/\S/.test(inp) || e.which === 13 || e.keyCode === 8 || e.keyCode ===  9) { // 224
   	  sendUpdate(); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
@@ -257,11 +257,19 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	$scope.createNewBucket = function() {
 		Buckets.createBucket("newbucket")
 		.then(function (res) {
+			$log.log(res.data);
+			
+
 			// TODO: websocketize. 
 			Buckets.storeOneBucket(res.data);
 			$scope.data.buckets = Buckets.getBuckets();
 			$scope.data.cb = res.data;
 			flashAlert('Created ' + res.data.meta.name + '.', 'success');
+			
+			$timeout(function () {
+				$('#myModal-' + res.data.id).modal('show');		
+			}, 500);
+			
 		})
 		.catch(function (err) {
 			$log.error(err);
@@ -307,10 +315,19 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	$scope.saveBucket = function (bucket) {
 		Buckets.putBucket(bucket)
 			.success(function (res) {
-				$log.log(res);
+				// $log.log(res);
+				flashAlert('Successful renaming.', 'success');
+				FS.fetchFS()
+					.then(function (res) {
+						FS.storeFS(res.data);
+					})
+					.catch(function (err) {
+						$log.log("Error: ", err);
+					});
 			})
 			.error(function (err) {
 				$log.log(err);
+				flashAlert('Renaming failed. Sry.', 'danger');
 			});
 	};
 

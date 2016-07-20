@@ -111,6 +111,13 @@ func (m BucketModel) Create(bucketName string) (Bucket, error) {
 		}
 		return nil
 	})
+
+	p := filepath.Join(config.FSStorePath, bucketName)
+	derr := os.MkdirAll(p, 0777)
+	if derr != nil {
+		return bucket, err
+	}
+
 	return bucket, err
 }
 
