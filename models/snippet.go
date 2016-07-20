@@ -94,14 +94,14 @@ func (m SnippetModel) All(bucketId string) (snippets Snippets, err error) {
 
 func (m SnippetModel) Set(snippet Snippet) error {
 
-	fmt.Printf("Will try to set snip.\n")
-	fmt.Printf("snip.Id: %v\n", snippet.Id)
-	fmt.Printf("snippet.BucketId: %v\n", snippet.BucketId)
-	fmt.Printf("snippet.Name: %v\n", snippet.Name)
-	fmt.Printf("snippet.Language: %v\n", snippet.Language)
-	fmt.Printf("snippet.Content: %v\n", snippet.Content)
-	fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
-	fmt.Printf("snippet.IpCity: %v\n", snippet.IpCity)
+	// fmt.Printf("Will try to set snip.\n")
+	// fmt.Printf("snip.Id: %v\n", snippet.Id)
+	// fmt.Printf("snippet.BucketId: %v\n", snippet.BucketId)
+	// fmt.Printf("snippet.Name: %v\n", snippet.Name)
+	// fmt.Printf("snippet.Language: %v\n", snippet.Language)
+	// fmt.Printf("snippet.Content: %v\n", snippet.Content)
+	// fmt.Printf("snippet.TimeStamp: %v\n", snippet.TimeStamp)
+	// fmt.Printf("snippet.IpCity: %v\n", snippet.IpCity)
 
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(snippet.BucketId))

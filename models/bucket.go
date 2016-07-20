@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -139,6 +140,15 @@ func (m BucketModel) Set(bucket Bucket) (err error) {
 	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket.Id))
 
+		// Rename FS dir.
+		bm := getMeta(b)
+		oldpath := filepath.Join(config.FSStorePath, bm.Name)
+		newpath := filepath.Join(config.FSStorePath, bucket.Meta.Name)
+		rerr := os.Rename(oldpath, newpath)
+		if rerr != nil {
+			return rerr
+		}
+
 		j, jerr := json.Marshal(bucket.Meta)
 		if jerr != nil {
 			return jerr
@@ -148,7 +158,7 @@ func (m BucketModel) Set(bucket Bucket) (err error) {
 		if e != nil {
 			return e
 		}
-		return e
+		return nil
 	})
 	return err
 }

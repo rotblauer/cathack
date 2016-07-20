@@ -227,7 +227,7 @@ func snippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
 	return bucket, snippet, err
 }
 
-// Note: accepts FULL path (includes FSStoreDir)
+// Note: accepts FULL path (includes FSStorePath)
 func (fs FSModel) SnippetizeFile(path string) (bucket Bucket, snippet Snippet, err error) {
 	return snippetizeFile(path)
 }
