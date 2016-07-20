@@ -13,7 +13,7 @@ import (
 )
 
 func GetChat(c *gin.Context) {
-	http.ServeFile(c.Writer, c.Request, "index.html")
+	http.ServeFile(c.Writer, c.Request, "chat.html")
 	log.Printf("Getting chat.")
 	fmt.Println()
 }
