@@ -7,7 +7,7 @@ app.factory("WS", ['$log', 'Config', '$websocket', 'Snippets', 'Utils',
 	
 		var ws = $websocket(Config.WS_URL);
 		var status = {
-			available: false,
+			// available: true,
 			error: ""
 		}
 		function setStatus (opts) {

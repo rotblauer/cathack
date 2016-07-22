@@ -3,9 +3,11 @@
 app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
 	function ($scope, $location, WS, IP, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
 
-	$scope.testes = "this is only a test"
+	$scope.testes = "this is only a test" // $scope is binding
+	$scope.showTestes = true; // toggle to true if you want to see all the angular scoped data
 
 	$scope.data = {};
+
 	$scope.data.ws = WS.status;
 
 	$scope.data.cs = Config.DEFAULTSNIPPET; // inits as {}
@@ -20,10 +22,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	$scope.data.error = Errors.getError();
 
 	$scope.flash = flash;
-
-	$scope.data.editorOptions = Utils.setEditorOptions({
-		mode: Utils.getLanguageModeByExtension($scope.data.cs.language)
-	});
+	
 
 	var _doc; // Will be codemirror's doc as set onLoaded. 
 	
@@ -40,6 +39,15 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 			mode: Utils.getLanguageModeByExtension(snippet.name)
 		});
 	}
+	setEditOpts($scope.data.cs);
+
+	function setSnippetParam(snippet) {
+		return $location.hash(snippet.id);
+	}
+
+	function getSnippetParam() {
+		return $location.hash().replace('/','');
+	}
 
 	function sendUpdate(changeArr) {
 		// Ensure the cs has a bucket Id, ie in case it's a new snippet. 
@@ -50,11 +58,14 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		// Set last mod authorship on the snippet object.
 		$scope.data.cs.ipCity = $scope.data.ip['city'];
 		$scope.data.cs.ip = $scope.data.ip['ip'];
-		// WS.send($scope.data.cs);
+		// WS.send($scope.data.cs); // how it used to be done. clunky.
 		
 		// Re-digest scope to grab latest change generated per _editor.on.changes.
 		// FIXME: fires unnecessarily, too. 
-		$scope.$digest(); 
+		if (Utils.typeOf(changeArr) !== 'undefined') {
+			// $log.log('digesting..');
+			$scope.$digest(); 	
+		}
 		
 		// Sending two pieces: 
 		// 1. the snippet object (to be saved to Bolt),
@@ -78,12 +89,6 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 			$log.log('fail getting ip', err);
 		});
 
-	function setSnippetParam(snippet) {
-		return $location.hash(snippet.id);
-	}
-	function getSnippetParam() {
-		return $location.hash().replace('/','');
-	}
 
 	// Init.
 	// 
@@ -144,7 +149,8 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	$scope.$watchCollection('data.cs', function (old, neww) {
 		if (old !== neww) {
 			Snippets.setOneToSnippetsLib($scope.data.cs);
-			//check to set language
+			
+			//check to set language (also on init)
 			$scope.data.cs.language = Utils.getLanguageModeByExtension($scope.data.cs.name);
 
 			setEditOpts(neww);
@@ -153,35 +159,32 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		
 	}, true);
 
-
-
-
+	// Receive a hack message about changes that happened to this or another snippet. 
 	WS.ws.onMessage(function(message) {
 
 		console.log("received ws message:\n " + message.data);
 		var o = JSON.parse(message.data);
-
 		var snippet = o.snippet;
 		var changes = o.changes;
-		$log.log('received change: ', changes);
 
 		// make sure codemirror has been loaded
 		if (Utils.typeOf(_doc) === 'undefined') {
 			return;
 		}
 
-		// ... and update the lib
+		// Update update the lib.
 		Snippets.setOneToSnippetsLib(snippet);
 
-		// If we received an update about our current snippet.
+		// If we received an update about our current snippet
 		if ($scope.data.cs.id === snippet.id) {
 
-			// update the name in case that changed
+			// ... update the name and desc in case that changed
 			$scope.data.cs.name = snippet.name;
 			$scope.data.cs.description = snippet.description;
 
 			if (Utils.typeOf(changes) !== 'undefined') {
-				// ... make the changes by change obj
+				
+				// ... make the changes per change obj
 				for (var i = 0; i < changes.length; i++) {
 					var change = changes[i];
 
@@ -189,72 +192,20 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 						return;
 					}
 					
-					_doc.replaceRange(change.text, change.from, change.to); //, change.origin	
+					_doc.replaceRange(change.text, change.from, change.to);
 				}				
 			}
 		} 
-
-
-		// if (Utils.typeOf(o) === 'object') {
-		// 	console.log("received msg was obj");
-		// 	if (o.bucketId !== 'undefined') { // check if is snippet
-		// 		console.log("received msg was snippet");
-		// 		if ($scope.data.cs.id === o.id) {
-		// 			console.log("is current snippet!");
-		// 			$scope.data.cs = o; // set current snippet to equal incoming
-		// 		} else {
-		// 			console.log("not current snippet. setting to lib.");
-		// 			Snippets.setOneToSnippetsLib(o); // so we have a fresh version in store
-		// 		}
-		// 	} else if (o.meta !== 'undefined') { // check if is a bucket
-		// 		console.log("shit. msg was undefined.");
-		// 	}
-		// } else if (Utils.typeOf(o) === 'array') {
-		// 	console.log('what the ws received an array');
-		// } else {
-		// 	console.log('what the fuck the ws received some shit:\n' + JSON.stringify(o));
-		// }
 	});
 
-	// Manual listeners. Avoid infdiggers. 
-	// document.getElementById("editor").addEventListener('change', function (from, to, text, removed, origin) {
-	// 	sendUpdate();
-	// });
-	// document.getElementById("editor").addEventListener('keyup', function (e) {
-	//   // http://stackoverflow.com/questions/2257070/detect-numbers-or-letters-with-jquery-javascript
-	//   var inp = String.fromCharCode(e.keyCode);
-
-	//   if (e.metaKey || e.ctrlKey || e.altKey) { //  || /[\[cC]{1}/.test(inp) // preventing copy to clipboard?
-	//   	return false;
-	//   }
-
-	//   // if (/[VCA]/.test(inp)) {
-	//   // 	return false;
-	//   // }
-
- //  	var inp = String.fromCharCode(e.keyCode);
-
- //  	// $log.log(inp);
-  	
- //  	if (/\S/.test(inp) || e.which === 13 || e.keyCode === 8 || e.keyCode ===  9) { // 224
- //  	  sendUpdate(); // updateCurrentSnippetFromGUI returns currentSnippet {} var  
- //  	}	
-	  
-	// });
-	
-	$scope.codemirrorLoaded = function(_editor) {
+	$scope.data.codemirrorLoaded = function(_editor) {
 		_doc = _editor.getDoc();
-		$log.log('set _doc: ', _doc);
 
-		// _editor.on("change", function(cm, changed) {
+		// This is how we get the granular change object(s). 
 		_editor.on("changes", function(cm, changed) {
-			$log.log(changed);
-			// $timeout(sendUpdate(changed), 1000);
 			sendUpdate(changed);
 		});
 	};
-
-
 
 	document.getElementById("snippetName").addEventListener('keyup', function (e) {
 		
