@@ -12,8 +12,7 @@ Cathack uses Golang's Gin (server) and Melody (websockets) frameworks on the ser
 - Read and write from the file system directory you point it to. New folders you create will be put in there, and can be read from there. Create subdirectories in your folders by naming your snippets something deep like `assets/scribbles/meow.js`. Reading and writing is supported at the folder and/or file level. 
 - Toggle Cat Chat on the side. Your browser will ask if you'd like to enable  browser notifications for that. 
 
-#### Protip:
-Use [Syncthing](https://syncthing.net) to sync your Cathack FS directory with your local computer. Cool!
+#### Protip: Use [Syncthing](https://syncthing.net) to sync your Cathack FS directory with your local computer. Cool!
 
 ## Install
 1. Clone it. 
@@ -25,7 +24,7 @@ Use [Syncthing](https://syncthing.net) to sync your Cathack FS directory with yo
 
 ## Configure
 All of the server-side configuration options live in `config/config.go`, which looks like this:
-```
+```go
 package config
 
 // Path to Bolt database.
