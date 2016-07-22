@@ -175,16 +175,22 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		// If we received an update about our current snippet.
 		if ($scope.data.cs.id === snippet.id) {
 
-			// ... make the changes by change obj
-			for (var i = 0; i < changes.length; i++) {
-				var change = changes[i];
+			// update the name in case that changed
+			$scope.data.cs.name = snippet.name;
+			$scope.data.cs.description = snippet.description;
 
-				if (Utils.typeOf(change.origin) === 'undefined' || change.origin === "setValue") {
-					return;
-				}
-				
-				_doc.replaceRange(change.text, change.from, change.to); //, change.origin	
-			}			
+			if (Utils.typeOf(changes) !== 'undefined') {
+				// ... make the changes by change obj
+				for (var i = 0; i < changes.length; i++) {
+					var change = changes[i];
+
+					if (Utils.typeOf(change.origin) === 'undefined' || change.origin === "setValue") {
+						return;
+					}
+					
+					_doc.replaceRange(change.text, change.from, change.to); //, change.origin	
+				}				
+			}
 		} 
 
 
