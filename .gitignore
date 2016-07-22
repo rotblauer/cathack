@@ -1,5 +1,7 @@
 *.log
-*.mmdb
+# *.mmdb
 /hacks
 chat.txt
-main
+freyafy.sh # custom script 
+kickstart.sh # custom script
+/archive

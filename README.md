@@ -43,7 +43,7 @@ var MakeThisMyPort = ":5000"
 ## Of note
 - __Authentication__ -- there is none. Just plug and play. TODO?
 - __Protip__: use [Syncthing](https://syncthing.net) to sync your Cathack FS directory with your local computer. Cool!
-- Catchat's uses a nifty GeoIp package (courtesy `github.com/oschwald/geoip2-golang`) which relies on `data/GeoLite2-City.mmdb`, weighing in at a whopping 63 megabytes. Expensive. Knowing where you are in the world? Priceless. 
+- The Catchat feature uses a nifty GeoIp package (courtesy `github.com/oschwald/geoip2-golang`) which relies on `data/GeoLite2-City.mmdb`, weighing in at a whopping 63 megabytes. Expensive. Knowing where you are in the world? Priceless. 
 
 ## Contribute
 Much of the work already contributing to this project has been begged, borrowed, and ~~stolen~~ kindly (under license, very hopefully... surely?) resituated to help out. Thanks to those whose work is already here, though they may not even know it (yet!).
