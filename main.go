@@ -8,20 +8,12 @@ import (
 	"time"
 
 	"./catchat"
+	"./config"
 	"./controllers"
 	"./models"
 	"github.com/gin-gonic/gin"
 	"github.com/olahol/melody"
 )
-
-//CORSMiddleware ...
-// func CORSMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://chat.areteh.co:5000")
-// 	}
-// }
-
-//
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
@@ -140,5 +132,5 @@ func main() {
 		}
 	})
 
-	r.Run(":5000")
+	r.Run(config.MakeThisMyPort)
 }

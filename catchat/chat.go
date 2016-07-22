@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"../config"
 	"../lib"
 	"github.com/olahol/melody"
 	ghfmd "github.com/shurcooL/github_flavored_markdown"
@@ -34,7 +35,7 @@ func saveChat(data []byte) (bytes int, err error) {
 	fmt.Println()
 
 	// Open database.
-	f, err := os.OpenFile("./data/chat.txt", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	f, err := os.OpenFile(config.ChatFile, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		log.Fatalln("Error opening file: ", err)
 	}
