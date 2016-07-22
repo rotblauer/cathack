@@ -1,6 +1,7 @@
 *.log
 # *.mmdb
 /hacks
+/data
 chat.txt
 freyafy.sh # custom script 
 kickstart.sh # custom script
