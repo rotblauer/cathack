@@ -1,7 +1,7 @@
 *.log
 # *.mmdb # don't ignore the elephant. unless you want to.
-hacks/
+/hacks
 chat.txt
 /freyafy.sh # custom script 
 /kickstart.sh # custom script
-archive/ # old junk i keep around for no good reason
+/archive # old junk i keep around for no good reason
