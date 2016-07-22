@@ -5,3 +5,5 @@ chat.txt
 *.sh # custom script 
 /archive # old junk i keep around for no good reason
 hack.db
+freyafy*
+kickstart*
