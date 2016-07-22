@@ -93,18 +93,29 @@ func main() {
 		s.Write([]byte("Connected."))
 	})
 
-	// IS NOT SAVING TO BOLT.
 	h.HandleMessage(func(s *melody.Session, msg []byte) {
 		fmt.Printf("Handling hack message: %v\n", string(msg))
-		snip := models.Snippet{}
-		json.Unmarshal(msg, &snip)
-		snip.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
-		err := snippetModel.Set(snip)
+
+		snippetRequest := models.SnippetChangedRequest{}
+		json.Unmarshal(msg, &snippetRequest)
+
+		snippetRequest.Snippet.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
+		err := snippetModel.Set(snippetRequest.Snippet)
 		if err != nil {
-			h.Broadcast([]byte("'ERROR':" + err.Error()))
+			h.Broadcast([]byte("error: " + err.Error()))
 		}
+
+		// The change will be peeled off by Angular controller in incoming WS.
 		h.BroadcastOthers(msg, s)
-		// h.Broadcast(j) // send with timestamp update
+
+		// snip := models.Snippet{}
+		// json.Unmarshal(msg, &snip)
+		// snip.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
+		// err := snippetModel.Set(snip)
+		// if err != nil {
+		// 	h.Broadcast([]byte("'ERROR':" + err.Error()))
+		// }
+		// h.BroadcastOthers(msg, s)
 	})
 	h.HandleError(func(s *melody.Session, err error) {
 		fmt.Printf("Melody error: %v", err)

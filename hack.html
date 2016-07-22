@@ -34,7 +34,7 @@
       <!-- alerts -->
       <div class="alert alert-{{flash.getMessage().klass}}" ng-show="flash.getMessage().message.length > 0" style="z-index: 100; position: fixed; top: 50; right: 20; width: 25%;">{{flash.getMessage().message}}</div>
 
-      <!-- <div id="testes" class="testes">
+     <!--  <div id="testes" class="testes">
 
         <p>
           2: {{ 1 + 1 }}
@@ -269,7 +269,7 @@
                     ng-model="data.cs.description">{{data.cs.description}}</div>
             </div>
            <div class="col-xs-12" >
-             <div id="editor" ui-codemirror ui-codemirror-opts="data.editorOptions" ng-model="data.cs.content">asf</div>
+             <div id="editor" ui-codemirror="{onLoad : codemirrorLoaded}" ui-codemirror-opts="data.editorOptions" ng-model="data.cs.content">asf</div>
            </div>
 
          </div>

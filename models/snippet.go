@@ -21,6 +21,26 @@ type Snippet struct {
 	Ip          string `json:"ip"`
 }
 type Snippets []Snippet
+
+type SnippetChange struct {
+	From    CMPosition `json:"from"`
+	Origin  string     `json:"origin"`
+	Removed []string   `json:"removed"`
+	Text    []string   `json:"text"`
+	To      CMPosition `json:"to"`
+}
+type CMPosition struct {
+	Ch   int `json:"ch"`
+	Line int `json:"line"`
+	XRel int `json:"xrel"`
+}
+type SnippetChanges []SnippetChange
+
+type SnippetChangedRequest struct {
+	Snippet Snippet        `json:"snippet"`
+	Changes SnippetChanges `json:"changes"`
+}
+
 type SnippetModel struct{}
 
 func snipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {
