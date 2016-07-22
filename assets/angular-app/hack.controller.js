@@ -52,7 +52,8 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		$scope.data.cs.ip = $scope.data.ip['ip'];
 		// WS.send($scope.data.cs);
 		
-		// Re-digest scope to grab latest change generated per _editor.on.changes
+		// Re-digest scope to grab latest change generated per _editor.on.changes.
+		// FIXME: fires unnecessarily, too. 
 		$scope.$digest(); 
 		
 		// Sending two pieces: 

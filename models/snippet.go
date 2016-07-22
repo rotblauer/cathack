@@ -36,11 +36,6 @@ type CMPosition struct {
 }
 type SnippetChanges []SnippetChange
 
-type SnippetChangedRequest struct {
-	Snippet Snippet        `json:"snippet"`
-	Changes SnippetChanges `json:"changes"`
-}
-
 type SnippetModel struct{}
 
 func snipFromJSON(snippetJSONBytes []byte) (snippet Snippet) {

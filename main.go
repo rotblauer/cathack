@@ -108,14 +108,6 @@ func main() {
 		// The change will be peeled off by Angular controller in incoming WS.
 		h.BroadcastOthers(msg, s)
 
-		// snip := models.Snippet{}
-		// json.Unmarshal(msg, &snip)
-		// snip.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
-		// err := snippetModel.Set(snip)
-		// if err != nil {
-		// 	h.Broadcast([]byte("'ERROR':" + err.Error()))
-		// }
-		// h.BroadcastOthers(msg, s)
 	})
 	h.HandleError(func(s *melody.Session, err error) {
 		fmt.Printf("Melody error: %v", err)
@@ -147,105 +139,6 @@ func main() {
 			log.Fatalln(err)
 		}
 	})
-
-	// Save all files within HacksRootPath to Bolt db.
-	// Controller should respond with index of bolt buckets.
-	//
-	// r.GET("/hack/boltify", func(c *gin.Context) {
-
-	// 	werr := filepath.Walk(config.FSStorePath, func(path string, info os.FileInfo, err error) error {
-	// 		if err != nil {
-	// 			fmt.Printf("Error: %v\n", err)
-	// 			return nil
-	// 		}
-
-	// 		// Only for files.
-	// 		if !info.IsDir() {
-
-	// 			// Handle paths.
-	// 			cleanPath := filepath.Clean(path) // hacks/snippets/todo/MOAR
-	// 			dir := filepath.Dir(cleanPath)    // hacks/snippets/todo
-	// 			withinHacksRootDir := strings.Replace(dir, config.FSStorePath+"/", "", 1)
-	// 			folders := strings.Split(withinHacksRootDir, "/")
-	// 			bucket := folders[0]
-	// 			withinBucketDir := strings.Replace(withinHacksRootDir, bucket, "", 1)
-	// 			name := withinBucketDir + "/" + info.Name()
-
-	// 			// Get file contents and parse path (if not dir).
-	// 			contents, ioerr := ioutil.ReadFile(path)
-
-	// 			if ioerr != nil {
-	// 				fmt.Printf("Error reading file: %v\n", ioerr)
-	// 			} else {
-	// 				fmt.Printf("cleanPath: %v\n", cleanPath)
-	// 				fmt.Printf("dir: %v\n", dir)
-	// 				fmt.Printf("withinHacksRootDir: %v\n", withinHacksRootDir)
-	// 				fmt.Printf("bucket: %v\n", bucket)
-	// 				fmt.Printf("withinBucketDir: %v\n", withinBucketDir)
-	// 				fmt.Printf("name: %v\n", name)
-	// 				fmt.Printf("Contents: \n---\n%v\n---\n", string(contents))
-
-	// 				// Get snippet if exists by bucket name and filename.
-	// 				// FIXME: ew.
-	// 				// var snip models.Snippet
-
-	// 				var snip models.Snippet
-
-	// 				db.View(func(tx *bolt.Tx) error {
-	// 					snip = models.GetSnippetByName(bucket, name, tx)
-	// 					return nil
-	// 				})
-
-	// 				if snip == (models.Snippet{}) {
-
-	// 					// Snippify.
-	// 					snip.Name = name
-	// 					snip.BucketName = bucket
-	// 					newId := lib.RandSeq(6)
-	// 					snip.Id = newId
-
-	// 				}
-
-	// 				// Make updates.
-	// 				snip.Content = string(contents)
-	// 				snip.Language = lib.GetLanguageModeByExtension(name)
-	// 				snip.TimeStamp = int(time.Now().UTC().Unix() * 1000)
-
-	// 				snipJSONBytes, _ := json.Marshal(snip)
-
-	// 				// Save snippet to given bucket.
-	// 				dberr := db.Update(func(tx *bolt.Tx) error {
-
-	// 					return models.SetSnippet(snip.Id, snipJSONBytes, bucket, tx)
-	// 				})
-	// 				if dberr != nil {
-	// 					fmt.Printf("Error saving file snippet to bolt: %v\n", dberr)
-	// 				}
-	// 			}
-	// 		}
-	// 		return nil
-	// 	})
-
-	// 	if werr != nil {
-	// 		fmt.Println("Impossible.")
-	// 	}
-
-	// 	var buckets models.SnippetBuckets
-
-	// 	indexerr := db.View(func(tx *bolt.Tx) error {
-	// 		tx.ForEach(func(name []byte, b *bolt.Bucket) error {
-	// 			buckets = append(buckets, models.SnippetBucket{Name: string(name)})
-	// 			return nil
-	// 		})
-	// 		return nil
-	// 	})
-	// 	if indexerr != nil {
-	// 		c.JSON(500, indexerr)
-	// 	} else {
-	// 		c.JSON(200, buckets)
-	// 	}
-
-	// })
 
 	r.Run(":5000")
 }

@@ -35,6 +35,8 @@ func GetGeoFromIP(ip string) (out map[string]string, err error) {
 	record, err := db.City(parsedIP)
 	if err != nil {
 		log.Fatal(err)
+	} else {
+		log.Println(record)
 	}
 
 	// fmt.Printf("Portuguese (BR) city name: %v\n", record.City.Names["pt-BR"])
@@ -50,12 +52,22 @@ func GetGeoFromIP(ip string) (out map[string]string, err error) {
 	// ISO country code: GB
 	// Time zone: Europe/London
 	// Coordinates: 51.5142, -0.0931
-	out["lat"] = strconv.FormatFloat(record.Location.Latitude, 'f', 6, 64)
-	out["lon"] = strconv.FormatFloat(record.Location.Longitude, 'f', 6, 64)
-	out["tz"] = record.Location.TimeZone
-	out["countryIsoCode"] = record.Country.IsoCode
-	out["subdiv"] = record.Subdivisions[0].Names["en"]
-	out["city"] = record.City.Names["en"]
+	if ip != "::1" {
+		out["lat"] = strconv.FormatFloat(record.Location.Latitude, 'f', 6, 64)
+		out["lon"] = strconv.FormatFloat(record.Location.Longitude, 'f', 6, 64)
+		out["tz"] = record.Location.TimeZone
+		out["countryIsoCode"] = record.Country.IsoCode
+		out["subdiv"] = record.Subdivisions[0].Names["en"]
+		out["city"] = record.City.Names["en"]
+	} else {
+		out["lat"] = "42"
+		out["lon"] = "71"
+		out["tz"] = "EST"
+		out["countryIsoCode"] = "USA"
+		out["subdiv"] = "The Heartland"
+		out["city"] = "Effington"
+	}
+
 	fmt.Printf("GeoIP: %v\n", out)
 	fmt.Println()
 	if err != nil {
