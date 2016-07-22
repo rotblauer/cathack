@@ -1,7 +1,6 @@
 *.log
-# *.mmdb
+# *.mmdb # don't ignore the elephant. unless you want to.
 /hacks
-/data
 chat.txt
 freyafy.sh # custom script 
 kickstart.sh # custom script
