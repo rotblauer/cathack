@@ -29,6 +29,9 @@ func DelegateSendSMS(messageText []byte) (status []byte, err error) {
 	phoneBook["john"] = "2182606849"
 	phoneBook["isaac"] = "2183494908"
 	phoneBook["sharif"] = "6073420398"
+	phoneBook["aaron"] = "3603393496"
+	phoneBook["kelsey"] = "3603393496"
+	phoneBook["alexa"] = "3603393496"
 
 	re, err := regexp.Compile(`@(\w+)`) // FIXME: this should capture only the name, not the @ part. it captures @name. don't know why.
 	if err != nil {
