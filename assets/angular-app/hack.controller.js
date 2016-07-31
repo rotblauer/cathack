@@ -4,7 +4,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	function ($scope, $location, WS, IP, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
 
 	$scope.testes = "this is only a test" // $scope is binding
-	$scope.showTestes = true; // toggle to true if you want to see all the angular scoped data
+	$scope.showTestes = false; // toggle to true if you want to see all the angular scoped data
 
 	$scope.data = {};
 
