@@ -32,9 +32,9 @@ func init() {
 
 		j, _ := json.Marshal(defaultMetaBucket)
 
-		b, aerr := tx.CreateBucketIfNotExists([]byte(config.DefaultBucketName))
-		if aerr != nil {
-			fmt.Errorf("create bucket err: %s", aerr)
+		b, err := tx.CreateBucketIfNotExists([]byte(config.DefaultBucketName))
+		if err != nil {
+			fmt.Println(fmt.Errorf("create bucket err: %s", err))
 		} else {
 			fmt.Printf("create bucket: %v", b)
 
@@ -44,11 +44,12 @@ func init() {
 				b.Put([]byte("meta"), j)
 			}
 		}
-		return aerr
+		_, err = tx.CreateBucketIfNotExists([]byte("chat")) // gotta have dat bucket
+		return err
 	})
 }
 
-// Getter.
+// GetDB is db getter.
 func GetDB() *bolt.DB {
 	return db
 }

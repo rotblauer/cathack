@@ -1,49 +1,32 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 
-	"../catchat"
+	"../models"
 	"github.com/gin-gonic/gin"
 )
 
+// GetChat simply renders HTML page.
 func GetChat(c *gin.Context) {
 	http.ServeFile(c.Writer, c.Request, "chat.html")
 	log.Printf("Getting chat.")
 	fmt.Println()
 }
 
+// GetChatData is called by AJAX on /chat HTML inline JS page load.
 func GetChatData(c *gin.Context) {
-	// func ReadFile(filename string) ([]byte, error)
-	fileContents, err := ioutil.ReadFile("./data/chat.txt")
+	msgs, err := models.AllChatMsgs() // msgs are type []ChatMessageForm
 	if err != nil {
-		fmt.Printf("Error ioutiling chat.txt: %v", err)
+		c.JSON(500, err)
+	} else {
+		c.JSON(200, msgs)
 	}
-
-	messageStrings := strings.Split(string(fileContents), "\n")
-
-	var collection []catchat.ChatMessageAs
-
-	for _, messageString := range messageStrings {
-		bytes := []byte(messageString)
-		var cm catchat.ChatMessageAs
-		json.Unmarshal(bytes, &cm)
-		collection = append(collection, cm)
-	}
-
-	collectionBytes, err := json.Marshal(collection) // []byte
-
-	c.JSON(200, gin.H{
-		"status": "200 OK",
-		"data":   string(collectionBytes), // again, the hanging commas are strangely necessary
-	})
 }
 
+// GetHack simply renders associated /hack HTML page.
 func GetHack(c *gin.Context) {
 	http.ServeFile(c.Writer, c.Request, "hack.html")
 }

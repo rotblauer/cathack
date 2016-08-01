@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"./catchat"
 	"./config"
 	"./controllers"
 	"./models"
@@ -118,18 +117,19 @@ func main() {
 
 			// sent message
 		} else {
-			ps1, err := catchat.HandleChatMessage(s, msg)
+			ps1, err := models.SaveChatMsg(s, msg)
 			if err != nil {
 				log.Fatalln(err)
 			}
 			m.Broadcast(ps1)
 		}
 
-		// Now check for @SMS.
-		_, err := catchat.DelegateSendSMS(msg)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		// // Now check for @SMS.
+		// _, err := catchat.DelegateSendSMS(msg)
+		// if err != nil {
+		// 	log.Fatalln(err)
+		// }
+
 	})
 
 	r.Run(config.MakeThisMyPort)
