@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"./catchat"
 	"./config"
 	"./controllers"
 	"./models"
@@ -125,10 +126,10 @@ func main() {
 		}
 
 		// // Now check for @SMS.
-		// _, err := catchat.DelegateSendSMS(msg)
-		// if err != nil {
-		// 	log.Fatalln(err)
-		// }
+		_, err := catchat.DelegateSendSMS(msg)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
 	})
 
