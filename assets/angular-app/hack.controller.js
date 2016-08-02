@@ -1,10 +1,11 @@
+
 'use strict';
 
 app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snippets', 'FS', 'Utils', '$timeout', 'Errors', 'Config', '$log', 'flash',
 	function ($scope, $location, WS, IP, Buckets, Snippets, FS, Utils, $timeout, Errors, Config, $log, flash) {
 
-	$scope.testes = "this is only a test" // $scope is binding
-	$scope.showTestes = false; // toggle to true if you want to see all the angular scoped data
+  $scope.testes = "this is only a test" // check $scope is binding
+  $scope.showTestes = false; // toggle to true if you want to see all the angular scoped data
 
 	$scope.data = {};
 
@@ -24,6 +25,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	$scope.flash = flash;
 
 
+      var theEditor; // will be codemirror instance
   var _doc; // Will be codemirror's doc as set onLoaded.
 
 
@@ -32,14 +34,28 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		$timeout(function() {
 			flash.setMessage({});
 		}, 3000);
-	}
+  }
 
-	function setEditOpts(snippet) {
-		$scope.data.editorOptions = Utils.setEditorOptions({
-			mode: Utils.getLanguageModeByExtension(snippet.name)
-		});
-	}
-	setEditOpts($scope.data.cs);
+      function setEditOpts(snippet) {
+          // ensure the editor is actually loaded already
+          if (( Utils.typeOf(theEditor) !== 'undefined' )) {
+             // use the global editor var
+              // theEditor.setOption(Utils.setEditorOptions({'mode': Utils.getLanguageModeByExtension($scope.data.cs.name) }));
+              theEditor.setOption('mode', Utils.getLanguageModeByExtension($scope.data.cs.name));
+              $log.log("setEditOpts mode:", theEditor.getOption('mode'));
+          }
+      }
+
+      $scope.data.editorOptions = Config.EDITOROPTIONS;
+  // function setEditOpts(snippet) {
+  //     if (typeOf theEditor !== 'undefined') {
+  //         theEditor.setOptions()
+  //     }
+  // 	$scope.data.editorOptions = Utils.setEditorOptions({
+  // 		mode: Utils.getLanguageModeByExtension(snippet.name)
+  // 	});
+  // }
+  // setEditOpts($scope.data.cs);
 
 	function setSnippetParam(snippet) {
 		return $location.hash(snippet.id);
@@ -49,11 +65,12 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		return $location.hash().replace('/','');
 	}
 
-	function sendUpdate(changeArr) {
+  function sendUpdate(changeArr) {
+
     // Ensure the cs has a bucket Id, ie in case it's a new snippet.
-		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
-			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
-		}
+      if (( Utils.typeOf($scope.data.cs.bucketId) === 'undefined' ) && Utils.typeOf($scope.data.cb) !== 'undefined') {
+        $scope.data.cs.bucketId = Buckets.getCurrentBucket().id; // this method doesn't actually exist. but things break without it. wtf.
+    }
 
 		// Set last mod authorship on the snippet object.
 		$scope.data.cs.ipCity = $scope.data.ip['city'];
@@ -160,8 +177,12 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	}, true);
 
   // Receive a hack message about changes that happened to this or another snippet.
-	WS.ws.onMessage(function(message) {
-
+  WS.ws.onMessage(function(message) {
+      // this is annoying
+      // if (message.data === "Connected") {
+      //     $log.log("Websocket connected. OK.");
+      //     return true;
+      // }
 		console.log("received ws message:\n " + message.data);
 		var o = JSON.parse(message.data);
 		var snippet = o.snippet;
@@ -198,13 +219,20 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
     }
 	});
 
-	$scope.data.codemirrorLoaded = function(_editor) {
-		_doc = _editor.getDoc();
+  $scope.data.codemirrorLoaded = function(_editor) {
+      theEditor = _editor; // set global
+    // _doc = _editor.getDoc();
+
+      // set default opts
+
 
     // This is how we get the granular change object(s).
-		_editor.on("changes", function(cm, changed) {
+    theEditor.on("changes", function(cm, changed) {
 			sendUpdate(changed);
-		});
+    });
+      // the
+      // _editor.setOption(setEditOpts);
+      // $log.log("editor mode option is:  ", theEditor.getOption('mode'));
 	};
 
 	document.getElementById("snippetName").addEventListener('keyup', function (e) {

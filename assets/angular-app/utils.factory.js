@@ -1,15 +1,33 @@
 'use strict';
 
-app.factory("Utils", ["Config", function (Config) {
+app.factory("Utils", ["Config", "$log", function (Config, $log) {
+
+    var goMode = {name: 'go'};
+    var javascriptMode = {name: 'javascript'};
+    var markdownMode = {name: 'markdown'};
+    var pythonMode = {name: 'python'};
+    var rubyMode = {name: 'ruby'};
+    var rMode = {name: 'r'};
+    var shellMode = {name: 'shell'};
+    var swiftMode = {name: 'swift'};
+    var htmlmixedMode = {name: 'htmlmixed', scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
+                                                           mode: null},
+                                                          {matches: /(text|application)\/(x-)?vb(a|script)/i,
+                                                           mode: "vbscript"}]};
+    var htmlembeddedMode = {name: 'htmlembedded'};
+    var cssMode = {name: 'css'}
 
 	function typeOf (obj) {
 	  return {}.toString.call(obj).split(' ')[1].slice(0, -1).toLowerCase();
 	}
 
-	function setEditorOptions(obj) {
-		return angular.extend({}, Config.EDITOROPTIONS, obj);
+  // returns editor config object extending a given object (likely {mode: ____})
+  function setEditorOptions(obj) {
+      var a  = angular.extend({}, Config.EDITOROPTIONS, obj);
+      // $log.log("Utils.setEditorOptions: " , a);
+      return a;
 	}
-	
+
 	function getLanguageModeByExtension(name) {
 	  var o = "";
 	  var exs = name.split(".");
@@ -21,10 +39,15 @@ app.factory("Utils", ["Config", function (Config) {
 	      case 'js':
 	        o = javascriptMode;
 	        break;
-	      case 'erb': 
+        case 'erb':
 	      case 'html':
 	        o = htmlmixedMode;
-	        break;
+          break;
+      case 'css':
+      case 'less':
+      case 'scss':
+          o = cssMode;
+          break;
 	      case 'go':
 	        o = goMode;
 	        break;
@@ -49,28 +72,15 @@ app.factory("Utils", ["Config", function (Config) {
 	      case 'swift':
 	        o = swiftMode;
 	        break;
-	      default: 
+        default:
 	        o = markdownMode;
 	        break;
-	    }  
+      }
 	  }
-	  // console.log("language by extension -> " + o);
+    // $log.log("language by extension -> " , o);
 	  return o;
 	}
 
-	var goMode = {name: 'go'};
-	var javascriptMode = {name: 'javascript'};
-	var markdownMode = {name: 'markdown'};
-	var pythonMode = {name: 'python'};
-	var rubyMode = {name: 'ruby'};
-	var rMode = {name: 'r'};
-	var shellMode = {name: 'shell'};
-	var swiftMode = {name: 'swift'};
-	var htmlmixedMode = {name: 'htmlmixed', scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
-	                 mode: null},
-	                {matches: /(text|application)\/(x-)?vb(a|script)/i,
-	                 mode: "vbscript"}]};
-	var htmlembeddedMode = {name: 'htmlembedded'};
 
 	return {
 		typeOf: typeOf,
