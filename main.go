@@ -128,11 +128,12 @@ func main() {
 		}
 
 		// // Now check for @SMS.
-		_, err := catchat.DelegateSendSMS(msg)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
+		go func() {
+			_, err := catchat.DelegateSendSMS(msg)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}()
 	})
 
 	r.Run(config.MakeThisMyPort)
