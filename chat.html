@@ -109,7 +109,36 @@
   <body>
 
     <div class="container-fluid">
+
       <div class="row">
+
+        <style>
+         #disconnected-alert: before {
+           content: '';
+           display: inline-block;
+           vertical-align: middle;
+           height: 100%;
+         }
+         #disconnected-alert > div,
+         #disconnected-alert > h1 {
+           display: inline-block;
+           padding: 0 0 0 0;
+           vertical-align: middle;
+         }
+
+        </style>
+        <div id="disconnected-alert" style="display: none;">
+
+        <div style="display: table; position: fixed; z-index: 100; top: 0; right: 0; width: 100%; height: 100%; background: rgba(200, 10, 10, 0.4);" class="text-center">
+
+          <h1 id="disconnected-text" style="display: table-cell; vertical-align: middle;" class="text-center text-danger">
+            You've been disconnected, please <span class="text-primary">try refreshing.</span>
+          </h1>
+
+        </div>
+
+        </div>
+
 
         <a id="open-chatty-full" class="text-primary" target="_blank" href="http://www.chat.areteh.co:5000"><span class="glyphicon glyphicon-resize-full"></span></a>
 
@@ -293,6 +322,9 @@
         //   "metro_code": 0
         // }
 
+     ws.onclose = function (evt) {
+        $('#disconnected-alert').show();
+     };
         ws.onmessage = function (msgEvt) {
 
           console.log("WSonmessage: ", msgEvt);
