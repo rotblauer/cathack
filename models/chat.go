@@ -118,15 +118,18 @@ func SaveChatMsg(s *melody.Session, msg []byte) ([]byte, error) {
 		fmt.Println(err)
 	}
 
-	err = GetDB().Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("chat"))
-		e := b.Put([]byte(newChatMessage.ID), chatMsgJSON)
-		if e != nil {
-			fmt.Println(e)
-			return e
-		}
-		return nil
-	})
+	// This can go in a go routine --
+	go func() {
+		GetDB().Update(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("chat"))
+			e := b.Put([]byte(newChatMessage.ID), chatMsgJSON)
+			if e != nil {
+				fmt.Println(e)
+				return e
+			}
+			return nil
+		})
+	}()
 
 	if err != nil {
 		fmt.Println(err)

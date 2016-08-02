@@ -86,21 +86,23 @@ func main() {
 	})
 
 	h.HandleMessage(func(s *melody.Session, msg []byte) {
-		fmt.Printf("Handling hack message: %v\n", string(msg))
 
-		snippetRequest := models.SnippetChangedRequest{}
-		json.Unmarshal(msg, &snippetRequest)
+		// Saving the snippet can go in a go routine.
+		go func() {
+			snippetRequest := models.SnippetChangedRequest{}
+			json.Unmarshal(msg, &snippetRequest)
 
-		snippetRequest.Snippet.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
-		err := snippetModel.Set(snippetRequest.Snippet)
-		if err != nil {
-			h.Broadcast([]byte("error: " + err.Error()))
-		}
+			snippetRequest.Snippet.TimeStamp = int(time.Now().UTC().UnixNano() / 1000000)
+			err := snippetModel.Set(snippetRequest.Snippet)
+			if err != nil {
+				h.Broadcast([]byte("error: " + err.Error()))
+			}
+		}()
 
 		// The change will be peeled off by Angular controller in incoming WS.
 		h.BroadcastOthers(msg, s)
-
 	})
+
 	h.HandleError(func(s *melody.Session, err error) {
 		fmt.Printf("Melody error: %v", err)
 	})
