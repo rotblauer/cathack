@@ -81,7 +81,9 @@ func (m BucketModel) All() (buckets Buckets, err error) {
 	err = db.View(func(tx *bolt.Tx) error {
 		tx.ForEach(func(bucketId []byte, b *bolt.Bucket) error {
 			m := getMeta(b)
-			buckets = append(buckets, Bucket{Id: string(bucketId), Meta: m})
+			if string(bucketId) != "chat" {
+				buckets = append(buckets, Bucket{Id: string(bucketId), Meta: m})
+			}
 			return nil
 		})
 		return nil
