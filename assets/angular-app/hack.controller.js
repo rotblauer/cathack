@@ -16,16 +16,16 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	$scope.data.buckets = Buckets.getBuckets();
 	$scope.data.snippets = Snippets.getSnippetsLib();
 	$scope.data.cfs = FS.getFS();
-	
+
 	$scope.data.ip = IP.getIp();
 
 	$scope.data.error = Errors.getError();
 
 	$scope.flash = flash;
-	
 
-	var _doc; // Will be codemirror's doc as set onLoaded. 
-	
+
+  var _doc; // Will be codemirror's doc as set onLoaded.
+
 
 	function flashAlert(text, classs) {
 		flash.setMessage(text, classs);
@@ -50,24 +50,24 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	}
 
 	function sendUpdate(changeArr) {
-		// Ensure the cs has a bucket Id, ie in case it's a new snippet. 
+    // Ensure the cs has a bucket Id, ie in case it's a new snippet.
 		if (Utils.typeOf($scope.data.cs.bucketId) === 'undefined') {
 			$scope.data.cs.bucketId = Buckets.getCurrentBucket().id // make sure we're sending a snip with a  bucketId
 		}
-		
+
 		// Set last mod authorship on the snippet object.
 		$scope.data.cs.ipCity = $scope.data.ip['city'];
 		$scope.data.cs.ip = $scope.data.ip['ip'];
 		// WS.send($scope.data.cs); // how it used to be done. clunky.
-		
+
 		// Re-digest scope to grab latest change generated per _editor.on.changes.
-		// FIXME: fires unnecessarily, too. 
+    // FIXME: fires unnecessarily, too.
 		if (Utils.typeOf(changeArr) !== 'undefined') {
 			// $log.log('digesting..');
-			$scope.$digest(); 	
+      $scope.$digest();
 		}
-		
-		// Sending two pieces: 
+
+    // Sending two pieces:
 		// 1. the snippet object (to be saved to Bolt),
 		// 2. the particular changes made by the user (see https://codemirror.net/doc/manual.html @ Events.changes)
 		var changedTo = {
@@ -91,34 +91,34 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 
 
 	// Init.
-	// 
+  //
 	// Fetch all snippets [{id: "12341=", name: "boots.go" ... }]
 	Snippets.getUberAll().then(function (res) {
-		
+
 		// if there are any snippets at all
 		if (Utils.typeOf(res.data) !== 'null') {
 			Snippets.setManyToSnippetsLib(res.data);
 			if (getSnippetParam().length > 0) {
-				
-				// Get snippet by hash param. 
+
+        // Get snippet by hash param.
 				var s = Snippets.getSnippetsLib()[getSnippetParam()];
-				// If snippet exists, great. Make it current. 
+        // If snippet exists, great. Make it current.
 				if (s) {
-					$scope.data.cs = s	
-				
-				// ... redirect in case snippet has been deleted. 
+          $scope.data.cs = s
+
+        // ... redirect in case snippet has been deleted.
 				} else {
 					$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
 					// setSnippetParam($scope.data.cs);
 				}
-				
+
 			} else {
-				// There is no snippet Id in the params. Get most recent. 
-				$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib()); 	
-				// ... then set the hash param. 
+        // There is no snippet Id in the params. Get most recent.
+        $scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
+        // ... then set the hash param.
 				// setSnippetParam($scope.data.cs);
 			}
-		} 
+    }
 	})
 	.then(function () {
 		return Buckets.fetchAll();
@@ -140,26 +140,26 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	.then(function (res) {
 		$log.log('Got FS', res.data);
 		FS.storeFS(res.data);
-		
+
 	})
 	.catch(Errors.setError);
 
 
-	// Watch for changes to current snippet and keep the library updated. 
+  // Watch for changes to current snippet and keep the library updated.
 	$scope.$watchCollection('data.cs', function (old, neww) {
 		if (old !== neww) {
 			Snippets.setOneToSnippetsLib($scope.data.cs);
-			
+
 			//check to set language (also on init)
 			$scope.data.cs.language = Utils.getLanguageModeByExtension($scope.data.cs.name);
 
 			setEditOpts(neww);
 			setSnippetParam(neww);
 		}
-		
+
 	}, true);
 
-	// Receive a hack message about changes that happened to this or another snippet. 
+  // Receive a hack message about changes that happened to this or another snippet.
 	WS.ws.onMessage(function(message) {
 
 		console.log("received ws message:\n " + message.data);
@@ -183,7 +183,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 			$scope.data.cs.description = snippet.description;
 
 			if (Utils.typeOf(changes) !== 'undefined') {
-				
+
 				// ... make the changes per change obj
 				for (var i = 0; i < changes.length; i++) {
 					var change = changes[i];
@@ -191,24 +191,24 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 					if (Utils.typeOf(change.origin) === 'undefined' || change.origin === "setValue") {
 						return;
 					}
-					
+
 					_doc.replaceRange(change.text, change.from, change.to);
-				}				
+        }
 			}
-		} 
+    }
 	});
 
 	$scope.data.codemirrorLoaded = function(_editor) {
 		_doc = _editor.getDoc();
 
-		// This is how we get the granular change object(s). 
+    // This is how we get the granular change object(s).
 		_editor.on("changes", function(cm, changed) {
 			sendUpdate(changed);
 		});
 	};
 
 	document.getElementById("snippetName").addEventListener('keyup', function (e) {
-		
+
 		if ($scope.data.cs.name == "") {
 			$scope.data.cs.name = "_";
 		}
@@ -220,13 +220,13 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 	});
 
 
-	// Create new snippet. 
+  // Create new snippet.
 	$scope.createNewSnippet = function () {
 		$scope.data.cs = Snippets.buildNewSnippet();
 		$scope.data.cs.bucketId = $scope.data.cb.id;
 		// setSnippetParam($scope.data.cs);
 		document.getElementById("snippetName").focus();
-	};	
+  };
 
 	$scope.deleteSnippet = function (snippet) {
 		var ok = window.confirm("OK to delete this snippet?")
@@ -249,8 +249,8 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 				.catch(function (err) {
 					console.log("failed to delete snippet." + JSON.stringify(err.data));
 					flashAlert("Failed to delete snippet.", 'danger');
-				});	
-		}			
+        });
+    }
 	};
 
 	$scope.selectSnippetAsCurrent = function (snippet) {
@@ -264,18 +264,18 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		Buckets.createBucket("newbucket")
 		.then(function (res) {
 			$log.log(res.data);
-			
 
-			// TODO: websocketize. 
+
+      // TODO: websocketize.
 			Buckets.storeOneBucket(res.data);
 			$scope.data.buckets = Buckets.getBuckets();
 			$scope.data.cb = res.data;
 			flashAlert('Created ' + res.data.meta.name + '.', 'success');
-			
+
 			$timeout(function () {
-				$('#myModal-' + res.data.id).modal('show');		
+        $('#myModal-' + res.data.id).modal('show');
 			}, 500);
-			
+
 		})
 		.catch(function (err) {
 			$log.error(err);
@@ -291,13 +291,13 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 					delete Buckets.getBuckets()[bucket.id];
 					$scope.data.cb = Buckets.getMostRecent(Buckets.getBuckets());
 					// clean snippetsLib
-					angular.forEach(Snippets.getSnippetsLib(), function (val, key) { 
+          angular.forEach(Snippets.getSnippetsLib(), function (val, key) {
 						if (val.bucketId === bucket.id) {
 							delete this[key];
 						}
 					}, Snippets.getSnippetsLib());
 
-					if ($scope.data.cs.bucketId === bucket.id) { // but don't switch cs if it wasn't effected 
+          if ($scope.data.cs.bucketId === bucket.id) { // but don't switch cs if it wasn't effected
 						// then set to most recent existing snippet
 						$scope.data.cs = Snippets.getMostRecent(Snippets.getSnippetsLib());
 					}
@@ -306,11 +306,11 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 				.catch(function (err) {
 					$log.log(err);
 					flashAlert('Failed to destroy ' + bucket.meta.name + '. Error: ' + err + '.', 'danger');
-				});	
+        });
 		} else {
 			// nada.
 		}
-		
+
 	};
 
 	$scope.selectBucketAsCurrent = function (bucket) {
@@ -378,7 +378,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 			.then(function (res) {
 				$log.log('success! wrote snippet to file', res);
 				flashAlert('Successfully saved ' + snippet.name + ' to the FS!', 'success');
-				
+
 			})
 			.then(function () {
 				return FS.fetchFS();
@@ -396,7 +396,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 		FS.writeBucketToFS(bucket)
 			.then(function (res) {
 				flashAlert('Successfully wrote all snippets in ' + bucket.meta.name + ' to the FS.', 'success');
-				
+
 			})
 			.then(function () {
 				return FS.fetchFS();
@@ -411,7 +411,7 @@ app.controller("HackCtrl", ['$scope', '$location', 'WS', 'IP', 'Buckets', 'Snipp
 
 	// Get associated FS path (if exists).
 	$scope.getFSPathForSnippet = function (snippet) {
-		// Get path name. 
+    // Get path name.
 		var snippetPath = snippet.name;
 		var paths = FS.getFS();
 		for (var i = 0; i < paths.length; i++) {
