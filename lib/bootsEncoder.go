@@ -1,8 +1,8 @@
 package lib
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 )
 
 func BootsEncoded(ip string) string {
